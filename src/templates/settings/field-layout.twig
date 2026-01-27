@@ -1,0 +1,31 @@
+{% extends 'campaign-manager/settings/_layout' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Field Layout'|t('campaign-manager') %}
+{% set selectedSettingsItem = 'field-layout' %}
+{% set fullPageForm = not (readOnly ?? false) %}
+{% if readOnly ?? false %}
+    {% set contentNotice = readOnlyNotice() %}
+{% endif %}
+
+{% block content %}
+    {% if not (readOnly ?? false) %}
+        {{ actionInput('campaign-manager/settings/save-field-layout') }}
+        {{ redirectInput('campaign-manager/settings/field-layout') }}
+    {% endif %}
+
+    <div class="field">
+        <p class="readable">
+            {{ 'Add custom fields to Campaign elements. Any fields you add here will appear in the Campaign edit screen.'|t('campaign-manager') }}
+        </p>
+    </div>
+
+    {% if fieldLayout is defined and fieldLayout %}
+        {{ forms.fieldLayoutDesignerField({
+            fieldLayout: fieldLayout,
+            disabled: readOnly ?? false,
+        }) }}
+    {% else %}
+        <p class="notice">{{ 'No field layout available.'|t('campaign-manager') }}</p>
+    {% endif %}
+{% endblock %}

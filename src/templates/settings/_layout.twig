@@ -1,0 +1,38 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set plugin = craft.app.plugins.getPlugin('campaign-manager') %}
+{% set settings = plugin.getSettings() %}
+
+{% set title = title ?? 'Settings'|t('campaign-manager') %}
+{% set selectedSubnavItem = 'settings' %}
+
+{% set crumbs = [
+    { label: settings.pluginName, url: url('campaign-manager') },
+    { label: 'Settings'|t('campaign-manager'), url: url('campaign-manager/settings') }
+] %}
+
+{% set settingsNavItems = {
+    'general': { label: 'General'|t('campaign-manager'), url: 'campaign-manager/settings' },
+    'field-layout': { label: 'Field Layout'|t('campaign-manager'), url: 'campaign-manager/settings/field-layout' },
+} %}
+
+{% block sidebar %}
+    <nav id="settings-nav">
+        <ul>
+            {% for key, item in settingsNavItems %}
+                <li>
+                    <a href="{{ cpUrl(item.url) }}"{% if selectedSettingsItem is defined and selectedSettingsItem == key %} class="sel"{% endif %}>
+                        {{ item.label }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+{% endblock %}
+
+{% block actionButton %}
+    {% if fullPageForm is defined and fullPageForm %}
+        <button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+    {% endif %}
+{% endblock %}

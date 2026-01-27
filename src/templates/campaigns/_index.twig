@@ -1,0 +1,55 @@
+{% extends '_layouts/elementindex' %}
+
+{% set title = 'Campaigns'|t('campaign-manager') %}
+{% set elementType = elementType %}
+{% set canCreate = currentUser.can('campaignManager:createCampaigns') %}
+
+{% block actionButton %}
+    {% if canCreate %}
+        <a href="{{ cpUrl('campaign-manager/campaigns/new') }}" class="btn submit add icon">
+            {{ 'New campaign'|t('campaign-manager') }}
+        </a>
+    {% endif %}
+{% endblock %}
+
+{% js %}
+// Initialize menu buttons when table updates
+Garnish.on(Craft.BaseElementIndex, 'updateElements', function() {
+    initCampaignMenus();
+});
+
+// Initial load
+Garnish.$doc.ready(function() {
+    initCampaignMenus();
+});
+
+function initCampaignMenus() {
+    // Initialize menu buttons
+    document.querySelectorAll('.campaign-actions-menu .menubtn').forEach(function(btn) {
+        if (!btn.menuBtn) {
+            new Garnish.MenuBtn(btn);
+        }
+    });
+
+    // Handle Run Campaign action
+    document.querySelectorAll('.campaign-run-action').forEach(function(link) {
+        if (link.hasListener) return;
+        link.hasListener = true;
+
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            var campaignId = this.dataset.campaignId;
+
+            Craft.sendActionRequest('POST', 'campaign-manager/campaigns/run-all', {
+                data: { campaignId: campaignId }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice('{{ "Campaign started"|t("campaign-manager") }}');
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError('{{ "Failed to run campaign"|t("campaign-manager") }}');
+            });
+        });
+    });
+}
+{% endjs %}

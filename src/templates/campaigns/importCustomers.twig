@@ -1,0 +1,155 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set plugin = craft.app.plugins.getPlugin('campaign-manager') %}
+{% set settings = plugin.getSettings() %}
+
+{# Site and campaign are passed from controller #}
+{% set site = site ?? craft.app.sites.getCurrentSite() %}
+{% set campaignId = campaignId ?? campaign.id %}
+
+{% set title = 'Import Customers'|t('campaign-manager') %}
+{% set fullPageForm = false %}
+{% set selectedSubnavItem = 'campaigns' %}
+
+{# Site switcher in crumbs #}
+{% set crumbs = [] %}
+{% if craft.app.getIsMultiSite() %}
+    {% set siteMenuItems = [] %}
+    {% for s in craft.app.sites.getAllSites() %}
+        {% set siteMenuItems = siteMenuItems|merge([{
+            label: s.name,
+            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: s.handle}),
+            selected: s.handle == site.handle
+        }]) %}
+    {% endfor %}
+
+    {% set crumbs = [{
+        id: 'site-crumb',
+        icon: 'world',
+        label: site.name|t('site'),
+        menu: {
+            items: siteMenuItems,
+            label: 'Select site'|t('app')
+        }
+    }] %}
+{% endif %}
+
+{% set crumbs = crumbs|merge([
+    { label: settings.pluginName, url: cpUrl('campaign-manager', {site: site.handle}) },
+    { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: site.handle}) },
+]) %}
+
+{% block content %}
+    {% if errors is defined %}
+        <div class="pane error" style="margin-bottom: 24px;">
+            <p><strong>{{ 'Error:'|t('campaign-manager') }}</strong></p>
+            <p>{{ errors }}</p>
+        </div>
+    {% endif %}
+
+    <h2 style="margin-top: 0;">{{ 'Import Customers from CSV'|t('campaign-manager') }}</h2>
+
+    <p>{{ 'Upload a CSV file to import customers into this campaign. You will be able to map columns and preview before importing.'|t('campaign-manager') }}</p>
+
+    {% set csvFormatTip %}
+        <h4>{{ 'CSV Format'|t('campaign-manager') }}</h4>
+        <p><strong>{{ 'Required columns:'|t('campaign-manager') }}</strong></p>
+        <ul>
+            <li><code>Name</code> - {{ 'Customer name'|t('campaign-manager') }}</li>
+        </ul>
+        <p><strong>{{ 'Optional columns:'|t('campaign-manager') }}</strong></p>
+        <ul>
+            <li><code>Email</code> - {{ 'Email address for email invitations'|t('campaign-manager') }}</li>
+            <li><code>Phone</code> / <code>SMS</code> - {{ 'Phone number for SMS invitations'|t('campaign-manager') }}</li>
+            <li><code>Language</code> - {{ 'en or ar (determines site)'|t('campaign-manager') }}</li>
+        </ul>
+        <p><strong>{{ 'Example:'|t('campaign-manager') }}</strong></p>
+        <pre style="background: #f3f4f6; padding: 8px; border-radius: 4px; font-size: 12px;">Name,Email,Phone,Language
+John Doe,john@example.com,96512345678,en
+Ahmed Ali,ahmed@example.com,96598765432,ar</pre>
+    {% endset %}
+
+    <div class="field">
+        <div class="heading">
+            <label>{{ 'CSV File Format'|t('campaign-manager') }}</label>
+            <span class="info">{{ csvFormatTip|raw }}</span>
+            <div class="instructions">
+                <p>{{ 'Your CSV should include Name, Email, Phone, and Language columns. Click the info icon for details.'|t('campaign-manager') }}</p>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" action="{{ actionUrl('campaign-manager/customers/upload') }}" enctype="multipart/form-data">
+        {{ csrfInput() }}
+        {{ hiddenInput('campaignId', campaignId) }}
+
+        {{ forms.fileField({
+            label: 'CSV File'|t('campaign-manager'),
+            instructions: 'Select a CSV file to import customers. Delimiter (comma, semicolon, tab) is auto-detected.'|t('campaign-manager'),
+            id: 'file',
+            name: 'file',
+            required: true
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Send Invitations After Import'|t('campaign-manager'),
+            instructions: 'Automatically queue invitation sending after import completes.'|t('campaign-manager'),
+            id: 'queueSending',
+            name: 'queueSending',
+            on: true,
+        }) }}
+
+        <div class="buttons">
+            <button type="submit" class="btn submit">{{ 'Upload & Map Columns'|t('campaign-manager') }}</button>
+        </div>
+    </form>
+{% endblock %}
+
+{% block details %}
+    <fieldset>
+        <div class="meta">
+            <div class="field">
+                <div class="heading">
+                    <label>{{ 'Campaign'|t('campaign-manager') }}</label>
+                </div>
+                <div class="input">
+                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: site.handle}) }}">{{ campaign.title }}</a>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label>{{ 'Template'|t('campaign-manager') }}</label>
+                </div>
+                <div class="input">
+                    <button type="button" class="btn" id="download-template-btn">{{ 'Download CSV Template'|t('campaign-manager') }}</button>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+{% endblock %}
+
+{% js %}
+document.getElementById('download-template-btn').addEventListener('click', function() {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '';
+    form.style.display = 'none';
+
+    var csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '{{ craft.app.config.general.csrfTokenName }}';
+    csrfInput.value = '{{ craft.app.request.csrfToken }}';
+    form.appendChild(csrfInput);
+
+    var actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'campaign-manager/customers/download-sample';
+    form.appendChild(actionInput);
+
+    document.body.appendChild(form);
+    form.submit();
+});
+{% endjs %}

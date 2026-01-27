@@ -1,0 +1,398 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set plugin = craft.app.plugins.getPlugin('campaign-manager') %}
+{% set settings = plugin.getSettings() %}
+
+{# Site and campaign are passed from controller #}
+{% set site = site ?? craft.app.sites.getCurrentSite() %}
+{% set campaignId = campaignId ?? campaign.id %}
+
+{% set title = campaign.title ~ ' - ' ~ 'Customers'|t('campaign-manager') %}
+{% set fullPageForm = false %}
+{% set selectedSubnavItem = 'campaigns' %}
+
+{# Get query parameters #}
+{% set search = craft.app.request.getParam('search', '') %}
+{% set sort = craft.app.request.getParam('sort', 'sent') %}
+{% set dir = craft.app.request.getParam('dir', 'desc') %}
+{% set dateRange = craft.app.request.getParam('dateRange', 'all') %}
+{% set page = craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
+{% set limit = 50 %}
+{% set offset = (page - 1) * limit %}
+
+{# Date range labels #}
+{% set dateRangeLabels = {
+    'today': 'Today'|t('campaign-manager'),
+    'yesterday': 'Yesterday'|t('campaign-manager'),
+    'last7days': 'Last 7 days'|t('campaign-manager'),
+    'last30days': 'Last 30 days'|t('campaign-manager'),
+    'last90days': 'Last 90 days'|t('campaign-manager'),
+    'all': 'All time'|t('campaign-manager'),
+} %}
+
+{# Get customers with date filtering at SQL level #}
+{% set allCustomers = campaignManager.customers.findByCampaignAndSite(campaignId, site.id, dateRange) %}
+
+{# Search filter #}
+{% if search %}
+    {% set allCustomers = allCustomers|filter(c => search|lower in c.name|lower or search|lower in c.email|lower or search|lower in c.sms|lower) %}
+{% endif %}
+
+{# Sort #}
+{% if sort == 'name' %}
+    {% set allCustomers = dir == 'asc' ? allCustomers|sort((a, b) => a.name|lower <=> b.name|lower) : allCustomers|sort((a, b) => b.name|lower <=> a.name|lower) %}
+{% elseif sort == 'email' %}
+    {% set allCustomers = dir == 'asc' ? allCustomers|sort((a, b) => (a.email ?? '')|lower <=> (b.email ?? '')|lower) : allCustomers|sort((a, b) => (b.email ?? '')|lower <=> (a.email ?? '')|lower) %}
+{% elseif sort == 'sms' %}
+    {% set allCustomers = dir == 'asc' ? allCustomers|sort((a, b) => (a.sms ?? '') <=> (b.sms ?? '')) : allCustomers|sort((a, b) => (b.sms ?? '') <=> (a.sms ?? '')) %}
+{% elseif sort == 'sent' %}
+    {% set allCustomers = dir == 'asc' ? allCustomers|sort((a, b) => (a.smsSendDate ?? a.emailSendDate ?? '')|date('U') <=> (b.smsSendDate ?? b.emailSendDate ?? '')|date('U')) : allCustomers|sort((a, b) => (b.smsSendDate ?? b.emailSendDate ?? '')|date('U') <=> (a.smsSendDate ?? a.emailSendDate ?? '')|date('U')) %}
+{% elseif sort == 'opened' %}
+    {% set allCustomers = dir == 'asc' ? allCustomers|sort((a, b) => (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U') <=> (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U')) : allCustomers|sort((a, b) => (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U') <=> (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U')) %}
+{% endif %}
+
+{# Pagination #}
+{% set totalCount = allCustomers|length %}
+{% set totalPages = (totalCount / limit)|round(0, 'ceil') %}
+{% set customers = allCustomers|slice(offset, limit) %}
+
+{# Site switcher in crumbs #}
+{% set crumbs = [] %}
+{% if craft.app.getIsMultiSite() %}
+    {% set siteMenuItems = [] %}
+    {% for s in craft.app.sites.getAllSites() %}
+        {% set siteMenuItems = siteMenuItems|merge([{
+            label: s.name,
+            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: s.handle}),
+            selected: s.handle == site.handle
+        }]) %}
+    {% endfor %}
+
+    {% set crumbs = [{
+        id: 'site-crumb',
+        icon: 'world',
+        label: site.name|t('site'),
+        menu: {
+            items: siteMenuItems,
+            label: 'Select site'|t('app')
+        }
+    }] %}
+{% endif %}
+
+{% set crumbs = crumbs|merge([
+    { label: settings.pluginName, url: cpUrl('campaign-manager', {site: site.handle}) },
+    { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId, {site: site.handle}) },
+    { label: 'Customers'|t('campaign-manager') },
+]) %}
+
+{% block toolbar %}
+    <div id="toolbar" class="flex" style="align-items: flex-end;">
+        <div class="flex-grow">
+            <form method="get" action="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers') }}">
+                <div class="flex">
+                    {# Date range filter #}
+                    <div class="btngroup">
+                        <button type="button" class="btn menubtn">
+                            {{ dateRangeLabels[dateRange] ?? dateRangeLabels['all'] }}
+                        </button>
+                        <div class="menu">
+                            <ul>
+                                <li><a class="{{ dateRange == 'today' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=today&page=1">{{ 'Today'|t('campaign-manager') }}</a></li>
+                                <li><a class="{{ dateRange == 'yesterday' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=yesterday&page=1">{{ 'Yesterday'|t('campaign-manager') }}</a></li>
+                                <li><a class="{{ dateRange == 'last7days' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=last7days&page=1">{{ 'Last 7 days'|t('campaign-manager') }}</a></li>
+                                <li><a class="{{ dateRange == 'last30days' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=last30days&page=1">{{ 'Last 30 days'|t('campaign-manager') }}</a></li>
+                                <li><a class="{{ dateRange == 'last90days' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=last90days&page=1">{{ 'Last 90 days'|t('campaign-manager') }}</a></li>
+                                <li><a class="{{ dateRange == 'all' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=all&page=1">{{ 'All time'|t('campaign-manager') }}</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="search-container texticon flex-grow">
+                        <span class="texticon-icon search icon" aria-hidden="true"></span>
+                        <input type="text" class="clearable text fullwidth" name="search" value="{{ search }}" placeholder="{{ 'Search customers...'|t('campaign-manager') }}" autocomplete="off" dir="ltr" aria-label="Search" {% if search %} autofocus {% endif %}>
+                        <button type="button" class="clear-btn {{ search ? '' : 'hidden' }}" title="Clear search" role="button" aria-label="Clear search"></button>
+                        <input type="hidden" name="site" value="{{ site.handle }}">
+                        <input type="hidden" name="sort" value="{{ sort }}">
+                        <input type="hidden" name="dir" value="{{ dir }}">
+                        <input type="hidden" name="dateRange" value="{{ dateRange }}">
+                    </div>
+                </div>
+            </form>
+        </div>
+        {# Export dropdown #}
+        <div class="btngroup">
+            <button type="button" class="btn menubtn" data-icon="download">{{ "Export"|t('campaign-manager') }}</button>
+            <div class="menu" data-align="right">
+                <ul>
+                    <li>
+                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/export-customers', {site: site.handle, dateRange: dateRange, format: 'csv'}) }}">{{ "Export as CSV"|t('campaign-manager') }}</a>
+                    </li>
+                    <li>
+                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/export-customers', {site: site.handle, dateRange: dateRange, format: 'json'}) }}">{{ "Export as JSON"|t('campaign-manager') }}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="btngroup">
+            <button type="button" class="btn menubtn" data-icon="plus">{{ 'Add'|t('campaign-manager') }}</button>
+            <div class="menu" data-align="right">
+                <ul>
+                    <li>
+                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/add-customer', {site: site.handle}) }}">
+                            {{ 'New Customer'|t('campaign-manager') }}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/import-customers', {site: site.handle}) }}">
+                            {{ 'Import from CSV'|t('campaign-manager') }}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <button type="button" class="btn submit" id="run-campaign-btn" data-campaign-id="{{ campaignId }}" data-site-id="{{ site.id }}">
+            {{ 'Run Campaign'|t('campaign-manager') }}
+        </button>
+    </div>
+{% endblock %}
+
+{% css %}
+@media (max-width: 768px) {
+    #new-customer-btn .label-full {
+        display: none;
+    }
+    #new-customer-btn .label-short {
+        display: inline;
+    }
+    #new-customer-btn:before {
+        margin-inline-end: 0 !important;
+    }
+}
+{% endcss %}
+
+{% block content %}
+    <style>
+        #toolbar.flex {
+            flex-wrap: nowrap;
+            gap: 8px;
+        }
+        #toolbar .flex-grow {
+            min-width: 0;
+            flex-shrink: 1;
+        }
+    </style>
+
+    <div id="elements" class="elements">
+        <div class="tableview tablepane">
+            <table class="data fullwidth">
+                <thead>
+                    <tr>
+                        <th scope="col" data-attribute="name" class="orderable {{ sort == 'name' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="name">{{ "Name"|t('campaign-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="email" class="orderable {{ sort == 'email' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="email">{{ "Email"|t('campaign-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="sms" class="orderable {{ sort == 'sms' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="sms">{{ "SMS"|t('campaign-manager') }}</button>
+                        </th>
+                        <th scope="col">{{ "Code"|t('campaign-manager') }}</th>
+                        <th scope="col" data-attribute="sent" class="orderable {{ sort == 'sent' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="sent">{{ "Sent"|t('campaign-manager') }}</button>
+                        </th>
+                        <th scope="col" data-attribute="opened" class="orderable {{ sort == 'opened' ? 'ordered ' ~ dir : '' }}">
+                            <button type="button" data-sort="opened">{{ "Opened"|t('campaign-manager') }}</button>
+                        </th>
+                        <th scope="col">{{ "Submission"|t('campaign-manager') }}</th>
+                        <th scope="col" class="thin">{{ "Actions"|t('campaign-manager') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if customers|length %}
+                        {% for customer in customers %}
+                            <tr data-id="{{ customer.id }}" data-name="{{ customer.name }}">
+                                <td>{{ customer.name }}</td>
+                                <td>
+                                    {% if customer.email %}
+                                        <code>{{ customer.email }}</code>
+                                    {% else %}
+                                        <span class="light">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if customer.sms %}
+                                        <code>{{ customer.sms }}</code>
+                                    {% else %}
+                                        <span class="light">-</span>
+                                    {% endif %}
+                                </td>
+                                <td><code>{{ customer.smsInvitationCode ?? customer.emailInvitationCode ?? '-' }}</code></td>
+                                <td>
+                                    {% set sentDate = customer.smsSendDate ?? customer.emailSendDate %}
+                                    {% if sentDate %}
+                                        {{ sentDate|date('Y-m-d H:i') }}
+                                    {% else %}
+                                        <span class="light">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set openedDate = customer.smsOpenDate ?? customer.emailOpenDate %}
+                                    {% if openedDate %}
+                                        {{ openedDate|date('Y-m-d H:i') }}
+                                    {% else %}
+                                        <span class="light">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if customer.submissionId %}
+                                        <a href="{{ cpUrl('formie/submissions/edit/' ~ customer.submissionId) }}">{{ customer.submissionId }}</a>
+                                    {% else %}
+                                        <span class="light">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="thin" style="text-align: right;">
+                                    <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('campaign-manager') }}"></button>
+                                    <div class="menu">
+                                        <ul>
+                                            <li>
+                                                <a class="customer-action error" data-action="delete" data-id="{{ customer.id }}" data-name="{{ customer.name }}">
+                                                    {{ 'Delete'|t('campaign-manager') }}
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 2em;">
+                                {{ 'No customers found.'|t('campaign-manager') }}
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="footer" class="flex flex-justify">
+        <div class="light">
+            <div class="flex pagination">
+                <nav class="flex" aria-label="customer pagination">
+                    <button type="button" class="page-link prev-page {{ page <= 1 ? 'disabled' : '' }}" {{ page <= 1 ? 'disabled' : '' }} title="Previous Page"></button>
+                    <button type="button" class="page-link next-page {{ page >= totalPages ? 'disabled' : '' }}" {{ page >= totalPages ? 'disabled' : '' }} title="Next Page"></button>
+                </nav>
+                <div class="page-info" style="margin: 0 12px; color: #596673;">
+                    {% set endRange = min(offset + limit, totalCount) %}
+                    {% if totalCount == 0 %}
+                        {{ 'no customers'|t('campaign-manager') }}
+                    {% else %}
+                        {{ offset + 1 }} – {{ endRange }} {{ 'of'|t('campaign-manager') }} {{ totalCount }} {{ totalCount == 1 ? 'customer'|t('campaign-manager') : 'customers'|t('campaign-manager') }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Initialize menu buttons
+    document.querySelectorAll('.menubtn').forEach(btn => {
+        if (typeof Craft !== 'undefined' && Craft.MenuBtn) {
+            new Craft.MenuBtn(btn);
+        } else if (typeof Garnish !== 'undefined' && Garnish.MenuBtn) {
+            new Garnish.MenuBtn(btn);
+        }
+    });
+
+    // Clear search
+    const clearBtn = document.querySelector('.clear-btn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            const searchInput = document.querySelector('input[name="search"]');
+            searchInput.value = '';
+            searchInput.form.submit();
+        });
+    }
+
+    // Search on Enter
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                this.form.submit();
+            }
+        });
+    }
+
+    // Pagination
+    document.querySelector('.prev-page:not(.disabled)')?.addEventListener('click', function() {
+        window.location.href = '?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange={{ dateRange }}&page={{ page - 1 }}';
+    });
+
+    document.querySelector('.next-page:not(.disabled)')?.addEventListener('click', function() {
+        window.location.href = '?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange={{ dateRange }}&page={{ page + 1 }}';
+    });
+
+    // Sort buttons
+    document.querySelectorAll('th.orderable button').forEach(button => {
+        button.addEventListener('click', function() {
+            const sortField = this.dataset.sort;
+            const currentSort = '{{ sort }}';
+            const currentDir = '{{ dir }}';
+            let newDir = 'asc';
+            if (sortField === currentSort) {
+                newDir = currentDir === 'asc' ? 'desc' : 'asc';
+            }
+            window.location.href = '?site={{ site.handle }}&search={{ search }}&sort=' + sortField + '&dir=' + newDir + '&dateRange={{ dateRange }}&page=1';
+        });
+    });
+
+    // Run campaign button
+    document.getElementById('run-campaign-btn')?.addEventListener('click', function() {
+        const campaignId = this.dataset.campaignId;
+        const siteId = this.dataset.siteId;
+
+        Craft.sendActionRequest('POST', 'campaign-manager/campaigns/run-all', {
+            data: { campaignId: campaignId, siteId: siteId }
+        }).then(function(response) {
+            if (response.data.success) {
+                const jobsQueued = response.data.jobsQueued || 0;
+                if (jobsQueued > 0) {
+                    Craft.cp.displayNotice('{{ "Campaign job queued. Check the queue for progress."|t("campaign-manager") }}');
+                } else {
+                    Craft.cp.displayNotice('{{ "No pending customers to process."|t("campaign-manager") }}');
+                }
+            }
+        }).catch(function(error) {
+            Craft.cp.displayError('{{ "Failed to run campaign"|t("campaign-manager") }}');
+        });
+    });
+
+    // Customer actions
+    document.querySelectorAll('.customer-action').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const action = this.dataset.action;
+            const customerId = this.dataset.id;
+            const customerName = this.dataset.name;
+
+            if (action === 'delete') {
+                if (confirm('{{ "Delete customer"|t("campaign-manager") }} "' + customerName + '"? {{ "This cannot be undone."|t("campaign-manager") }}')) {
+                    Craft.sendActionRequest('POST', 'campaign-manager/customers/delete-from-cp', {
+                        data: { id: customerId }
+                    }).then(function(response) {
+                        if (response.data.success) {
+                            Craft.cp.displayNotice('{{ "Customer deleted"|t("campaign-manager") }}');
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
+                    }).catch(function(error) {
+                        Craft.cp.displayError('{{ "Failed to delete customer"|t("campaign-manager") }}');
+                    });
+                }
+            }
+        });
+    });
+    </script>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set plugin = craft.app.plugins.getPlugin('campaign-manager') %}
+{% set settings = plugin.getSettings() %}
+
+{# Site and campaign are passed from controller #}
+{% set site = site ?? craft.app.sites.getCurrentSite() %}
+{% set campaignId = campaignId ?? campaign.id %}
+
+{% set title = 'Map CSV Columns'|t('campaign-manager') %}
+{% set fullPageForm = false %}
+{% set selectedSubnavItem = 'campaigns' %}
+
+{# Site switcher in crumbs #}
+{% set crumbs = [] %}
+{% if craft.app.getIsMultiSite() %}
+    {% set siteMenuItems = [] %}
+    {% for s in craft.app.sites.getAllSites() %}
+        {% set siteMenuItems = siteMenuItems|merge([{
+            label: s.name,
+            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: s.handle}),
+            selected: s.handle == site.handle
+        }]) %}
+    {% endfor %}
+
+    {% set crumbs = [{
+        id: 'site-crumb',
+        icon: 'world',
+        label: site.name|t('site'),
+        menu: {
+            items: siteMenuItems,
+            label: 'Select site'|t('app')
+        }
+    }] %}
+{% endif %}
+
+{% set crumbs = crumbs|merge([
+    { label: settings.pluginName, url: cpUrl('campaign-manager', {site: site.handle}) },
+    { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: site.handle}) },
+    { label: 'Import Customers'|t('campaign-manager'), url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: site.handle}) },
+]) %}
+
+{% block content %}
+    <h2 style="margin-top: 0;">{{ 'Map CSV Columns'|t('campaign-manager') }}</h2>
+
+    <p>{{ 'Your CSV has {count} rows. Map each CSV column to a customer field.'|t('campaign-manager', {count: rowCount}) }}</p>
+
+    <h3>{{ 'Preview of CSV Data'|t('campaign-manager') }}</h3>
+    <div style="overflow-x: auto; margin-bottom: 30px;">
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    {% for header in headers %}
+                        <th>{{ header }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in previewRows %}
+                    <tr>
+                        {% for cell in row %}
+                            <td><code>{{ cell }}</code></td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if rowCount > 5 %}
+            <p class="light" style="margin-top: 10px;">{{ 'Showing first 5 rows. {total} total rows will be imported.'|t('campaign-manager', {total: rowCount}) }}</p>
+        {% endif %}
+    </div>
+
+    <hr>
+
+    <h3>{{ 'Column Mapping'|t('campaign-manager') }}</h3>
+    <p>{{ 'Map your CSV columns to customer fields. Name and at least one of Email or Phone must be mapped.'|t('campaign-manager') }}<br>
+    <span class="light">{{ '* At least one required'|t('campaign-manager') }}</span></p>
+
+    <form method="post" action="{{ actionUrl('campaign-manager/customers/preview') }}">
+        {{ csrfInput() }}
+        {{ hiddenInput('campaignId', campaignId) }}
+        {{ hiddenInput('queueSending', queueSending ? '1' : '0') }}
+
+        {% set fieldOptions = [
+            {value: '', label: '-- Do not import --'|t('campaign-manager')},
+            {value: 'name', label: 'Name (required)'|t('campaign-manager')},
+            {value: 'email', label: 'Email (required*)'|t('campaign-manager')},
+            {value: 'sms', label: 'Phone / SMS (required*)'|t('campaign-manager')},
+            {value: 'language', label: 'Language (en/ar)'|t('campaign-manager')},
+        ] %}
+
+        <div class="field">
+            <div class="input">
+                <table class="editable fullwidth">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">{{ 'CSV Column'|t('campaign-manager') }}</th>
+                            <th style="width: 40%;">{{ 'Maps to Field'|t('campaign-manager') }}</th>
+                            <th style="width: 30%;">{{ 'Sample Data'|t('campaign-manager') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i, header in headers %}
+                            <tr>
+                                <td><strong>{{ header }}</strong></td>
+                                <td>
+                                    <div class="select fullwidth">
+                                        <select name="mapping[{{ i }}]" class="column-mapping">
+                                            {% for option in fieldOptions %}
+                                                {% set isMatch = false %}
+                                                {% set lowerHeader = header|lower %}
+
+                                                {# Auto-detect mapping based on header name #}
+                                                {% if option.value == 'name' and (lowerHeader in ['name', 'customer name', 'customer_name', 'customername', 'full name', 'fullname', 'full_name']) %}
+                                                    {% set isMatch = true %}
+                                                {% elseif option.value == 'email' and (lowerHeader in ['email', 'e-mail', 'email address', 'emailaddress', 'email_address', 'mail']) %}
+                                                    {% set isMatch = true %}
+                                                {% elseif option.value == 'sms' and (lowerHeader in ['sms', 'phone', 'mobile', 'telephone', 'tel', 'phone number', 'phonenumber', 'phone_number', 'mobile number', 'mobilenumber', 'mobile_number', 'cell', 'cellphone']) %}
+                                                    {% set isMatch = true %}
+                                                {% elseif option.value == 'language' and (lowerHeader in ['language', 'lang', 'locale', 'site', 'site_language']) %}
+                                                    {% set isMatch = true %}
+                                                {% endif %}
+
+                                                <option value="{{ option.value }}" {% if isMatch %}selected{% endif %}>{{ option.label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <code class="light">{{ previewRows[0][i] ?? '-' }}</code>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% include 'lindemannrock-base/_components/info-box' with {
+            message: '',
+            type: 'error',
+            variant: 'colored',
+            margin: 'both',
+            boxId: 'mappingErrors',
+            messageId: 'mappingErrorText',
+            hidden: true
+        } only %}
+
+        <hr style="margin: 30px 0;">
+
+        <h3>{{ 'Default Language'|t('campaign-manager') }}</h3>
+        <p>{{ 'Used as fallback when the Language column is not mapped, or when a row has an empty/invalid language value.'|t('campaign-manager') }}</p>
+
+        {# Build unique languages from sites #}
+        {% set languageOptions = {} %}
+        {% for s in craft.app.sites.getAllSites() %}
+            {% set langCode = s.language|upper %}
+            {% if langCode not in languageOptions|keys %}
+                {% set languageOptions = languageOptions|merge({(langCode): s.id}) %}
+            {% endif %}
+        {% endfor %}
+
+        <div class="input" style="margin-top: 10px;">
+            <div class="select">
+                <select id="defaultSiteId" name="defaultSiteId">
+                    {% for langCode, siteId in languageOptions %}
+                        <option value="{{ siteId }}" {% if siteId == site.id %}selected{% endif %}>
+                            {{ langCode }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <hr style="margin: 30px 0;">
+
+        <div class="buttons">
+            <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: site.handle}) }}" class="btn">{{ 'Cancel'|t('campaign-manager') }}</a>
+            <button type="submit" class="btn submit" id="importBtn">{{ 'Preview Import'|t('campaign-manager') }}</button>
+        </div>
+    </form>
+{% endblock %}
+
+{% block details %}
+    <fieldset>
+        <div class="meta">
+            {{ forms.lightswitchField({
+                label: 'Send Invitations'|t('campaign-manager'),
+                instructions: 'Queue invitation sending after import.'|t('campaign-manager'),
+                id: 'queueSendingToggle',
+                name: 'queueSendingToggle',
+                on: queueSending
+            }) }}
+
+            <div class="field">
+                <div class="heading">
+                    <label>{{ 'Campaign'|t('campaign-manager') }}</label>
+                </div>
+                <div class="input">
+                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: site.handle}) }}">{{ campaign.title }}</a>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="heading">
+                    <label>{{ 'Rows to Import'|t('campaign-manager') }}</label>
+                </div>
+                <div class="input">
+                    <strong>{{ rowCount|number }}</strong>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+{% endblock %}
+
+{% js %}
+    // Validate required fields are mapped before submitting
+    const importBtn = document.getElementById('importBtn');
+    const mappingErrorDiv = document.getElementById('mappingErrors');
+    const mappingErrorText = document.getElementById('mappingErrorText');
+    const form = document.querySelector('form');
+
+    form.addEventListener('submit', function(e) {
+        const mappings = document.querySelectorAll('.column-mapping');
+        const selectedValues = Array.from(mappings).map(m => m.value);
+
+        // Check required fields
+        const hasName = selectedValues.includes('name');
+        const hasEmail = selectedValues.includes('email');
+        const hasSms = selectedValues.includes('sms');
+
+        let errors = [];
+
+        if (!hasName) {
+            errors.push('Name');
+        }
+
+        if (!hasEmail && !hasSms) {
+            errors.push('Email or Phone');
+        }
+
+        if (errors.length > 0) {
+            e.preventDefault();
+            mappingErrorDiv.style.display = 'block';
+            mappingErrorText.innerHTML = '<strong>Required fields not mapped: ' + errors.join(', ') + '</strong>';
+            mappingErrorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+
+        // Check for duplicate mappings
+        const nonEmptyMappings = selectedValues.filter(v => v !== '');
+        const uniqueMappings = new Set(nonEmptyMappings);
+
+        if (nonEmptyMappings.length !== uniqueMappings.size) {
+            e.preventDefault();
+            mappingErrorDiv.style.display = 'block';
+            mappingErrorText.innerHTML = '<strong>Error: You cannot map multiple CSV columns to the same field</strong>';
+            mappingErrorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+
+        mappingErrorDiv.style.display = 'none';
+    });
+
+    // Clear error when user changes mapping
+    document.querySelectorAll('.column-mapping').forEach(select => {
+        select.addEventListener('change', function() {
+            mappingErrorDiv.style.display = 'none';
+        });
+    });
+
+    // Sync sidebar toggle with hidden form input
+    const queueSendingToggle = document.getElementById('queueSendingToggle');
+    const queueSendingInput = document.querySelector('input[name="queueSending"]');
+    if (queueSendingToggle && queueSendingInput) {
+        queueSendingToggle.addEventListener('change', function() {
+            queueSendingInput.value = this.classList.contains('on') ? '1' : '0';
+        });
+    }
+{% endjs %}
