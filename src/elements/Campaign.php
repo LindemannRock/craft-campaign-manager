@@ -299,7 +299,7 @@ class Campaign extends Element
             'campaignType' => ['label' => Craft::t('campaign-manager', 'Type')],
             'form' => ['label' => Craft::t('campaign-manager', 'Form')],
             'customerCount' => ['label' => Craft::t('campaign-manager', 'Customers')],
-            'actions' => ['label' => Craft::t('campaign-manager', 'Actions')],
+            'submissionCount' => ['label' => Craft::t('campaign-manager', 'Submissions')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
         ];
@@ -314,7 +314,7 @@ class Campaign extends Element
             'campaignType',
             'form',
             'customerCount',
-            'actions',
+            'submissionCount',
             'dateCreated',
         ];
     }
@@ -430,12 +430,21 @@ class Campaign extends Element
     }
 
     /**
-     * Get actions attribute (used for table attribute)
-     * The actual HTML is rendered via getTableAttributeHtml()
+     * Get submission count (customers who have submitted the form)
      */
-    public function getActions(): ?string
+    public function getSubmissionCount(): int
     {
-        return null;
+        if (!$this->id) {
+            return 0;
+        }
+
+        return CustomerRecord::find()
+            ->where([
+                'campaignId' => $this->id,
+                'siteId' => $this->siteId,
+            ])
+            ->andWhere(['not', ['submissionId' => null]])
+            ->count();
     }
 
     /**
@@ -615,45 +624,15 @@ class Campaign extends Element
                 }
                 return '0';
 
+            case 'submissionCount':
+                $count = $this->getSubmissionCount();
+                return number_format($count);
+
             case 'campaignType':
                 return $this->campaignType ?: '—';
-
-            case 'actions':
-                return $this->getActionsHtml();
         }
 
         return parent::attributeHtml($attribute);
-    }
-
-    /**
-     * Get the HTML for the actions dropdown menu
-     */
-    protected function getActionsHtml(): string
-    {
-        $customersUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$this->id}/customers");
-        $addCustomerUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$this->id}/add-customer");
-        $importCustomersUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$this->id}/import-customers");
-
-        $viewCustomers = Craft::t('campaign-manager', 'View Customers');
-        $addCustomer = Craft::t('campaign-manager', 'Add Customer');
-        $importCustomers = Craft::t('campaign-manager', 'Import Customers');
-        $runCampaign = Craft::t('campaign-manager', 'Run Campaign');
-        $actionsLabel = Craft::t('campaign-manager', 'Actions');
-
-        return <<<HTML
-<div class="campaign-actions-menu" style="text-align: right;">
-    <button type="button" class="btn menubtn" data-icon="settings" title="{$actionsLabel}"></button>
-    <div class="menu">
-        <ul>
-            <li><a href="{$customersUrl}">{$viewCustomers}</a></li>
-            <li><a href="{$addCustomerUrl}">{$addCustomer}</a></li>
-            <li><a href="{$importCustomersUrl}">{$importCustomers}</a></li>
-            <li><hr class="padded"></li>
-            <li><a class="campaign-run-action" data-campaign-id="{$this->id}">{$runCampaign}</a></li>
-        </ul>
-    </div>
-</div>
-HTML;
     }
 
     /**

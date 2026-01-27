@@ -172,6 +172,14 @@ class CampaignManager extends Plugin
                 ];
             }
 
+            // Customers
+            if ($user->checkPermission('campaignManager:viewCustomers')) {
+                $item['subnav']['customers'] = [
+                    'label' => Craft::t('campaign-manager', 'Customers'),
+                    'url' => 'campaign-manager/customers',
+                ];
+            }
+
             // System Logs (using logging library)
             if (Craft::$app->getPlugins()->isPluginInstalled('logging-library') &&
                 Craft::$app->getPlugins()->isPluginEnabled('logging-library')) {
@@ -405,7 +413,11 @@ class CampaignManager extends Plugin
             'campaign-manager/campaigns/new' => 'campaign-manager/campaigns/edit',
             'campaign-manager/campaigns/<campaignId:\d+>' => 'campaign-manager/campaigns/edit',
 
-            // Customers
+            // Customers (global view)
+            'campaign-manager/customers' => 'campaign-manager/customers/global-index',
+            'campaign-manager/customers/export' => 'campaign-manager/customers/export-global',
+
+            // Customers (campaign-specific)
             'campaign-manager/campaigns/<campaignId:\d+>/customers' => 'campaign-manager/customers/index',
             'campaign-manager/campaigns/<campaignId:\d+>/add-customer' => 'campaign-manager/customers/add-form',
             'campaign-manager/campaigns/<campaignId:\d+>/import-customers' => 'campaign-manager/customers/import-form',

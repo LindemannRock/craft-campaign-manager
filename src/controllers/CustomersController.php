@@ -12,6 +12,7 @@ use Craft;
 use craft\db\ActiveQuery;
 use craft\web\Controller;
 use craft\web\UploadedFile;
+use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\PhoneHelper;
 use lindemannrock\campaignmanager\jobs\SendBatchJob;
@@ -19,6 +20,7 @@ use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\CustomerRecord;
 use verbb\formie\Formie;
 use yii\data\Pagination;
+use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
 /**
@@ -30,6 +32,167 @@ use yii\web\Response;
  */
 class CustomersController extends Controller
 {
+    /**
+     * Global customer index (all customers across all campaigns)
+     */
+    public function actionGlobalIndex(): Response
+    {
+        $this->requireLogin();
+        $this->requirePermission('campaignManager:viewCustomers');
+
+        $settings = CampaignManager::$plugin->getSettings();
+
+        // Get all campaigns for filter dropdown
+        $campaigns = \lindemannrock\campaignmanager\elements\Campaign::find()
+            ->status(null)
+            ->all();
+
+        $campaignOptions = [];
+        foreach ($campaigns as $campaign) {
+            $campaignOptions[] = [
+                'value' => $campaign->id,
+                'label' => $campaign->title,
+            ];
+        }
+
+        // Get all customers
+        $customers = CustomerRecord::find()
+            ->orderBy(['dateCreated' => SORT_DESC])
+            ->all();
+
+        return $this->renderTemplate('campaign-manager/customers/index', [
+            'customers' => $customers,
+            'campaignOptions' => $campaignOptions,
+            'settings' => $settings,
+        ]);
+    }
+
+    /**
+     * Export all customers (global view)
+     *
+     * @throws BadRequestHttpException
+     */
+    public function actionExportGlobal(): Response
+    {
+        $this->requireLogin();
+        $this->requirePermission('campaignManager:viewCustomers');
+
+        $request = Craft::$app->getRequest();
+        $format = $request->getQueryParam('format', 'csv');
+        $dateRange = $request->getQueryParam('dateRange', 'last30days');
+        $campaignFilter = $request->getQueryParam('campaign', 'all');
+        $siteFilter = $request->getQueryParam('siteFilter', 'all');
+        $statusFilter = $request->getQueryParam('status', 'all');
+
+        // Validate format is enabled
+        if (!ExportHelper::isFormatEnabled($format)) {
+            throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
+        }
+
+        $query = CustomerRecord::find()
+            ->orderBy(['dateCreated' => SORT_DESC]);
+
+        // Campaign filter
+        if ($campaignFilter !== 'all') {
+            $query->andWhere(['campaignId' => $campaignFilter]);
+        }
+
+        // Site filter
+        if ($siteFilter !== 'all') {
+            $query->andWhere(['siteId' => $siteFilter]);
+        }
+
+        // Status filter
+        if ($statusFilter === 'pending') {
+            $query->andWhere(['smsSendDate' => null])
+                ->andWhere(['emailSendDate' => null]);
+        } elseif ($statusFilter === 'sent') {
+            $query->andWhere(['or',
+                ['not', ['smsSendDate' => null]],
+                ['not', ['emailSendDate' => null]],
+            ]);
+        }
+
+        // Date range filter
+        if ($dateRange !== 'all') {
+            $dates = $this->getDateRangeFromParam($dateRange);
+            $query->andWhere(['>=', 'dateCreated', $dates['start']->format('Y-m-d 00:00:00')])
+                ->andWhere(['<=', 'dateCreated', $dates['end']->format('Y-m-d 23:59:59')]);
+        }
+
+        /** @var CustomerRecord[] $customers */
+        $customers = $query->all();
+
+        // Build export rows
+        $rows = [];
+        foreach ($customers as $customer) {
+            // Get campaign name
+            $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
+                ->id($customer->campaignId)
+                ->status(null)
+                ->one();
+
+            // Get site name
+            $site = Craft::$app->getSites()->getSiteById($customer->siteId);
+
+            // Determine status
+            $status = ($customer->smsSendDate || $customer->emailSendDate) ? 'Sent' : 'Pending';
+
+            $rows[] = [
+                'name' => $customer->name,
+                'email' => $customer->email,
+                'sms' => $customer->sms,
+                'campaign' => $campaign?->title ?? 'Unknown',
+                'site' => $site?->name ?? 'Unknown',
+                'status' => $status,
+                'emailSendDate' => $customer->emailSendDate,
+                'smsSendDate' => $customer->smsSendDate,
+                'emailOpenDate' => $customer->emailOpenDate,
+                'smsOpenDate' => $customer->smsOpenDate,
+                'submissionId' => $customer->submissionId,
+                'dateCreated' => $customer->dateCreated,
+            ];
+        }
+
+        // Check for empty data
+        if (empty($rows)) {
+            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No customers to export for the selected filters.'));
+            return $this->redirect(Craft::$app->getRequest()->getReferrer());
+        }
+
+        $headers = [
+            'Name',
+            'Email',
+            'SMS',
+            'Campaign',
+            'Site',
+            'Status',
+            'Email Sent',
+            'SMS Sent',
+            'Email Opened',
+            'SMS Opened',
+            'Submission ID',
+            'Date Created',
+        ];
+
+        // Build filename
+        $settings = CampaignManager::$plugin->getSettings();
+        $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
+        $extension = $format === 'excel' ? 'xlsx' : $format;
+        $filename = ExportHelper::filename($settings, ['customers', $dateRangeLabel], $extension);
+
+        $dateColumns = ['emailSendDate', 'smsSendDate', 'emailOpenDate', 'smsOpenDate', 'dateCreated'];
+
+        return match ($format) {
+            'csv' => ExportHelper::toCsv($rows, $headers, $filename, $dateColumns),
+            'json' => ExportHelper::toJson($rows, $filename, $dateColumns),
+            'excel' => ExportHelper::toExcel($rows, $headers, $filename, $dateColumns, [
+                'sheetTitle' => 'Customers',
+            ]),
+            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
+        };
+    }
+
     /**
      * Customer index for a campaign
      */
@@ -334,6 +497,34 @@ class CustomersController extends Controller
         }
 
         return $this->asJson(['success' => true]);
+    }
+
+    /**
+     * Bulk delete customers
+     */
+    public function actionBulkDelete(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireLogin();
+        $this->requirePermission('campaignManager:deleteCustomers');
+
+        $customerIds = Craft::$app->request->getRequiredBodyParam('customerIds');
+        $count = 0;
+        $errors = [];
+
+        foreach ($customerIds as $customerId) {
+            if (CampaignManager::$plugin->customers->deleteCustomerById((int)$customerId)) {
+                $count++;
+            } else {
+                $errors[] = Craft::t('campaign-manager', 'Failed to delete customer {id}', ['id' => $customerId]);
+            }
+        }
+
+        return $this->asJson([
+            'success' => $count > 0,
+            'count' => $count,
+            'errors' => $errors,
+        ]);
     }
 
     /**

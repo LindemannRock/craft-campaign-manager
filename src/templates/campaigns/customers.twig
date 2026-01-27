@@ -246,7 +246,12 @@
                                 </td>
                                 <td>
                                     {% if customer.submissionId %}
-                                        <a href="{{ cpUrl('formie/submissions/edit/' ~ customer.submissionId) }}">{{ customer.submissionId }}</a>
+                                        {% set submission = craft.formie.submissions.id(customer.submissionId).one() %}
+                                        {% if submission %}
+                                            <a href="{{ submission.cpEditUrl }}">{{ customer.submissionId }}</a>
+                                        {% else %}
+                                            <span class="light">{{ customer.submissionId }}</span>
+                                        {% endif %}
                                     {% else %}
                                         <span class="light">-</span>
                                     {% endif %}

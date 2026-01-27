@@ -50,4 +50,15 @@ class CampaignsService extends Component
 
         return $query;
     }
+
+    /**
+     * Get a campaign by ID
+     */
+    public function getCampaignById(int $id): ?\lindemannrock\campaignmanager\elements\Campaign
+    {
+        return \lindemannrock\campaignmanager\elements\Campaign::find()
+            ->id($id)
+            ->status(null)
+            ->one();
+    }
 }
