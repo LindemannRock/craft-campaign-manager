@@ -27,6 +27,7 @@ use yii\db\ActiveQueryInterface;
  * @property int|null $formId
  * @property string|null $invitationDelayPeriod
  * @property string|null $invitationExpiryPeriod
+ * @property string|null $providerHandle
  * @property string|null $senderId
  * @property Element $element
  */
@@ -84,39 +85,39 @@ class CampaignRecord extends ActiveRecord
     }
 
     /**
-     * Get all customers for this campaign
+     * Get all recipients for this campaign
      *
-     * @return CustomerRecord[]
+     * @return RecipientRecord[]
      */
-    public function getCustomers(): array
+    public function getRecipients(): array
     {
-        return CustomerRecord::findAll([
+        return RecipientRecord::findAll([
             'campaignId' => $this->id,
         ]);
     }
 
     /**
-     * Get customers by site ID
+     * Get recipients by site ID
      *
-     * @return CustomerRecord[]
+     * @return RecipientRecord[]
      */
-    public function getCustomersBySiteId(int $siteId): array
+    public function getRecipientsBySiteId(int $siteId): array
     {
-        return CustomerRecord::findAll([
+        return RecipientRecord::findAll([
             'campaignId' => $this->id,
             'siteId' => $siteId,
         ]);
     }
 
     /**
-     * Get customers with pending SMS invitations
+     * Get recipients with pending SMS invitations
      *
-     * @return array<CustomerRecord>
+     * @return array<RecipientRecord>
      */
-    public function getPendingSmsCustomers(int $siteId): array
+    public function getPendingSmsRecipients(int $siteId): array
     {
-        /** @var array<CustomerRecord> $results */
-        $results = CustomerRecord::find()
+        /** @var array<RecipientRecord> $results */
+        $results = RecipientRecord::find()
             ->where([
                 'campaignId' => $this->id,
                 'siteId' => $siteId,
@@ -130,14 +131,14 @@ class CampaignRecord extends ActiveRecord
     }
 
     /**
-     * Get customers with pending email invitations
+     * Get recipients with pending email invitations
      *
-     * @return array<CustomerRecord>
+     * @return array<RecipientRecord>
      */
-    public function getPendingEmailCustomers(int $siteId): array
+    public function getPendingEmailRecipients(int $siteId): array
     {
-        /** @var array<CustomerRecord> $results */
-        $results = CustomerRecord::find()
+        /** @var array<RecipientRecord> $results */
+        $results = RecipientRecord::find()
             ->where([
                 'campaignId' => $this->id,
                 'siteId' => $siteId,

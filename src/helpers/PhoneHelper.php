@@ -31,6 +31,7 @@ class PhoneHelper
      * @param string|null $phone Raw phone number
      * @param string|null $defaultRegion Default country code (e.g., 'KW' for Kuwait). If null, uses plugin settings.
      * @return array{valid: bool, e164: string|null, error: string|null, country: string|null}
+     * @since 5.0.0
      */
     public static function validate(?string $phone, ?string $defaultRegion = null): array
     {
@@ -115,6 +116,7 @@ class PhoneHelper
      *
      * @param string|null $phone Phone number to validate
      * @param string|null $defaultRegion Default country code
+     * @since 5.0.0
      */
     public static function isValid(?string $phone, ?string $defaultRegion = null): bool
     {
@@ -126,6 +128,7 @@ class PhoneHelper
      *
      * @param string|null $phone Phone number to format
      * @param string|null $defaultRegion Default country code
+     * @since 5.0.0
      */
     public static function toE164(?string $phone, ?string $defaultRegion = null): ?string
     {
@@ -137,6 +140,7 @@ class PhoneHelper
      *
      * @param string|null $phone Phone number to format
      * @param string|null $defaultRegion Default country code
+     * @since 5.0.0
      */
     public static function formatForDisplay(?string $phone, ?string $defaultRegion = null): ?string
     {
@@ -167,7 +171,11 @@ class PhoneHelper
      * - Backslashes
      * - Keeps + at the start and digits
      *
+     * IMPORTANT: This does NOT auto-detect country codes. Use validateWithCountry()
+     * when you have an explicit country code selection from the user.
+     *
      * @param string|null $phone Phone number to sanitize
+     * @since 5.0.0
      */
     public static function sanitize(?string $phone): ?string
     {
@@ -192,10 +200,23 @@ class PhoneHelper
         // Preserve + at the start if present
         $hasPlus = str_starts_with($phone, '+');
 
+        // Check for 00 international prefix (common in many countries)
+        $hasDoubleZero = str_starts_with($phone, '00');
+
         // Remove all non-digit characters
         $phone = preg_replace('/\D/', '', $phone);
 
-        // Re-add + if it was at the start
+        if ($phone === '' || $phone === null) {
+            return null;
+        }
+
+        // Remove leading 00 (international dialing prefix) and treat as +
+        if ($hasDoubleZero && strlen($phone) > 2) {
+            $phone = substr($phone, 2);
+            $hasPlus = true;
+        }
+
+        // Re-add + if it was at the start (or had 00 prefix)
         if ($hasPlus && !empty($phone)) {
             $phone = '+' . $phone;
         }
@@ -208,6 +229,7 @@ class PhoneHelper
      *
      * @param string|null $phone Phone number
      * @param string|null $defaultRegion Default country code
+     * @since 5.0.0
      */
     public static function getCountry(?string $phone, ?string $defaultRegion = null): ?string
     {
@@ -216,14 +238,128 @@ class PhoneHelper
 
     /**
      * Get the default region from plugin settings
+     *
+     * @param string|null $providerHandle Optional provider handle to get country from
+     * @since 5.0.0
      */
-    public static function getDefaultRegion(): string
+    public static function getDefaultRegion(?string $providerHandle = null): string
     {
         if (CampaignManager::$plugin !== null) {
-            $settings = CampaignManager::$plugin->getSettings();
-            return $settings->defaultCountryCode ?? 'KW';
+            // Get country from provider's allowed countries (falls back to KW if not available)
+            return CampaignManager::$plugin->sms->getDefaultCountryForProvider($providerHandle);
         }
 
-        return 'KW';
+        return 'AE';
+    }
+
+    /**
+     * Validate phone with provider context
+     *
+     * Uses the provider's allowed countries to determine the default region.
+     *
+     * @param string|null $phone Raw phone number
+     * @param string|null $providerHandle Provider handle for country lookup
+     * @return array{valid: bool, e164: string|null, error: string|null, country: string|null}
+     * @since 5.0.0
+     */
+    public static function validateWithProvider(?string $phone, ?string $providerHandle = null): array
+    {
+        $defaultRegion = self::getDefaultRegion($providerHandle);
+        return self::validate($phone, $defaultRegion);
+    }
+
+    /**
+     * Validate and format phone number with explicit country code
+     *
+     * This is the PREFERRED method when you have an explicit country selection from the user.
+     * It ensures the phone number is formatted for the selected country without any guessing.
+     *
+     * @param string|null $phone Raw phone number (local or with country code)
+     * @param string $countryCode ISO 3166-1 alpha-2 country code (e.g., 'KW', 'AE')
+     * @return array{valid: bool, e164: string|null, error: string|null, country: string|null}
+     * @since 5.1.0
+     */
+    public static function validateWithCountry(?string $phone, string $countryCode): array
+    {
+        if ($phone === null || trim($phone) === '') {
+            return [
+                'valid' => true, // Empty is valid (phone is optional)
+                'e164' => null,
+                'error' => null,
+                'country' => null,
+            ];
+        }
+
+        // Clean the input
+        $phone = self::sanitize($phone);
+
+        if ($phone === null || $phone === '') {
+            return [
+                'valid' => false,
+                'e164' => null,
+                'error' => 'Phone number is empty after sanitization',
+                'country' => null,
+            ];
+        }
+
+        // Check for letters (common error)
+        if (preg_match('/[a-zA-Z]/', $phone)) {
+            return [
+                'valid' => false,
+                'e164' => null,
+                'error' => 'Phone number contains letters',
+                'country' => null,
+            ];
+        }
+
+        $phoneUtil = PhoneNumberUtil::getInstance();
+
+        try {
+            // Parse with the explicit country code
+            $numberProto = $phoneUtil->parse($phone, strtoupper($countryCode));
+
+            if (!$phoneUtil->isValidNumber($numberProto)) {
+                return [
+                    'valid' => false,
+                    'e164' => null,
+                    'error' => 'Invalid phone number for ' . strtoupper($countryCode),
+                    'country' => null,
+                ];
+            }
+
+            // Verify the parsed number belongs to the selected country
+            $detectedCountry = $phoneUtil->getRegionCodeForNumber($numberProto);
+            if ($detectedCountry !== strtoupper($countryCode)) {
+                return [
+                    'valid' => false,
+                    'e164' => null,
+                    'error' => 'Phone number does not match selected country (' . strtoupper($countryCode) . ')',
+                    'country' => $detectedCountry,
+                ];
+            }
+
+            $e164 = $phoneUtil->format($numberProto, PhoneNumberFormat::E164);
+
+            return [
+                'valid' => true,
+                'e164' => $e164,
+                'error' => null,
+                'country' => $detectedCountry,
+            ];
+        } catch (NumberParseException $e) {
+            return [
+                'valid' => false,
+                'e164' => null,
+                'error' => match ($e->getErrorType()) {
+                    NumberParseException::INVALID_COUNTRY_CODE => 'Invalid country code',
+                    NumberParseException::NOT_A_NUMBER => 'Not a valid phone number',
+                    NumberParseException::TOO_SHORT_AFTER_IDD => 'Phone number too short',
+                    NumberParseException::TOO_SHORT_NSN => 'Phone number too short',
+                    NumberParseException::TOO_LONG => 'Phone number too long',
+                    default => 'Invalid phone number format',
+                },
+                'country' => null,
+            ];
+        }
     }
 }

@@ -1,0 +1,327 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set plugin = craft.app.plugins.getPlugin('campaign-manager') %}
+{% set settings = plugin.getSettings() %}
+
+{# Site and campaign are passed from controller #}
+{% set site = site ?? craft.app.sites.getCurrentSite() %}
+{% set campaignId = campaignId ?? campaign.id %}
+
+{% set title = 'Add Recipient'|t('campaign-manager') %}
+{% set fullPageForm = true %}
+{% set selectedSubnavItem = 'campaigns' %}
+
+{# Default recipient for new form or passed back with errors #}
+{% set recipient = recipient ?? null %}
+
+{# Get enabled sites for this campaign #}
+{% set enabledSites = [] %}
+{% for s in craft.app.sites.getAllSites() %}
+    {% set campaignForSite = craft.campaignManager.campaigns.find().id(campaignId).siteId(s.id).status(null).one() %}
+    {% if campaignForSite and campaignForSite.getEnabledForSite() %}
+        {% set enabledSites = enabledSites|merge([s]) %}
+    {% endif %}
+{% endfor %}
+
+{# Check if campaign is enabled for any site #}
+{% set campaignDisabled = enabledSites|length == 0 %}
+{% set currentSiteDisabled = site.id not in enabledSites|map(s => s.id) %}
+
+{# Site switcher in crumbs - only show enabled sites #}
+{% set crumbs = [] %}
+{% if craft.app.getIsMultiSite() and enabledSites|length > 1 %}
+    {% set siteMenuItems = [] %}
+    {% for s in enabledSites %}
+        {% set siteMenuItems = siteMenuItems|merge([{
+            label: s.name,
+            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/add-recipient', {site: s.handle}),
+            selected: s.handle == site.handle
+        }]) %}
+    {% endfor %}
+
+    {% set crumbs = [{
+        id: 'site-crumb',
+        icon: 'world',
+        label: site.name|t('site'),
+        menu: {
+            items: siteMenuItems,
+            label: 'Select site'|t('app')
+        }
+    }] %}
+{% endif %}
+
+{% set crumbs = crumbs|merge([
+    { label: settings.pluginName, url: cpUrl('campaign-manager', {site: site.handle}) },
+    { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId, {site: site.handle}) },
+    { label: 'Recipients'|t('campaign-manager'), url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: site.handle}) },
+    { label: 'Add'|t('campaign-manager') },
+]) %}
+
+{% block content %}
+    {% if campaignDisabled %}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            message: 'This campaign is disabled for all sites. Enable it for at least one site before adding recipients.'|t('campaign-manager'),
+            type: 'warning',
+        } %}
+    {% elseif currentSiteDisabled %}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            message: 'This campaign is disabled for the current site. Recipients can only be added for enabled sites.'|t('campaign-manager'),
+            type: 'tip',
+        } %}
+    {% endif %}
+
+    {% if not campaignDisabled %}
+    <form method="post" accept-charset="UTF-8">
+        {{ csrfInput() }}
+        {{ actionInput('campaign-manager/recipients/add') }}
+        {{ redirectInput('campaign-manager/campaigns/' ~ campaignId ~ '/recipients?site=' ~ site.handle) }}
+        {{ hiddenInput('campaignId', campaignId) }}
+
+        {{ forms.textField({
+            first: true,
+            label: 'Name'|t('campaign-manager'),
+            instructions: 'The recipient\'s full name'|t('campaign-manager'),
+            id: 'name',
+            name: 'name',
+            value: recipient ? recipient.name : null,
+            errors: recipient ? recipient.getErrors('name') : null,
+            autofocus: true,
+            required: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Email'|t('campaign-manager'),
+            instructions: 'The recipient\'s email address (for email invitations)'|t('campaign-manager'),
+            id: 'email',
+            name: 'email',
+            class: 'code',
+            autocorrect: false,
+            autocapitalize: false,
+            value: recipient ? recipient.email : null,
+            errors: recipient ? recipient.getErrors('email') : null,
+            required: false
+        }) }}
+
+        {# SMS field with country code selector #}
+        {% set providerHandle = campaign.providerHandle ?? settings.defaultProviderHandle %}
+        {% set allowedCountries = providerHandle ? craft.campaignManager.sms.getAllowedCountries(providerHandle) : [] %}
+        {% set isAllCountries = allowedCountries == ['*'] %}
+
+        {# Build country options and dial code mapping for the dropdown #}
+        {% set countryOptions = [] %}
+        {% set dialCodeList = [] %}
+        {% if isAllCountries %}
+            {# All countries allowed - build from base plugin #}
+            {% for option in lrDialCodes() %}
+                {% set dc = lrDialCode(option.value) %}
+                {% if dc %}
+                    {% set countryOptions = countryOptions|merge([{
+                        label: option.value ~ ' +' ~ dc,
+                        value: option.value
+                    }]) %}
+                    {% set dialCodeList = dialCodeList|merge([{code: dc, country: option.value}]) %}
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            {# Limited to specific countries #}
+            {% for code in allowedCountries %}
+                {% set dialCode = lrDialCode(code) %}
+                {% if dialCode %}
+                    {% set countryOptions = countryOptions|merge([{
+                        label: code ~ ' +' ~ dialCode,
+                        value: code
+                    }]) %}
+                    {% set dialCodeList = dialCodeList|merge([{code: dialCode, country: code}]) %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if countryOptions|length > 0 %}
+            <div class="field">
+                <div class="heading">
+                    <label for="sms">{{ 'Phone Number'|t('campaign-manager') }}</label>
+                    <div class="instructions">
+                        <p>{{ 'Enter phone number. Paste with country code to auto-detect.'|t('campaign-manager') }}</p>
+                    </div>
+                </div>
+                <div class="input">
+                    <div style="display: flex; align-items: stretch;">
+                        <div class="select" style="flex-shrink: 0;">
+                            <select id="smsCountry" name="smsCountry" style="border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none; height: 100%;">
+                                {% for option in countryOptions %}
+                                    <option value="{{ option.value }}" data-dialcode="{{ lrDialCode(option.value) }}" {% if loop.first %}selected{% endif %}>
+                                        {{ option.label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <input type="text"
+                               id="sms"
+                               name="sms"
+                               class="text code"
+                               style="border-top-left-radius: 0; border-bottom-left-radius: 0; flex: 1; min-width: 0;"
+                               autocomplete="off"
+                               autocorrect="off"
+                               autocapitalize="off"
+                               placeholder="{{ 'e.g., 94400999'|t('campaign-manager') }}"
+                               value="{{ recipient ? recipient.sms : '' }}">
+                    </div>
+                </div>
+                {% if recipient and recipient.getErrors('sms') %}
+                    <ul class="errors">
+                        {% for error in recipient.getErrors('sms') %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Array of {code: "965", country: "KW"} objects
+                var dialCodeList = {{ dialCodeList|json_encode|raw }};
+                var smsInput = document.getElementById('sms');
+                var countrySelect = document.getElementById('smsCountry');
+
+                if (!smsInput || !countrySelect) return;
+
+                // Sort by dial code length descending (longer codes first, e.g., 1242 before 1)
+                dialCodeList.sort(function(a, b) {
+                    return b.code.length - a.code.length;
+                });
+
+                function detectAndStripCountryCode(value) {
+                    // Remove whitespace, +, and 00 prefix
+                    var cleaned = value.replace(/[\s\-\(\)]/g, '');
+                    if (cleaned.indexOf('+') === 0) {
+                        cleaned = cleaned.substring(1);
+                    }
+                    if (cleaned.indexOf('00') === 0) {
+                        cleaned = cleaned.substring(2);
+                    }
+
+                    // Try to match a dial code from our allowed list
+                    for (var i = 0; i < dialCodeList.length; i++) {
+                        var item = dialCodeList[i];
+                        if (cleaned.indexOf(item.code) === 0 && cleaned.length > item.code.length) {
+                            return {
+                                dialCode: item.code,
+                                countryCode: item.country,
+                                localNumber: cleaned.substring(item.code.length)
+                            };
+                        }
+                    }
+                    return null;
+                }
+
+                function processInput() {
+                    var value = smsInput.value.trim();
+                    if (!value) return;
+
+                    var result = detectAndStripCountryCode(value);
+                    if (result && result.localNumber && result.countryCode) {
+                        countrySelect.value = result.countryCode;
+                        smsInput.value = result.localNumber;
+                    }
+                }
+
+                // Process on paste
+                smsInput.addEventListener('paste', function(e) {
+                    setTimeout(processInput, 10);
+                });
+
+                // Process on blur
+                smsInput.addEventListener('blur', processInput);
+
+                // Process on input with debounce
+                var inputTimeout;
+                smsInput.addEventListener('input', function() {
+                    clearTimeout(inputTimeout);
+                    inputTimeout = setTimeout(function() {
+                        if (smsInput.value.length > 9) {
+                            processInput();
+                        }
+                    }, 500);
+                });
+            });
+            </script>
+        {% else %}
+            {% include 'lindemannrock-base/_components/info-box' with {
+                message: 'No SMS provider configured for this campaign. Configure a provider in the campaign settings to enable SMS invitations.'|t('campaign-manager'),
+                type: 'tip',
+            } %}
+
+            {{ hiddenInput('smsCountry', '') }}
+            {{ forms.textField({
+                label: 'SMS'|t('campaign-manager'),
+                instructions: 'The recipient\'s phone number (for SMS invitations)'|t('campaign-manager'),
+                id: 'sms',
+                name: 'sms',
+                class: 'code',
+                autocorrect: false,
+                autocapitalize: false,
+                value: recipient ? recipient.sms : null,
+                errors: recipient ? recipient.getErrors('sms') : null,
+                required: false,
+                disabled: true
+            }) }}
+        {% endif %}
+
+        {# Build unique languages from enabled sites only #}
+        {% set languageOptions = [] %}
+        {% set seenLanguages = {} %}
+        {% for s in enabledSites %}
+            {% set langCode = s.language|upper %}
+            {% if langCode not in seenLanguages|keys %}
+                {% set languageOptions = languageOptions|merge([{ label: langCode, value: s.id }]) %}
+                {% set seenLanguages = seenLanguages|merge({(langCode): s.id}) %}
+            {% endif %}
+        {% endfor %}
+
+        {{ forms.selectField({
+            label: 'Language'|t('campaign-manager'),
+            instructions: 'The language for the invitation and response.'|t('campaign-manager'),
+            id: 'siteId',
+            name: 'siteId',
+            options: languageOptions,
+            value: recipient ? recipient.siteId : site.id,
+            errors: recipient ? recipient.getErrors('siteId') : null,
+            required: true
+        }) }}
+    </form>
+    {% endif %}
+{% endblock %}
+
+{% block details %}
+    {% if not campaignDisabled %}
+    <fieldset>
+        <div class="meta">
+            {{ forms.lightswitchField({
+                label: 'Send Invitation'|t('campaign-manager'),
+                instructions: 'Queue invitation to be sent after adding.'|t('campaign-manager'),
+                id: 'sendInvitation',
+                name: 'sendInvitation',
+                on: true
+            }) }}
+
+            <div class="field">
+                <div class="heading">
+                    <label>{{ 'Campaign'|t('campaign-manager') }}</label>
+                </div>
+                <div class="input">
+                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: site.handle}) }}">{{ campaign.title }}</a>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    {% endif %}
+{% endblock %}
+
+{% block actionButton %}
+    {% if not campaignDisabled %}
+    <div class="btngroup">
+        <button type="submit" class="btn submit">{{ 'Add Recipient'|t('campaign-manager') }}</button>
+    </div>
+    {% endif %}
+{% endblock %}

@@ -21,7 +21,7 @@ use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\db\CampaignQuery;
 use lindemannrock\campaignmanager\records\CampaignContentRecord;
 use lindemannrock\campaignmanager\records\CampaignRecord;
-use lindemannrock\campaignmanager\records\CustomerRecord;
+use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\Formie;
@@ -30,7 +30,7 @@ use verbb\formie\Formie;
  * Campaign element
  *
  * @property-read Form|null $form
- * @property-read CustomerRecord[] $customers
+ * @property-read RecipientRecord[] $recipients
  * @since 5.0.0
  */
 class Campaign extends Element
@@ -61,7 +61,12 @@ class Campaign extends Element
     public ?string $invitationExpiryPeriod = null;
 
     /**
-     * @var string|null Sender ID for SMS (non-translatable)
+     * @var string|null Provider handle for SMS (non-translatable)
+     */
+    public ?string $providerHandle = null;
+
+    /**
+     * @var string|null Sender ID handle for SMS (non-translatable)
      */
     public ?string $senderId = null;
 
@@ -179,6 +184,31 @@ class Campaign extends Element
     /**
      * @inheritdoc
      */
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_ENABLED => Craft::t('app', 'Enabled'),
+            self::STATUS_DISABLED => Craft::t('app', 'Disabled'),
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getStatus(): ?string
+    {
+        // Check if enabled for the current site
+        // This checks the elements_sites.enabled column
+        if ($this->enabled === false) {
+            return self::STATUS_DISABLED;
+        }
+
+        return self::STATUS_ENABLED;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function hasDrafts(): bool
     {
         return false;
@@ -265,6 +295,14 @@ class Campaign extends Element
     /**
      * @inheritdoc
      */
+    protected static function includeSetStatusAction(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
     protected static function defineSortOptions(): array
     {
         return [
@@ -296,9 +334,10 @@ class Campaign extends Element
     {
         return [
             'title' => ['label' => Craft::t('app', 'Title')],
+            'status' => ['label' => Craft::t('app', 'Status')],
             'campaignType' => ['label' => Craft::t('campaign-manager', 'Type')],
             'form' => ['label' => Craft::t('campaign-manager', 'Form')],
-            'customerCount' => ['label' => Craft::t('campaign-manager', 'Customers')],
+            'recipientCount' => ['label' => Craft::t('campaign-manager', 'Recipients')],
             'submissionCount' => ['label' => Craft::t('campaign-manager', 'Submissions')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
@@ -311,9 +350,10 @@ class Campaign extends Element
     protected static function defineDefaultTableAttributes(string $source): array
     {
         return [
+            'status',
             'campaignType',
             'form',
-            'customerCount',
+            'recipientCount',
             'submissionCount',
             'dateCreated',
         ];
@@ -346,6 +386,8 @@ class Campaign extends Element
 
     /**
      * Load translatable content for the current site
+     *
+     * @since 5.0.0
      */
     public function loadContent(): void
     {
@@ -376,6 +418,8 @@ class Campaign extends Element
 
     /**
      * Get the associated Formie form
+     *
+     * @since 5.0.0
      */
     public function getForm(): ?Form
     {
@@ -388,6 +432,8 @@ class Campaign extends Element
 
     /**
      * Set the form
+     *
+     * @since 5.0.0
      */
     public function setForm(?Form $form): void
     {
@@ -396,32 +442,35 @@ class Campaign extends Element
     }
 
     /**
-     * Get all customers for this campaign
+     * Get all recipients for this campaign
      *
-     * @return CustomerRecord[]
+     * @return RecipientRecord[]
+     * @since 5.0.0
      */
-    public function getCustomers(): array
+    public function getRecipients(): array
     {
         if (!$this->id) {
             return [];
         }
 
-        return CustomerRecord::findAll([
+        return RecipientRecord::findAll([
             'campaignId' => $this->id,
             'siteId' => $this->siteId,
         ]);
     }
 
     /**
-     * Get customer count
+     * Get recipient count
+     *
+     * @since 5.0.0
      */
-    public function getCustomerCount(): int
+    public function getRecipientCount(): int
     {
         if (!$this->id) {
             return 0;
         }
 
-        return CustomerRecord::find()
+        return RecipientRecord::find()
             ->where([
                 'campaignId' => $this->id,
                 'siteId' => $this->siteId,
@@ -430,7 +479,9 @@ class Campaign extends Element
     }
 
     /**
-     * Get submission count (customers who have submitted the form)
+     * Get submission count (recipients who have submitted the form)
+     *
+     * @since 5.0.0
      */
     public function getSubmissionCount(): int
     {
@@ -438,7 +489,7 @@ class Campaign extends Element
             return 0;
         }
 
-        return CustomerRecord::find()
+        return RecipientRecord::find()
             ->where([
                 'campaignId' => $this->id,
                 'siteId' => $this->siteId,
@@ -448,18 +499,19 @@ class Campaign extends Element
     }
 
     /**
-     * Get customers with pending SMS invitations
+     * Get recipients with pending SMS invitations
      *
-     * @return CustomerRecord[]
+     * @return RecipientRecord[]
+     * @since 5.0.0
      */
-    public function getPendingSmsCustomers(): array
+    public function getPendingSmsRecipients(): array
     {
         if (!$this->id) {
             return [];
         }
 
-        /** @var CustomerRecord[] $customers */
-        $customers = CustomerRecord::find()
+        /** @var RecipientRecord[] $recipients */
+        $recipients = RecipientRecord::find()
             ->where([
                 'campaignId' => $this->id,
                 'siteId' => $this->siteId,
@@ -469,22 +521,23 @@ class Campaign extends Element
             ->andWhere(['not', ['sms' => '']])
             ->all();
 
-        return $customers;
+        return $recipients;
     }
 
     /**
-     * Get customers with pending email invitations
+     * Get recipients with pending email invitations
      *
-     * @return CustomerRecord[]
+     * @return RecipientRecord[]
+     * @since 5.0.0
      */
-    public function getPendingEmailCustomers(): array
+    public function getPendingEmailRecipients(): array
     {
         if (!$this->id) {
             return [];
         }
 
-        /** @var CustomerRecord[] $customers */
-        $customers = CustomerRecord::find()
+        /** @var RecipientRecord[] $recipients */
+        $recipients = RecipientRecord::find()
             ->where([
                 'campaignId' => $this->id,
                 'siteId' => $this->siteId,
@@ -494,7 +547,7 @@ class Campaign extends Element
             ->andWhere(['not', ['email' => '']])
             ->all();
 
-        return $customers;
+        return $recipients;
     }
 
     /**
@@ -591,7 +644,7 @@ class Campaign extends Element
         $rules[] = [['campaignType'], 'string', 'max' => 255];
         $rules[] = [['formId'], 'integer'];
         $rules[] = [['invitationDelayPeriod', 'invitationExpiryPeriod'], 'string', 'max' => 50];
-        $rules[] = [['emailInvitationSubject', 'senderId'], 'string', 'max' => 255];
+        $rules[] = [['emailInvitationSubject', 'providerHandle', 'senderId'], 'string', 'max' => 255];
 
         return $rules;
     }
@@ -613,12 +666,12 @@ class Campaign extends Element
                 }
                 return '—';
 
-            case 'customerCount':
-                $count = $this->getCustomerCount();
+            case 'recipientCount':
+                $count = $this->getRecipientCount();
                 if ($count > 0) {
                     return sprintf(
                         '<a href="%s">%s</a>',
-                        UrlHelper::cpUrl("campaign-manager/campaigns/{$this->id}/customers"),
+                        UrlHelper::cpUrl("campaign-manager/campaigns/{$this->id}/recipients"),
                         number_format($count)
                     );
                 }
@@ -633,6 +686,20 @@ class Campaign extends Element
         }
 
         return parent::attributeHtml($attribute);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function beforeSave(bool $isNew): bool
+    {
+        // CRITICAL: Always set elements.enabled = true for Campaigns
+        // We use per-site enabling (elements_sites.enabled), not global enabling
+        // Craft's default behavior sets elements.enabled=false when ANY site is disabled,
+        // which breaks queries that check "elements.enabled AND elements_sites.enabled"
+        $this->enabled = true;
+
+        return parent::beforeSave($isNew);
     }
 
     /**
@@ -656,6 +723,7 @@ class Campaign extends Element
         $record->formId = $this->formId;
         $record->invitationDelayPeriod = $this->invitationDelayPeriod;
         $record->invitationExpiryPeriod = $this->invitationExpiryPeriod;
+        $record->providerHandle = $this->providerHandle;
         $record->senderId = $this->senderId;
 
         $record->save(false);
@@ -690,8 +758,8 @@ class Campaign extends Element
             return false;
         }
 
-        // Delete all customers for this campaign
-        CustomerRecord::deleteAll([
+        // Delete all recipients for this campaign
+        RecipientRecord::deleteAll([
             'campaignId' => $this->id,
         ]);
 

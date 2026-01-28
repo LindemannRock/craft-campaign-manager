@@ -13,7 +13,9 @@ use craft\models\FieldLayout;
 use craft\web\Controller;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
+use lindemannrock\campaignmanager\models\Settings;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -44,22 +46,33 @@ class SettingsController extends Controller
 
     /**
      * @inheritdoc
+     * @throws ForbiddenHttpException
      */
     public function beforeAction($action): bool
     {
         $this->requirePermission('campaignManager:manageSettings');
+
+        // Only field layouts respect allowAdminChanges (stored in project config)
+        // Regular settings are stored in DB and should always be editable
+        if ($action->id === 'save-field-layout') {
+            if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+                throw new ForbiddenHttpException('Administrative changes are disallowed in this environment.');
+            }
+        }
 
         return parent::beforeAction($action);
     }
 
     /**
      * Settings index
+     *
+     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
         $settings = CampaignManager::$plugin->getSettings();
 
-        return $this->renderTemplate('campaign-manager/settings/index', [
+        return $this->renderTemplate('campaign-manager/settings/general', [
             'settings' => $settings,
             'readOnly' => $this->readOnly,
         ]);
@@ -67,22 +80,30 @@ class SettingsController extends Controller
 
     /**
      * Save settings
+     *
+     * @since 5.0.0
      */
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
 
-        $settings = CampaignManager::$plugin->getSettings();
+        // Load settings from database (not project config)
+        $settings = Settings::loadFromDatabase();
         $postedSettings = Craft::$app->getRequest()->getBodyParam('settings', []);
 
         // Fields that should be cast to int (nullable)
         $nullableIntFields = ['defaultSenderIdId'];
+
+        // Fields that should be nullable strings (empty string = null)
+        $nullableStringFields = ['defaultProviderHandle', 'defaultSenderIdHandle'];
 
         // Update settings with posted values
         foreach ($postedSettings as $key => $value) {
             if (property_exists($settings, $key)) {
                 if (in_array($key, $nullableIntFields, true)) {
                     $settings->$key = $value !== '' && $value !== null ? (int)$value : null;
+                } elseif (in_array($key, $nullableStringFields, true)) {
+                    $settings->$key = $value !== '' && $value !== null ? $value : null;
                 } else {
                     $settings->$key = $value;
                 }
@@ -91,19 +112,23 @@ class SettingsController extends Controller
 
         // Validate
         if (!$settings->validate()) {
+            $this->logError('Settings validation failed', ['errors' => $settings->getErrors()]);
+
             Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Couldn\'t save settings.'));
 
-            return $this->renderTemplate('campaign-manager/settings/index', [
+            return $this->renderTemplate('campaign-manager/settings/general', [
                 'settings' => $settings,
+                'readOnly' => $this->readOnly,
             ]);
         }
 
-        // Save plugin settings
-        if (!Craft::$app->getPlugins()->savePluginSettings(CampaignManager::$plugin, $settings->toArray())) {
+        // Save to database (works even when allowAdminChanges is false)
+        if (!$settings->saveToDatabase()) {
             Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Couldn\'t save settings.'));
 
-            return $this->renderTemplate('campaign-manager/settings/index', [
+            return $this->renderTemplate('campaign-manager/settings/general', [
                 'settings' => $settings,
+                'readOnly' => $this->readOnly,
             ]);
         }
 
@@ -113,7 +138,24 @@ class SettingsController extends Controller
     }
 
     /**
+     * Interface settings page
+     *
+     * @since 5.0.0
+     */
+    public function actionInterface(): Response
+    {
+        $settings = CampaignManager::$plugin->getSettings();
+
+        return $this->renderTemplate('campaign-manager/settings/interface', [
+            'settings' => $settings,
+            'readOnly' => $this->readOnly,
+        ]);
+    }
+
+    /**
      * Field layout settings page
+     *
+     * @since 5.0.0
      */
     public function actionFieldLayout(): Response
     {
@@ -162,6 +204,8 @@ class SettingsController extends Controller
 
     /**
      * Save field layout
+     *
+     * @since 5.0.0
      */
     public function actionSaveFieldLayout(): ?Response
     {

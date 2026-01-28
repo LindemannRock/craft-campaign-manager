@@ -1,0 +1,31 @@
+{% extends 'campaign-manager/_layouts/settings' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Interface Settings'|t('campaign-manager') %}
+{% set selectedSettingsItem = 'interface' %}
+{% set settingsCrumb = 'Interface'|t('campaign-manager') %}
+{% set fullPageForm = true %}
+
+{% block content %}
+    {{ actionInput('campaign-manager/settings/save') }}
+    {{ redirectInput('campaign-manager/settings/interface') }}
+
+    <h2 style="margin-top: 0px;">{{ "Interface Settings"|t('campaign-manager') }}</h2>
+
+    {{ forms.textField({
+        label: 'Items Per Page'|t('campaign-manager'),
+        instructions: 'Number of items to display per page in lists.'|t('campaign-manager'),
+        id: 'itemsPerPage',
+        name: 'settings[itemsPerPage]',
+        type: 'number',
+        value: settings.itemsPerPage,
+        min: 10,
+        max: 500,
+        required: true,
+        errors: settings.getErrors('itemsPerPage'),
+        disabled: settings.isOverriddenByConfig('itemsPerPage'),
+        warning: settings.isOverriddenByConfig('itemsPerPage') ?
+            "This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
+    }) }}
+
+{% endblock %}

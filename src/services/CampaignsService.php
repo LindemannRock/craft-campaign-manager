@@ -18,7 +18,7 @@ use lindemannrock\logginglibrary\traits\LoggingTrait;
  *
  * @author    LindemannRock
  * @package   CampaignManager
- * @since     3.0.0
+ * @since     5.0.0
  */
 class CampaignsService extends Component
 {
@@ -35,16 +35,18 @@ class CampaignsService extends Component
 
     /**
      * Get a campaign element query
+     *
+     * @since 5.0.0
      */
     public function find(): ElementQueryInterface
     {
         $settings = CampaignManager::$plugin->getSettings();
-        $elementType = $settings->campaignElementType;
+        $elementType = $settings->campaignElementType ?: \lindemannrock\campaignmanager\elements\Campaign::class;
 
         $query = $elementType::find();
 
-        // Filter by section if configured
-        if (!empty($settings->campaignSectionHandle)) {
+        // Filter by section if configured (only for Entry-based campaigns)
+        if (!empty($settings->campaignSectionHandle) && $elementType === \craft\elements\Entry::class) {
             $query->section($settings->campaignSectionHandle);
         }
 
@@ -53,6 +55,8 @@ class CampaignsService extends Component
 
     /**
      * Get a campaign by ID
+     *
+     * @since 5.0.0
      */
     public function getCampaignById(int $id): ?\lindemannrock\campaignmanager\elements\Campaign
     {

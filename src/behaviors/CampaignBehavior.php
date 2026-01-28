@@ -14,7 +14,7 @@ use Exception;
 use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\records\CampaignContentRecord;
 use lindemannrock\campaignmanager\records\CampaignRecord;
-use lindemannrock\campaignmanager\records\CustomerRecord;
+use lindemannrock\campaignmanager\records\RecipientRecord;
 use verbb\formie\elements\Form;
 use yii\base\Behavior;
 
@@ -53,11 +53,11 @@ class CampaignBehavior extends Behavior
     private bool $_recordLoaded = false;
 
     /**
-     * @var CustomerRecord[]|null
+     * @var RecipientRecord[]|null
      */
-    private ?array $_customers = null;
+    private ?array $_recipients = null;
 
-    private ?int $_customerCount = null;
+    private ?int $_recipientCount = null;
 
     private ?int $_submissionCount = null;
 
@@ -142,8 +142,6 @@ class CampaignBehavior extends Behavior
      */
     public function saveCampaignRecord(?array $attributes = null): void
     {
-        \Craft::info('saveCampaignRecord - called with attributes: ' . json_encode($attributes), 'campaign-manager');
-
         // Use canonical element ID to avoid saving to drafts/revisions
         $canonicalId = $this->owner->getCanonicalId() ?? $this->owner->id;
         $siteId = $this->owner->siteId;
@@ -152,7 +150,6 @@ class CampaignBehavior extends Behavior
         if (!isset($this->_record) && empty($attributes)) {
             // Only create records for elements in the campaigns section
             if (!$this->isCampaignElement()) {
-                \Craft::info('saveCampaignRecord - skipping: not a campaign element and no attributes', 'campaign-manager');
                 return;
             }
         }
@@ -186,16 +183,13 @@ class CampaignBehavior extends Behavior
 
         // Record not modified and not new; nothing to save.
         if (!$record->getIsNewRecord() && empty($record->getDirtyAttributes()) && empty($mainAttributes) && empty($contentAttributes)) {
-            \Craft::info('saveCampaignRecord - skipping: record not modified', 'campaign-manager');
             return;
         }
 
         // Save main record
         $record->setAttributes($mainAttributes, false);
 
-        \Craft::info('saveCampaignRecord - saving record id=' . $record->id . ', isNew=' . ($record->getIsNewRecord() ? 'yes' : 'no'), 'campaign-manager');
         if (!$record->save()) {
-            \Craft::error('saveCampaignRecord - save failed: ' . json_encode($record->getErrors()), 'campaign-manager');
             throw new Exception('Could not save the Campaign record.');
         }
 
@@ -214,13 +208,10 @@ class CampaignBehavior extends Behavior
 
             $contentRecord->setAttributes($contentAttributes, false);
             if (!$contentRecord->save()) {
-                \Craft::error('saveCampaignRecord - content save failed: ' . json_encode($contentRecord->getErrors()), 'campaign-manager');
                 throw new Exception('Could not save the Campaign content record.');
             }
             $this->_contentRecord = $contentRecord;
         }
-
-        \Craft::info('saveCampaignRecord - saved successfully', 'campaign-manager');
 
         $this->loadCampaignRecord($record);
     }
@@ -232,7 +223,6 @@ class CampaignBehavior extends Behavior
      */
     public function setCampaignRecordAttributes(array $attributes): void
     {
-        \Craft::info('setCampaignRecordAttributes called with: ' . json_encode($attributes), 'campaign-manager');
         $this->_pendingAttributes = $attributes;
 
         // Separate translatable attributes
@@ -260,7 +250,6 @@ class CampaignBehavior extends Behavior
             return;
         }
 
-        \Craft::info('handleAfterSave - pendingAttributes: ' . json_encode($this->_pendingAttributes), 'campaign-manager');
         $owner->saveCampaignRecord($this->_pendingAttributes);
         $this->_pendingAttributes = null;
     }
@@ -278,45 +267,45 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @return CustomerRecord[]
+     * @return RecipientRecord[]
      */
-    public function getCustomers(): array
+    public function getRecipients(): array
     {
-        if (!isset($this->_customers)) {
-            $this->_customers = $this->getCampaignManagerRecord()?->getCustomers() ?? [];
+        if (!isset($this->_recipients)) {
+            $this->_recipients = $this->getCampaignManagerRecord()?->getRecipients() ?? [];
         }
 
-        return $this->_customers;
+        return $this->_recipients;
     }
 
     /**
-     * @return CustomerRecord[]
+     * @return RecipientRecord[]
      */
-    public function getCustomersBySiteId(int $siteId): array
+    public function getRecipientsBySiteId(int $siteId): array
     {
-        if (!isset($this->_customers)) {
-            $this->_customers = $this->getCampaignManagerRecord()?->getCustomersBySiteId($siteId) ?? [];
+        if (!isset($this->_recipients)) {
+            $this->_recipients = $this->getCampaignManagerRecord()?->getRecipientsBySiteId($siteId) ?? [];
         }
 
-        return $this->_customers;
+        return $this->_recipients;
     }
 
-    public function getCustomerCount(): int
+    public function getRecipientCount(): int
     {
-        if (!isset($this->_customerCount)) {
-            $this->_customerCount = count($this->getCustomers());
+        if (!isset($this->_recipientCount)) {
+            $this->_recipientCount = count($this->getRecipients());
         }
 
-        return $this->_customerCount;
+        return $this->_recipientCount;
     }
 
-    public function getCustomerCountBySiteId(int $siteId): int
+    public function getRecipientCountBySiteId(int $siteId): int
     {
-        if (!isset($this->_customerCount)) {
-            $this->_customerCount = count($this->getCustomersBySiteId($siteId));
+        if (!isset($this->_recipientCount)) {
+            $this->_recipientCount = count($this->getRecipientsBySiteId($siteId));
         }
 
-        return $this->_customerCount;
+        return $this->_recipientCount;
     }
 
     public function getFormId(): ?int
@@ -383,11 +372,11 @@ class CampaignBehavior extends Behavior
     public function getSubmissionCount(): int
     {
         if (!isset($this->_submissionCount)) {
-            $customersWithSubmissions = array_filter(
-                $this->getCustomers(),
-                fn(CustomerRecord $customer) => (bool)$customer->submissionId
+            $recipientsWithSubmissions = array_filter(
+                $this->getRecipients(),
+                fn(RecipientRecord $recipient) => (bool)$recipient->submissionId
             );
-            $this->_submissionCount = count($customersWithSubmissions);
+            $this->_submissionCount = count($recipientsWithSubmissions);
         }
 
         return $this->_submissionCount;
@@ -396,11 +385,11 @@ class CampaignBehavior extends Behavior
     public function getSentCount(): int
     {
         if (!isset($this->_sentCount)) {
-            $customersWithSent = array_filter(
-                $this->getCustomers(),
-                fn(CustomerRecord $customer) => $customer->smsSendDate !== null || $customer->emailSendDate !== null
+            $recipientsWithSent = array_filter(
+                $this->getRecipients(),
+                fn(RecipientRecord $recipient) => $recipient->smsSendDate !== null || $recipient->emailSendDate !== null
             );
-            $this->_sentCount = count($customersWithSent);
+            $this->_sentCount = count($recipientsWithSent);
         }
 
         return $this->_sentCount;
@@ -408,22 +397,22 @@ class CampaignBehavior extends Behavior
 
     public function getSentCountBySiteId(int $siteId): int
     {
-        $customersWithSent = array_filter(
-            $this->getCustomersBySiteId($siteId),
-            fn(CustomerRecord $customer) => $customer->smsSendDate !== null || $customer->emailSendDate !== null
+        $recipientsWithSent = array_filter(
+            $this->getRecipientsBySiteId($siteId),
+            fn(RecipientRecord $recipient) => $recipient->smsSendDate !== null || $recipient->emailSendDate !== null
         );
 
-        return count($customersWithSent);
+        return count($recipientsWithSent);
     }
 
     public function getSmsOpenedCount(): int
     {
         if (!isset($this->_smsOpenedCount)) {
-            $customersWithSmsOpened = array_filter(
-                $this->getCustomers(),
-                fn(CustomerRecord $customer) => $customer->smsOpenDate !== null
+            $recipientsWithSmsOpened = array_filter(
+                $this->getRecipients(),
+                fn(RecipientRecord $recipient) => $recipient->smsOpenDate !== null
             );
-            $this->_smsOpenedCount = count($customersWithSmsOpened);
+            $this->_smsOpenedCount = count($recipientsWithSmsOpened);
         }
 
         return $this->_smsOpenedCount;
@@ -431,12 +420,12 @@ class CampaignBehavior extends Behavior
 
     public function getSmsOpenedCountBySiteId(int $siteId): int
     {
-        $customersWithSmsOpened = array_filter(
-            $this->getCustomersBySiteId($siteId),
-            fn(CustomerRecord $customer) => $customer->smsOpenDate !== null
+        $recipientsWithSmsOpened = array_filter(
+            $this->getRecipientsBySiteId($siteId),
+            fn(RecipientRecord $recipient) => $recipient->smsOpenDate !== null
         );
 
-        return count($customersWithSmsOpened);
+        return count($recipientsWithSmsOpened);
     }
 
     public function getForm(): ?Form

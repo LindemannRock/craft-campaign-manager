@@ -13,14 +13,14 @@ use craft\queue\BaseJob;
 use Exception;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\records\CampaignRecord;
-use lindemannrock\campaignmanager\records\CustomerRecord;
+use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use yii\queue\RetryableJobInterface;
 
 /**
  * Send Batch Job
  *
- * Sends SMS and/or email invitations to a batch of customers.
+ * Sends SMS and/or email invitations to a batch of recipients.
  *
  * @author    LindemannRock
  * @package   CampaignManager
@@ -41,9 +41,9 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
     public int $siteId;
 
     /**
-     * @var int[] Customer IDs to process
+     * @var int[] Recipient IDs to process
      */
-    public array $customerIds = [];
+    public array $recipientIds = [];
 
     /**
      * @var bool Whether to send SMS
@@ -70,8 +70,8 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
     protected function defaultDescription(): ?string
     {
         $settings = CampaignManager::$plugin->getSettings();
-        $count = count($this->customerIds);
-        return Craft::t('campaign-manager', '{pluginName}: Sending invitations to {count} customers', [
+        $count = count($this->recipientIds);
+        return Craft::t('campaign-manager', '{pluginName}: Sending invitations to {count} recipients', [
             'pluginName' => $settings->getDisplayName(),
             'count' => $count,
         ]);
@@ -103,7 +103,7 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             return;
         }
 
-        $totalCustomers = count($this->customerIds);
+        $totalRecipients = count($this->recipientIds);
         $processed = 0;
         $smsSent = 0;
         $emailSent = 0;
@@ -112,36 +112,36 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
         $this->logInfo('Processing batch', [
             'campaignId' => $this->campaignId,
             'siteId' => $this->siteId,
-            'customerCount' => $totalCustomers,
+            'recipientCount' => $totalRecipients,
         ]);
 
-        foreach ($this->customerIds as $customerId) {
-            $customer = CustomerRecord::findOne($customerId);
+        foreach ($this->recipientIds as $recipientId) {
+            $recipient = RecipientRecord::findOne($recipientId);
 
-            if (!$customer) {
-                $this->logWarning('Customer not found', ['customerId' => $customerId]);
+            if (!$recipient) {
+                $this->logWarning('Recipient not found', ['recipientId' => $recipientId]);
                 $errors++;
                 $processed++;
-                $this->setProgress($queue, $processed / $totalCustomers);
+                $this->setProgress($queue, $processed / $totalRecipients);
                 continue;
             }
 
-            // Send SMS if enabled and customer has phone and hasn't received SMS yet
-            if ($this->sendSms && !empty($customer->sms) && empty($customer->smsSendDate)) {
+            // Send SMS if enabled and recipient has phone and hasn't received SMS yet
+            if ($this->sendSms && !empty($recipient->sms) && empty($recipient->smsSendDate)) {
                 if (!empty($content->smsInvitationMessage)) {
-                    $senderIdId = $campaign->senderId ? (int) $campaign->senderId : null;
-                    $result = CampaignManager::$plugin->customers->processSmsInvitation(
+                    $result = CampaignManager::$plugin->recipients->processSmsInvitation(
                         $campaign,
-                        $customer,
-                        $senderIdId
+                        $recipient,
+                        $campaign->providerHandle,
+                        $campaign->senderId,
                     );
 
                     if ($result) {
                         $smsSent++;
-                        $this->logInfo('SMS sent', ['customerId' => $customerId]);
+                        $this->logInfo('SMS sent', ['recipientId' => $recipientId]);
                     } else {
                         $errors++;
-                        $this->logError('SMS failed', ['customerId' => $customerId]);
+                        $this->logError('SMS failed', ['recipientId' => $recipientId]);
                     }
                 } else {
                     $this->logWarning('No SMS invitation message configured', [
@@ -151,20 +151,20 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                 }
             }
 
-            // Send email if enabled and customer has email and hasn't received email yet
-            if ($this->sendEmail && !empty($customer->email) && empty($customer->emailSendDate)) {
+            // Send email if enabled and recipient has email and hasn't received email yet
+            if ($this->sendEmail && !empty($recipient->email) && empty($recipient->emailSendDate)) {
                 if (!empty($content->emailInvitationMessage)) {
                     $result = CampaignManager::$plugin->emails->sendNotificationEmail(
-                        $customer,
+                        $recipient,
                         $campaign
                     );
 
                     if ($result) {
                         $emailSent++;
-                        $this->logInfo('Email sent', ['customerId' => $customerId]);
+                        $this->logInfo('Email sent', ['recipientId' => $recipientId]);
                     } else {
                         $errors++;
-                        $this->logError('Email failed', ['customerId' => $customerId]);
+                        $this->logError('Email failed', ['recipientId' => $recipientId]);
                     }
                 } else {
                     $this->logWarning('No email invitation message configured', [
@@ -175,7 +175,7 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             }
 
             $processed++;
-            $this->setProgress($queue, $processed / $totalCustomers);
+            $this->setProgress($queue, $processed / $totalRecipients);
         }
 
         $this->logInfo('Batch complete', [

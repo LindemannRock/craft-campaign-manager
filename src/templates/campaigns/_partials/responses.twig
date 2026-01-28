@@ -1,0 +1,367 @@
+{#
+ # Responses Tab - Shows recipients who have submitted the form
+ #
+ # Variables available:
+ # - campaign: The campaign element
+ # - currentSite: The current site
+ #}
+
+{# Get filters from URL #}
+{% set dateRange = craft.app.request.getQueryParam('dateRange') ?? 'all' %}
+{% set siteFilter = craft.app.request.getQueryParam('siteFilter') ?? 'all' %}
+{% set currentSiteHandle = craft.app.request.getQueryParam('site') ?? craft.app.sites.currentSite.handle %}
+
+{# Build site filter options #}
+{% set siteFilterOptions = [{value: 'all', label: 'All Sites'|t('campaign-manager')}] %}
+{% for site in craft.app.sites.getAllSites() %}
+    {% set siteFilterOptions = siteFilterOptions|merge([{value: site.id, label: site.name}]) %}
+{% endfor %}
+
+{# Date range options #}
+{% set dateRangeOptions = [
+    {value: 'all', label: 'All Time'|t('campaign-manager')},
+    {value: 'today', label: 'Today'|t('campaign-manager')},
+    {value: 'yesterday', label: 'Yesterday'|t('campaign-manager')},
+    {value: 'last7days', label: 'Last 7 Days'|t('campaign-manager')},
+    {value: 'last30days', label: 'Last 30 Days'|t('campaign-manager')},
+    {value: 'last90days', label: 'Last 90 Days'|t('campaign-manager')},
+] %}
+
+{# Get recipients with submissions #}
+{% set filterSiteId = siteFilter != 'all' ? siteFilter|number : null %}
+{% set recipients = craft.campaignManager.recipients.getWithSubmissions(campaign.id, filterSiteId, dateRange) %}
+
+{# Get the Formie form and its fields #}
+{% set form = craft.formie.forms.id(campaign.formId).one() %}
+{% set formFields = form ? form.getCustomFields() : [] %}
+
+{# Filter to only include relevant field types for display #}
+{% set displayableFields = [] %}
+{% for field in formFields %}
+    {% set fieldClass = className(field) %}
+    {# Skip complex field types that don't render well #}
+    {% if fieldClass not in [
+        'verbb\\formie\\fields\\formfields\\Section',
+        'verbb\\formie\\fields\\formfields\\Html',
+        'verbb\\formie\\fields\\formfields\\Hidden',
+        'verbb\\formie\\fields\\formfields\\Heading',
+        'verbb\\formie\\fields\\Group',
+        'verbb\\formie\\fields\\Repeater',
+    ] %}
+        {% set displayableFields = displayableFields|merge([field]) %}
+    {% endif %}
+{% endfor %}
+
+<style>
+    .responses-table {
+        margin-inline: 0;
+    }
+    .responses-table .expand-btn {
+        cursor: pointer;
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: background-color 0.15s;
+    }
+    .responses-table .expand-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    .responses-table .expand-btn svg {
+        width: 16px;
+        height: 16px;
+        transition: transform 0.2s;
+    }
+    .responses-table tr.expanded .expand-btn svg {
+        transform: rotate(90deg);
+    }
+    .responses-table .details-row {
+        display: none;
+    }
+    .responses-table .details-row.visible {
+        display: table-row;
+    }
+    .responses-table .details-row td {
+        padding: 0 !important;
+        background: #f8fafc;
+        border-top: none !important;
+    }
+    .submission-details {
+        padding: 20px 24px;
+        border-top: 1px solid #e5e7eb;
+    }
+    .submission-details-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .submission-details-header h4 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+    .submission-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .field-item {
+        display: flex;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .field-item:last-child {
+        border-bottom: none;
+    }
+    .field-label {
+        flex: 0 0 200px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+    .field-value {
+        flex: 1;
+        font-size: 13px;
+        color: #111827;
+        word-break: break-word;
+    }
+    .field-value.empty {
+        color: #9ca3af;
+        font-style: italic;
+    }
+</style>
+
+<div>
+    {# Responses table #}
+    {% if recipients|length > 0 %}
+        {# Toolbar with filters and export #}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 24px; margin-bottom: 24px;">
+            {# Filters #}
+            <div style="display: flex; gap: 8px;">
+                {# Site filter #}
+                <div class="btngroup">
+                    <button type="button" class="btn menubtn">
+                        {% for option in siteFilterOptions %}
+                            {% if option.value == siteFilter or (option.value == 'all' and siteFilter == 'all') %}
+                                {{ option.label }}
+                            {% endif %}
+                        {% endfor %}
+                    </button>
+                    <div class="menu">
+                        <ul>
+                            {% for option in siteFilterOptions %}
+                                <li>
+                                    <a class="{{ siteFilter == option.value or (siteFilter == 'all' and option.value == 'all') ? 'sel' : '' }}"
+                                       href="{{ craft.app.request.url|split('?')|first }}?site={{ currentSiteHandle }}&siteFilter={{ option.value }}&dateRange={{ dateRange }}#responses">
+                                        {{ option.label }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                {# Date range filter #}
+                <div class="btngroup">
+                    <button type="button" class="btn menubtn">
+                        {% for option in dateRangeOptions %}
+                            {% if option.value == dateRange %}
+                                {{ option.label }}
+                            {% endif %}
+                        {% endfor %}
+                    </button>
+                    <div class="menu">
+                        <ul>
+                            {% for option in dateRangeOptions %}
+                                <li>
+                                    <a class="{{ dateRange == option.value ? 'sel' : '' }}"
+                                       href="{{ craft.app.request.url|split('?')|first }}?site={{ currentSiteHandle }}&siteFilter={{ siteFilter }}&dateRange={{ option.value }}#responses">
+                                        {{ option.label }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {# Export #}
+            {% if currentUser.can('campaignManager:viewRecipients') %}
+                {% include 'lindemannrock-base/_components/export-menu' with {
+                    action: 'campaign-manager/recipients/export-responses',
+                    permission: 'campaignManager:viewRecipients',
+                    extraParams: {campaignId: campaign.id, siteFilter: siteFilter, dateRange: dateRange},
+                } only %}
+            {% endif %}
+        </div>
+
+        {# Table #}
+        <div class="tableview tablepane responses-table">
+            <table class="data fullwidth">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"></th>
+                        <th>{{ 'Recipient'|t('campaign-manager') }}</th>
+                        <th>{{ 'Email'|t('campaign-manager') }}</th>
+                        <th>{{ 'Phone'|t('campaign-manager') }}</th>
+                        <th>{{ 'Site'|t('campaign-manager') }}</th>
+                        <th style="text-align: right;">{{ 'Submitted'|t('campaign-manager') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recipient in recipients %}
+                        {% set submission = recipient.submission %}
+                        {% set rowId = 'response-' ~ recipient.id %}
+
+                        {# Main row #}
+                        <tr class="main-row" data-target="{{ rowId }}">
+                            <td class="thin">
+                                <span class="expand-btn" title="{{ 'Toggle Details'|t('campaign-manager') }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                                    </svg>
+                                </span>
+                            </td>
+                            <td>
+                                <strong>{{ recipient.name ?? '-' }}</strong>
+                            </td>
+                            <td>{{ recipient.email ?? '-' }}</td>
+                            <td>{{ recipient.sms ?? '-' }}</td>
+                            <td>
+                                {% set recipientSite = craft.app.sites.getSiteById(recipient.siteId) %}
+                                {{ recipientSite ? recipientSite.name : '-' }}
+                            </td>
+                            <td style="text-align: right;">
+                                {% if submission %}
+                                    {{ submission.dateCreated|datetime('short') }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                        {# Details row (hidden by default) #}
+                        <tr class="details-row" id="{{ rowId }}">
+                            <td colspan="6">
+                                <div class="submission-details">
+                                    <div class="submission-details-header">
+                                        <h4>{{ 'Form Responses'|t('campaign-manager') }}</h4>
+                                        {% if submission %}
+                                            <a href="{{ cpUrl('formie/submissions/' ~ form.handle ~ '/' ~ submission.id) }}" class="btn small">
+                                                {{ 'View'|t('app') }}
+                                            </a>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if submission and displayableFields|length > 0 %}
+                                        <div class="submission-list">
+                                            {% for field in displayableFields %}
+                                                <div class="field-item">
+                                                    <div class="field-label">{{ field.label }}</div>
+                                                    <div class="field-value{% if not submission.getFieldValue(field.handle) %} empty{% endif %}">
+                                                        {% set fieldValue = submission.getFieldValue(field.handle) %}
+                                                        {% if fieldValue is iterable %}
+                                                            {{ fieldValue|join(', ') ?: '-' }}
+                                                        {% elseif fieldValue %}
+                                                            {{ fieldValue }}
+                                                        {% else %}
+                                                            {{ 'Not answered'|t('campaign-manager') }}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <p class="light">{{ 'No form fields to display.'|t('campaign-manager') }}</p>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% else %}
+        {# Toolbar with filters (even when no responses) #}
+        <div style="display: flex; justify-content: flex-start; gap: 8px; padding-bottom: 24px; margin-bottom: 24px;">
+            {# Site filter #}
+            <div class="btngroup">
+                <button type="button" class="btn menubtn">
+                    {% for option in siteFilterOptions %}
+                        {% if option.value == siteFilter or (option.value == 'all' and siteFilter == 'all') %}
+                            {{ option.label }}
+                        {% endif %}
+                    {% endfor %}
+                </button>
+                <div class="menu">
+                    <ul>
+                        {% for option in siteFilterOptions %}
+                            <li>
+                                <a class="{{ siteFilter == option.value or (siteFilter == 'all' and option.value == 'all') ? 'sel' : '' }}"
+                                   href="{{ craft.app.request.url|split('?')|first }}?site={{ currentSiteHandle }}&siteFilter={{ option.value }}&dateRange={{ dateRange }}#responses">
+                                    {{ option.label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            {# Date range filter #}
+            <div class="btngroup">
+                <button type="button" class="btn menubtn">
+                    {% for option in dateRangeOptions %}
+                        {% if option.value == dateRange %}
+                            {{ option.label }}
+                        {% endif %}
+                    {% endfor %}
+                </button>
+                <div class="menu">
+                    <ul>
+                        {% for option in dateRangeOptions %}
+                            <li>
+                                <a class="{{ dateRange == option.value ? 'sel' : '' }}"
+                                   href="{{ craft.app.request.url|split('?')|first }}?site={{ currentSiteHandle }}&siteFilter={{ siteFilter }}&dateRange={{ option.value }}#responses">
+                                    {{ option.label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="zilch" style="padding: 48px 24px;">
+            <p>{{ 'No responses yet.'|t('campaign-manager') }}</p>
+            <p class="light">{{ 'Recipients who submit the form will appear here.'|t('campaign-manager') }}</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle expand/collapse
+    document.querySelectorAll('.responses-table .main-row').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+            // Don't toggle if clicking a link
+            if (e.target.closest('a')) return;
+
+            const targetId = this.dataset.target;
+            const detailsRow = document.getElementById(targetId);
+
+            if (detailsRow) {
+                this.classList.toggle('expanded');
+                detailsRow.classList.toggle('visible');
+            }
+        });
+    });
+});
+</script>

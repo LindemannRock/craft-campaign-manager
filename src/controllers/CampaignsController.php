@@ -40,18 +40,40 @@ class CampaignsController extends Controller
 
     /**
      * Campaign index page (element index)
+     *
+     * If user doesn't have permission for campaigns, redirect to first accessible section
+     *
+     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
-        $this->requirePermission('campaignManager:viewCampaigns');
+        $user = Craft::$app->getUser();
 
-        return $this->renderTemplate('campaign-manager/campaigns/_index', [
+        // If user doesn't have viewCampaigns permission, redirect to first accessible section
+        if (!$user->checkPermission('campaignManager:viewCampaigns')) {
+            if ($user->checkPermission('campaignManager:viewRecipients')) {
+                return $this->redirect('campaign-manager/recipients');
+            }
+            if ($user->checkPermission('campaignManager:viewLogs')) {
+                return $this->redirect('campaign-manager/logs');
+            }
+            if ($user->checkPermission('campaignManager:manageSettings')) {
+                return $this->redirect('campaign-manager/settings');
+            }
+
+            // No accessible sections - throw forbidden
+            throw new ForbiddenHttpException('You do not have permission to access this area.');
+        }
+
+        return $this->renderTemplate('campaign-manager/campaigns/index', [
             'elementType' => Campaign::class,
         ]);
     }
 
     /**
      * Edit a campaign
+     *
+     * @since 5.0.0
      */
     public function actionEdit(?int $campaignId = null, ?Campaign $campaign = null): Response
     {
@@ -86,6 +108,11 @@ class CampaignsController extends Controller
 
                 $campaign = new Campaign();
                 $campaign->siteId = $siteId;
+
+                // Set defaults from plugin settings for new campaigns
+                $settings = CampaignManager::$plugin->getSettings();
+                $campaign->providerHandle = $settings->defaultProviderHandle;
+                $campaign->senderId = $settings->defaultSenderIdHandle;
             }
         }
 
@@ -110,19 +137,34 @@ class CampaignsController extends Controller
         // Build title
         $title = $campaign->id
             ? $campaign->title
-            : Craft::t('campaign-manager', 'Create a new campaign');
+            : Craft::t('campaign-manager', 'New Campaign');
 
-        return $this->renderTemplate('campaign-manager/campaigns/_edit', [
+        // Get SMS provider and sender ID options
+        $smsService = CampaignManager::$plugin->sms;
+        $providerOptions = $smsService->getProviderOptions();
+        $senderIdsByProvider = $smsService->getSenderIdOptionsByProvider();
+
+        // Get current sender ID options based on campaign's provider
+        $currentProviderHandle = $campaign->providerHandle ?? $settings->defaultProviderHandle;
+        $senderIdOptions = $currentProviderHandle
+            ? $smsService->getSenderIdOptions($currentProviderHandle)
+            : [['label' => Craft::t('campaign-manager', 'Select a provider first...'), 'value' => '']];
+
+        return $this->renderTemplate('campaign-manager/campaigns/edit', [
             'campaign' => $campaign,
             'title' => $title,
             'formOptions' => $formOptions,
             'campaignTypeOptions' => $campaignTypeOptions,
-            'senderIdOptions' => CampaignManager::$plugin->sms->getSenderIdOptions(),
+            'providerOptions' => $providerOptions,
+            'senderIdOptions' => $senderIdOptions,
+            'senderIdsByProvider' => $senderIdsByProvider,
         ]);
     }
 
     /**
      * Save a campaign
+     *
+     * @since 5.0.0
      */
     public function actionSave(): ?Response
     {
@@ -153,7 +195,12 @@ class CampaignsController extends Controller
 
         // Set the attributes
         $campaign->title = $request->getBodyParam('title');
-        $campaign->enabled = (bool)$request->getBodyParam('enabled', true);
+
+        // Set enabled ONLY for the current site being edited
+        $enabledParam = $request->getBodyParam('enabled');
+        $enabled = $enabledParam === '1' || $enabledParam === 1 || $enabledParam === true;
+        $campaign->setEnabledForSite($enabled);
+
         $campaign->campaignType = $request->getBodyParam('campaignType');
         $campaign->formId = $request->getBodyParam('formId') ?: null;
         // Convert user-friendly duration to ISO 8601
@@ -168,13 +215,14 @@ class CampaignsController extends Controller
         $campaign->emailInvitationMessage = $request->getBodyParam('emailInvitationMessage');
         $campaign->emailInvitationSubject = $request->getBodyParam('emailInvitationSubject');
         $campaign->smsInvitationMessage = $request->getBodyParam('smsInvitationMessage');
-        $campaign->senderId = $request->getBodyParam('senderId');
+        $campaign->providerHandle = $request->getBodyParam('providerHandle') ?: null;
+        $campaign->senderId = $request->getBodyParam('senderId') ?: null;
 
         // Set field values
         $campaign->setFieldValuesFromRequest('fields');
 
-        // Save the campaign
-        if (!Craft::$app->getElements()->saveElement($campaign)) {
+        // Save the campaign (with propagation and search index update)
+        if (!Craft::$app->getElements()->saveElement($campaign, true, true, true)) {
             if ($request->getAcceptsJson()) {
                 return $this->asJson([
                     'success' => false,
@@ -207,6 +255,8 @@ class CampaignsController extends Controller
 
     /**
      * Delete a campaign
+     *
+     * @since 5.0.0
      */
     public function actionDelete(): Response
     {
@@ -244,6 +294,8 @@ class CampaignsController extends Controller
 
     /**
      * Run all campaigns or a specific campaign (queued)
+     *
+     * @since 5.0.0
      */
     public function actionRunAll(): Response
     {
@@ -315,10 +367,11 @@ class CampaignsController extends Controller
     private function getCampaignsToRun(?string $campaignId, int $siteId): array
     {
         if ($campaignId) {
+            // Only run enabled campaigns
             $campaign = Campaign::find()
                 ->id((int)$campaignId)
                 ->siteId($siteId)
-                ->status(null)
+                ->status('enabled')
                 ->one();
 
             return $campaign ? [$campaign] : [];

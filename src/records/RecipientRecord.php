@@ -16,9 +16,10 @@ use DateInterval;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\PhoneHelper;
 use lindemannrock\campaignmanager\helpers\TimeHelper;
+use verbb\formie\elements\Submission;
 
 /**
- * Customer Record
+ * Recipient Record
  *
  * @author    LindemannRock
  * @package   CampaignManager
@@ -41,9 +42,15 @@ use lindemannrock\campaignmanager\helpers\TimeHelper;
  * @property \DateTime|null $dateCreated
  * @property \DateTime|null $dateUpdated
  */
-class CustomerRecord extends BaseRecord
+class RecipientRecord extends BaseRecord
 {
-    public const TABLE_NAME = 'campaignmanager_customers';
+    /**
+     * @var Submission|null The loaded Formie submission (not persisted to DB)
+     * @since 5.1.0
+     */
+    public ?Submission $submission = null;
+
+    public const TABLE_NAME = 'campaignmanager_recipients';
 
     private ?ElementInterface $_campaign = null;
 
@@ -101,7 +108,7 @@ class CustomerRecord extends BaseRecord
                 $this->sms = $e164;
             }
         }
-        $invitationCode = CampaignManager::$plugin->customers->getUniqueInvitationCode();
+        $invitationCode = CampaignManager::$plugin->recipients->getUniqueInvitationCode();
 
         if (empty($this->emailInvitationCode)) {
             $this->emailInvitationCode = $invitationCode;
@@ -146,7 +153,7 @@ class CustomerRecord extends BaseRecord
     }
 
     /**
-     * Check if this customer has a submission
+     * Check if this recipient has a submission
      */
     public function hasSubmission(): bool
     {
@@ -166,7 +173,7 @@ class CustomerRecord extends BaseRecord
     }
 
     /**
-     * Find all customers with outstanding email invitations
+     * Find all recipients with outstanding email invitations
      *
      * @return array<static>
      */
@@ -181,7 +188,7 @@ class CustomerRecord extends BaseRecord
     }
 
     /**
-     * Find all customers with outstanding SMS invitations
+     * Find all recipients with outstanding SMS invitations
      *
      * @return array<static>
      */

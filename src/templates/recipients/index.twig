@@ -1,7 +1,7 @@
 {#
- # Customers Index - Using cp-table layout
+ # Recipients Index - Using cp-table layout
  #
- # Global view of all customers across all campaigns with filters,
+ # Global view of all recipients across all campaigns with filters,
  # sorting, and bulk actions.
  #}
 
@@ -11,8 +11,8 @@
    PERMISSION CHECKS
    ============================================================================ #}
 
-{% set canView = currentUser.can('campaignManager:viewCustomers') %}
-{% set canDelete = currentUser.can('campaignManager:deleteCustomers') %}
+{% set canView = currentUser.can('campaignManager:viewRecipients') %}
+{% set canDelete = currentUser.can('campaignManager:deleteRecipients') %}
 
 {# ============================================================================
    GET QUERY PARAMETERS
@@ -23,7 +23,7 @@
 {% set statusFilter = craft.app.request.getParam('status', 'all') %}
 {% set siteFilterParam = craft.app.request.getParam('siteFilter', 'all') %}
 {% set dateRange = craft.app.request.getParam('dateRange', 'all') %}
-{% set sort = craft.app.request.getParam('sort', 'dateCreated') %}
+{% set sort = craft.app.request.getParam('sort', 'sent') %}
 {% set dir = craft.app.request.getParam('dir', 'desc') %}
 {% set page = craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
 {% set limit = 50 %}
@@ -43,58 +43,69 @@
 } %}
 
 {# ============================================================================
-   FILTER CUSTOMERS
+   FILTER RECIPIENTS
    ============================================================================ #}
 
-{% set filteredCustomers = customers %}
+{% set filteredRecipients = recipients %}
 
 {# Campaign filter #}
 {% if campaignFilter != 'all' %}
-    {% set filteredCustomers = filteredCustomers|filter(c => c.campaignId == campaignFilter) %}
+    {% set filteredRecipients = filteredRecipients|filter(c => c.campaignId == campaignFilter) %}
 {% endif %}
 
 {# Site filter #}
 {% if siteFilterParam != 'all' %}
-    {% set filteredCustomers = filteredCustomers|filter(c => c.siteId == siteFilterParam) %}
+    {% set filteredRecipients = filteredRecipients|filter(c => c.siteId == siteFilterParam) %}
 {% endif %}
 
 {# Status filter #}
 {% if statusFilter == 'pending' %}
-    {% set filteredCustomers = filteredCustomers|filter(c => c.smsSendDate is null and c.emailSendDate is null) %}
+    {% set filteredRecipients = filteredRecipients|filter(c => c.smsSendDate is null and c.emailSendDate is null) %}
 {% elseif statusFilter == 'sent' %}
-    {% set filteredCustomers = filteredCustomers|filter(c => c.smsSendDate is not null or c.emailSendDate is not null) %}
+    {% set filteredRecipients = filteredRecipients|filter(c => c.smsSendDate is not null or c.emailSendDate is not null) %}
 {% endif %}
 
 {# Date range filter #}
 {% if dateRange != 'all' and dateRanges[dateRange] is defined %}
     {% set startTimestamp = dateRanges[dateRange]|date('U') %}
-    {% set filteredCustomers = filteredCustomers|filter(c => c.dateCreated|date('U') >= startTimestamp) %}
+    {% if dateRange == 'today' %}
+        {# Today: from start of today until now #}
+        {% set endTimestamp = "now"|date_modify('+1 day')|date('Y-m-d')|date('U') %}
+        {% set filteredRecipients = filteredRecipients|filter(c => c.dateCreated|date('U') >= startTimestamp and c.dateCreated|date('U') < endTimestamp) %}
+    {% elseif dateRange == 'yesterday' %}
+        {# Yesterday: only items from yesterday (not including today) #}
+        {% set endTimestamp = today|date('U') %}
+        {% set filteredRecipients = filteredRecipients|filter(c => c.dateCreated|date('U') >= startTimestamp and c.dateCreated|date('U') < endTimestamp) %}
+    {% else %}
+        {# last7days, last30days, last90days: from start date until now #}
+        {% set filteredRecipients = filteredRecipients|filter(c => c.dateCreated|date('U') >= startTimestamp) %}
+    {% endif %}
 {% endif %}
 
 {# Search filter #}
 {% if search %}
-    {% set filteredCustomers = filteredCustomers|filter(c =>
+    {% set filteredRecipients = filteredRecipients|filter(c =>
         search|lower in (c.name ?? '')|lower or
         search|lower in (c.email ?? '')|lower or
         search|lower in (c.sms ?? '')|lower
     ) %}
 {% endif %}
 
-{# Sort customers #}
+{# Sort recipients #}
 {% if sort == 'name' %}
-    {% set filteredCustomers = filteredCustomers|sort((a, b) => dir == 'asc' ? (a.name ?? '')|lower <=> (b.name ?? '')|lower : (b.name ?? '')|lower <=> (a.name ?? '')|lower) %}
+    {% set filteredRecipients = filteredRecipients|sort((a, b) => dir == 'asc' ? (a.name ?? '')|lower <=> (b.name ?? '')|lower : (b.name ?? '')|lower <=> (a.name ?? '')|lower) %}
 {% elseif sort == 'campaign' %}
-    {% set filteredCustomers = filteredCustomers|sort((a, b) => dir == 'asc' ? a.campaignId <=> b.campaignId : b.campaignId <=> a.campaignId) %}
+    {% set filteredRecipients = filteredRecipients|sort((a, b) => dir == 'asc' ? a.campaignId <=> b.campaignId : b.campaignId <=> a.campaignId) %}
 {% elseif sort == 'sent' %}
-    {% set filteredCustomers = filteredCustomers|sort((a, b) => dir == 'asc' ? (a.smsSendDate ?? a.emailSendDate ?? '')|date('U') <=> (b.smsSendDate ?? b.emailSendDate ?? '')|date('U') : (b.smsSendDate ?? b.emailSendDate ?? '')|date('U') <=> (a.smsSendDate ?? a.emailSendDate ?? '')|date('U')) %}
+    {% set filteredRecipients = filteredRecipients|sort((a, b) => dir == 'asc' ? (a.smsSendDate ?? a.emailSendDate ?? '')|date('U') <=> (b.smsSendDate ?? b.emailSendDate ?? '')|date('U') : (b.smsSendDate ?? b.emailSendDate ?? '')|date('U') <=> (a.smsSendDate ?? a.emailSendDate ?? '')|date('U')) %}
 {% elseif sort == 'opened' %}
-    {% set filteredCustomers = filteredCustomers|sort((a, b) => dir == 'asc' ? (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U') <=> (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U') : (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U') <=> (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U')) %}
+    {% set filteredRecipients = filteredRecipients|sort((a, b) => dir == 'asc' ? (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U') <=> (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U') : (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U') <=> (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U')) %}
 {% elseif sort == 'dateCreated' %}
-    {% set filteredCustomers = filteredCustomers|sort((a, b) => dir == 'asc' ? a.dateCreated|date('U') <=> b.dateCreated|date('U') : b.dateCreated|date('U') <=> a.dateCreated|date('U')) %}
+    {% set filteredRecipients = filteredRecipients|sort((a, b) => dir == 'asc' ? a.dateCreated|date('U') <=> b.dateCreated|date('U') : b.dateCreated|date('U') <=> a.dateCreated|date('U')) %}
 {% endif %}
 
-{% set totalCount = filteredCustomers|length %}
-{% set paginatedCustomers = filteredCustomers|slice(offset, limit) %}
+{% set totalCount = filteredRecipients|length %}
+{% set paginatedRecipients = filteredRecipients|slice(offset, limit) %}
 
 {# ============================================================================
    BUILD FILTER OPTIONS
@@ -128,11 +139,11 @@
         name: settings.fullName,
     },
     page: {
-        title: 'Customers'|t('campaign-manager'),
-        subnav: 'customers',
+        title: 'Recipients'|t('campaign-manager'),
+        subnav: 'recipients',
         crumbs: [
             { label: settings.fullName, url: url('campaign-manager') },
-            { label: 'Customers'|t('campaign-manager') }
+            { label: 'Recipients'|t('campaign-manager') }
         ],
     },
     filters: [
@@ -178,7 +189,7 @@
         },
     ],
     search: {
-        placeholder: 'Search customers...'|t('campaign-manager'),
+        placeholder: 'Search recipients...'|t('campaign-manager'),
         value: search,
     },
     sort: {
@@ -193,16 +204,16 @@
             {key: 'status', label: 'Status'|t('campaign-manager')},
             {key: 'sent', label: 'Sent'|t('campaign-manager'), sortable: true},
             {key: 'opened', label: 'Opened'|t('campaign-manager'), sortable: true},
-            {key: 'submission', label: 'Submission'|t('campaign-manager')},
+            {key: 'response', label: 'Response'|t('campaign-manager')},
         ],
-        items: paginatedCustomers,
-        emptyMessage: 'No customers found.'|t('campaign-manager'),
+        items: paginatedRecipients,
+        emptyMessage: 'No recipients found.'|t('campaign-manager'),
     },
     pagination: {
         page: page,
         limit: limit,
         totalCount: totalCount,
-        itemLabel: {singular: 'customer'|t('campaign-manager'), plural: 'customers'|t('campaign-manager')},
+        itemLabel: {singular: 'recipient'|t('campaign-manager'), plural: 'recipients'|t('campaign-manager')},
     },
     checkboxes: canDelete,
 } %}
@@ -214,8 +225,8 @@
 
 {% block toolbarActions %}
     {% include 'lindemannrock-base/_components/export-menu' with {
-        action: 'campaign-manager/customers/export',
-        permission: 'campaignManager:viewCustomers',
+        action: 'campaign-manager/recipients/export',
+        permission: 'campaignManager:viewRecipients',
     } only %}
 {% endblock %}
 
@@ -247,7 +258,7 @@
                     {% if submission %}
                         <li>
                             <a href="{{ submission.cpEditUrl }}">
-                                {{ 'View Submission'|t('campaign-manager') }}
+                                {{ 'View Response'|t('campaign-manager') }}
                             </a>
                         </li>
                         <li><hr class="padded"></li>
@@ -255,7 +266,7 @@
                 {% endif %}
                 {% if canDelete %}
                     <li>
-                        <a class="lr-customer-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.name }}">
+                        <a class="lr-recipient-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.name }}">
                             {{ 'Delete'|t('app') }}
                         </a>
                     </li>
@@ -271,7 +282,7 @@
    ============================================================================ #}
 
 {% block tableRow %}
-    {# Get campaign for this customer #}
+    {# Get campaign for this recipient #}
     {% set campaign = craft.campaignManager.campaigns.getCampaignById(item.campaignId) %}
     {% set site = craft.app.sites.getSiteById(item.siteId) %}
 
@@ -330,7 +341,7 @@
     <td>
         {% set sentDate = item.smsSendDate ?? item.emailSendDate %}
         {% if sentDate %}
-            {{ sentDate|date('Y-m-d H:i') }}
+            {{ sentDate|lrDatetime('medium') }}
         {% else %}
             <span class="light">-</span>
         {% endif %}
@@ -340,7 +351,7 @@
     <td>
         {% set openedDate = item.smsOpenDate ?? item.emailOpenDate %}
         {% if openedDate %}
-            {{ openedDate|date('Y-m-d H:i') }}
+            {{ openedDate|lrDatetime('medium') }}
         {% else %}
             <span class="light">-</span>
         {% endif %}
@@ -387,15 +398,15 @@
 
             if (count === 0) return;
 
-            if (!confirm('{{ "Delete {count} customer(s)? This cannot be undone."|t("campaign-manager")|e("js") }}'.replace('{count}', count))) {
+            if (!confirm('{{ "Delete {count} recipient(s)? This cannot be undone."|t("campaign-manager")|e("js") }}'.replace('{count}', count))) {
                 return;
             }
 
-            Craft.sendActionRequest('POST', 'campaign-manager/customers/bulk-delete', {
-                data: { customerIds: ids }
+            Craft.sendActionRequest('POST', 'campaign-manager/recipients/bulk-delete', {
+                data: { recipientIds: ids }
             }).then(function(response) {
                 if (response.data.count > 0) {
-                    Craft.cp.displayNotice('{{ "Deleted {count} customers"|t("campaign-manager")|e("js") }}'.replace('{count}', response.data.count));
+                    Craft.cp.displayNotice('{{ "Deleted {count} recipients"|t("campaign-manager")|e("js") }}'.replace('{count}', response.data.count));
                 }
                 if (response.data.errors && response.data.errors.length > 0) {
                     response.data.errors.forEach(err => Craft.cp.displayError(err));
@@ -404,32 +415,32 @@
                     setTimeout(() => window.location.reload(), 1000);
                 }
             }).catch(function(error) {
-                Craft.cp.displayError('{{ "Failed to delete customers"|t("campaign-manager")|e("js") }}');
+                Craft.cp.displayError('{{ "Failed to delete recipients"|t("campaign-manager")|e("js") }}');
             });
         });
 
-        // Individual customer action menu clicks
-        document.querySelectorAll('.lr-customer-action').forEach(link => {
+        // Individual recipient action menu clicks
+        document.querySelectorAll('.lr-recipient-action').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
 
                 const action = this.dataset.action;
-                const customerId = this.dataset.id;
-                const customerName = this.dataset.name;
+                const recipientId = this.dataset.id;
+                const recipientName = this.dataset.name;
 
                 if (action === 'delete') {
-                    if (confirm('{{ "Delete customer \"{name}\"? This cannot be undone."|t("campaign-manager")|e("js") }}'.replace('{name}', customerName))) {
-                        Craft.sendActionRequest('POST', 'campaign-manager/customers/delete-from-cp', {
-                            data: { id: customerId }
+                    if (confirm('{{ "Delete recipient \"{name}\"? This cannot be undone."|t("campaign-manager")|e("js") }}'.replace('{name}', recipientName))) {
+                        Craft.sendActionRequest('POST', 'campaign-manager/recipients/delete-from-cp', {
+                            data: { id: recipientId }
                         }).then(function(response) {
                             if (response.data.success) {
-                                Craft.cp.displayNotice('{{ "Customer deleted"|t("campaign-manager")|e("js") }}');
+                                Craft.cp.displayNotice('{{ "Recipient deleted"|t("campaign-manager")|e("js") }}');
                                 setTimeout(() => window.location.reload(), 1000);
                             } else if (response.data.error) {
                                 Craft.cp.displayError(response.data.error);
                             }
                         }).catch(function(error) {
-                            Craft.cp.displayError('{{ "Failed to delete customer"|t("campaign-manager")|e("js") }}');
+                            Craft.cp.displayError('{{ "Failed to delete recipient"|t("campaign-manager")|e("js") }}');
                         });
                     }
                 }

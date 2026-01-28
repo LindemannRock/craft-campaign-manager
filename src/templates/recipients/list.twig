@@ -8,7 +8,7 @@
 {% set site = site ?? craft.app.sites.getCurrentSite() %}
 {% set campaignId = campaignId ?? campaign.id %}
 
-{% set title = campaign.title ~ ' - ' ~ 'Customers'|t('campaign-manager') %}
+{% set title = campaign.title ~ ' - ' ~ 'Recipients'|t('campaign-manager') %}
 {% set fullPageForm = false %}
 {% set selectedSubnavItem = 'campaigns' %}
 
@@ -31,31 +31,31 @@
     'all': 'All time'|t('campaign-manager'),
 } %}
 
-{# Get customers with date filtering at SQL level #}
-{% set allCustomers = campaignManager.customers.findByCampaignAndSite(campaignId, site.id, dateRange) %}
+{# Get recipients with date filtering at SQL level #}
+{% set allRecipients = campaignManager.recipients.findByCampaignAndSite(campaignId, site.id, dateRange) %}
 
 {# Search filter #}
 {% if search %}
-    {% set allCustomers = allCustomers|filter(c => search|lower in c.name|lower or search|lower in c.email|lower or search|lower in c.sms|lower) %}
+    {% set allRecipients = allRecipients|filter(c => search|lower in c.name|lower or search|lower in c.email|lower or search|lower in c.sms|lower) %}
 {% endif %}
 
 {# Sort #}
 {% if sort == 'name' %}
-    {% set allCustomers = dir == 'asc' ? allCustomers|sort((a, b) => a.name|lower <=> b.name|lower) : allCustomers|sort((a, b) => b.name|lower <=> a.name|lower) %}
+    {% set allRecipients = dir == 'asc' ? allRecipients|sort((a, b) => a.name|lower <=> b.name|lower) : allRecipients|sort((a, b) => b.name|lower <=> a.name|lower) %}
 {% elseif sort == 'email' %}
-    {% set allCustomers = dir == 'asc' ? allCustomers|sort((a, b) => (a.email ?? '')|lower <=> (b.email ?? '')|lower) : allCustomers|sort((a, b) => (b.email ?? '')|lower <=> (a.email ?? '')|lower) %}
+    {% set allRecipients = dir == 'asc' ? allRecipients|sort((a, b) => (a.email ?? '')|lower <=> (b.email ?? '')|lower) : allRecipients|sort((a, b) => (b.email ?? '')|lower <=> (a.email ?? '')|lower) %}
 {% elseif sort == 'sms' %}
-    {% set allCustomers = dir == 'asc' ? allCustomers|sort((a, b) => (a.sms ?? '') <=> (b.sms ?? '')) : allCustomers|sort((a, b) => (b.sms ?? '') <=> (a.sms ?? '')) %}
+    {% set allRecipients = dir == 'asc' ? allRecipients|sort((a, b) => (a.sms ?? '') <=> (b.sms ?? '')) : allRecipients|sort((a, b) => (b.sms ?? '') <=> (a.sms ?? '')) %}
 {% elseif sort == 'sent' %}
-    {% set allCustomers = dir == 'asc' ? allCustomers|sort((a, b) => (a.smsSendDate ?? a.emailSendDate ?? '')|date('U') <=> (b.smsSendDate ?? b.emailSendDate ?? '')|date('U')) : allCustomers|sort((a, b) => (b.smsSendDate ?? b.emailSendDate ?? '')|date('U') <=> (a.smsSendDate ?? a.emailSendDate ?? '')|date('U')) %}
+    {% set allRecipients = dir == 'asc' ? allRecipients|sort((a, b) => (a.smsSendDate ?? a.emailSendDate ?? '')|date('U') <=> (b.smsSendDate ?? b.emailSendDate ?? '')|date('U')) : allRecipients|sort((a, b) => (b.smsSendDate ?? b.emailSendDate ?? '')|date('U') <=> (a.smsSendDate ?? a.emailSendDate ?? '')|date('U')) %}
 {% elseif sort == 'opened' %}
-    {% set allCustomers = dir == 'asc' ? allCustomers|sort((a, b) => (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U') <=> (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U')) : allCustomers|sort((a, b) => (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U') <=> (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U')) %}
+    {% set allRecipients = dir == 'asc' ? allRecipients|sort((a, b) => (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U') <=> (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U')) : allRecipients|sort((a, b) => (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U') <=> (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U')) %}
 {% endif %}
 
 {# Pagination #}
-{% set totalCount = allCustomers|length %}
+{% set totalCount = allRecipients|length %}
 {% set totalPages = (totalCount / limit)|round(0, 'ceil') %}
-{% set customers = allCustomers|slice(offset, limit) %}
+{% set recipients = allRecipients|slice(offset, limit) %}
 
 {# Site switcher in crumbs #}
 {% set crumbs = [] %}
@@ -64,7 +64,7 @@
     {% for s in craft.app.sites.getAllSites() %}
         {% set siteMenuItems = siteMenuItems|merge([{
             label: s.name,
-            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: s.handle}),
+            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: s.handle}),
             selected: s.handle == site.handle
         }]) %}
     {% endfor %}
@@ -83,13 +83,13 @@
 {% set crumbs = crumbs|merge([
     { label: settings.pluginName, url: cpUrl('campaign-manager', {site: site.handle}) },
     { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId, {site: site.handle}) },
-    { label: 'Customers'|t('campaign-manager') },
+    { label: 'Recipients'|t('campaign-manager') },
 ]) %}
 
 {% block toolbar %}
     <div id="toolbar" class="flex" style="align-items: flex-end;">
         <div class="flex-grow">
-            <form method="get" action="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers') }}">
+            <form method="get" action="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients') }}">
                 <div class="flex">
                     {# Date range filter #}
                     <div class="btngroup">
@@ -110,7 +110,7 @@
 
                     <div class="search-container texticon flex-grow">
                         <span class="texticon-icon search icon" aria-hidden="true"></span>
-                        <input type="text" class="clearable text fullwidth" name="search" value="{{ search }}" placeholder="{{ 'Search customers...'|t('campaign-manager') }}" autocomplete="off" dir="ltr" aria-label="Search" {% if search %} autofocus {% endif %}>
+                        <input type="text" class="clearable text fullwidth" name="search" value="{{ search }}" placeholder="{{ 'Search recipients...'|t('campaign-manager') }}" autocomplete="off" dir="ltr" aria-label="Search" {% if search %} autofocus {% endif %}>
                         <button type="button" class="clear-btn {{ search ? '' : 'hidden' }}" title="Clear search" role="button" aria-label="Clear search"></button>
                         <input type="hidden" name="site" value="{{ site.handle }}">
                         <input type="hidden" name="sort" value="{{ sort }}">
@@ -121,51 +121,45 @@
             </form>
         </div>
         {# Export dropdown #}
-        <div class="btngroup">
-            <button type="button" class="btn menubtn" data-icon="download">{{ "Export"|t('campaign-manager') }}</button>
-            <div class="menu" data-align="right">
-                <ul>
-                    <li>
-                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/export-customers', {site: site.handle, dateRange: dateRange, format: 'csv'}) }}">{{ "Export as CSV"|t('campaign-manager') }}</a>
-                    </li>
-                    <li>
-                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/export-customers', {site: site.handle, dateRange: dateRange, format: 'json'}) }}">{{ "Export as JSON"|t('campaign-manager') }}</a>
-                    </li>
-                </ul>
+        {% include 'lindemannrock-base/_components/export-menu' with {
+            action: 'campaign-manager/recipients/export-recipients',
+            permission: 'campaignManager:viewRecipients',
+            extraParams: {campaignId: campaignId, site: site.handle, dateRange: dateRange},
+        } only %}
+        {% if campaign.getEnabledForSite() %}
+            <div class="btngroup">
+                <button type="button" class="btn menubtn" data-icon="plus">{{ 'Add'|t('campaign-manager') }}</button>
+                <div class="menu" data-align="right">
+                    <ul>
+                        <li>
+                            <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/add-recipient', {site: site.handle}) }}">
+                                {{ 'Add Recipient'|t('campaign-manager') }}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/import-recipients', {site: site.handle}) }}">
+                                {{ 'Import Recipients'|t('campaign-manager') }}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
-        <div class="btngroup">
-            <button type="button" class="btn menubtn" data-icon="plus">{{ 'Add'|t('campaign-manager') }}</button>
-            <div class="menu" data-align="right">
-                <ul>
-                    <li>
-                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/add-customer', {site: site.handle}) }}">
-                            {{ 'New Customer'|t('campaign-manager') }}
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/import-customers', {site: site.handle}) }}">
-                            {{ 'Import from CSV'|t('campaign-manager') }}
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <button type="button" class="btn submit" id="run-campaign-btn" data-campaign-id="{{ campaignId }}" data-site-id="{{ site.id }}">
-            {{ 'Run Campaign'|t('campaign-manager') }}
-        </button>
+            <button type="button" class="btn submit" id="run-campaign-btn" data-campaign-id="{{ campaignId }}" data-site-id="{{ site.id }}">
+                {{ 'Run Campaign'|t('campaign-manager') }}
+            </button>
+        {% endif %}
     </div>
 {% endblock %}
 
 {% css %}
 @media (max-width: 768px) {
-    #new-customer-btn .label-full {
+    #new-recipient-btn .label-full {
         display: none;
     }
-    #new-customer-btn .label-short {
+    #new-recipient-btn .label-short {
         display: inline;
     }
-    #new-customer-btn:before {
+    #new-recipient-btn:before {
         margin-inline-end: 0 !important;
     }
 }
@@ -204,53 +198,53 @@
                         <th scope="col" data-attribute="opened" class="orderable {{ sort == 'opened' ? 'ordered ' ~ dir : '' }}">
                             <button type="button" data-sort="opened">{{ "Opened"|t('campaign-manager') }}</button>
                         </th>
-                        <th scope="col">{{ "Submission"|t('campaign-manager') }}</th>
+                        <th scope="col">{{ "Response"|t('campaign-manager') }}</th>
                         <th scope="col" class="thin">{{ "Actions"|t('campaign-manager') }}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% if customers|length %}
-                        {% for customer in customers %}
-                            <tr data-id="{{ customer.id }}" data-name="{{ customer.name }}">
-                                <td>{{ customer.name }}</td>
+                    {% if recipients|length %}
+                        {% for recipient in recipients %}
+                            <tr data-id="{{ recipient.id }}" data-name="{{ recipient.name }}">
+                                <td>{{ recipient.name }}</td>
                                 <td>
-                                    {% if customer.email %}
-                                        <code>{{ customer.email }}</code>
+                                    {% if recipient.email %}
+                                        <code>{{ recipient.email }}</code>
                                     {% else %}
                                         <span class="light">-</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if customer.sms %}
-                                        <code>{{ customer.sms }}</code>
+                                    {% if recipient.sms %}
+                                        <code>{{ recipient.sms }}</code>
                                     {% else %}
                                         <span class="light">-</span>
                                     {% endif %}
                                 </td>
-                                <td><code>{{ customer.smsInvitationCode ?? customer.emailInvitationCode ?? '-' }}</code></td>
+                                <td><code>{{ recipient.smsInvitationCode ?? recipient.emailInvitationCode ?? '-' }}</code></td>
                                 <td>
-                                    {% set sentDate = customer.smsSendDate ?? customer.emailSendDate %}
+                                    {% set sentDate = recipient.smsSendDate ?? recipient.emailSendDate %}
                                     {% if sentDate %}
-                                        {{ sentDate|date('Y-m-d H:i') }}
+                                        {{ sentDate|lrDatetime('medium') }}
                                     {% else %}
                                         <span class="light">-</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% set openedDate = customer.smsOpenDate ?? customer.emailOpenDate %}
+                                    {% set openedDate = recipient.smsOpenDate ?? recipient.emailOpenDate %}
                                     {% if openedDate %}
-                                        {{ openedDate|date('Y-m-d H:i') }}
+                                        {{ openedDate|lrDatetime('medium') }}
                                     {% else %}
                                         <span class="light">-</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if customer.submissionId %}
-                                        {% set submission = craft.formie.submissions.id(customer.submissionId).one() %}
+                                    {% if recipient.submissionId %}
+                                        {% set submission = craft.formie.submissions.id(recipient.submissionId).one() %}
                                         {% if submission %}
-                                            <a href="{{ submission.cpEditUrl }}">{{ customer.submissionId }}</a>
+                                            <a href="{{ submission.cpEditUrl }}">{{ recipient.submissionId }}</a>
                                         {% else %}
-                                            <span class="light">{{ customer.submissionId }}</span>
+                                            <span class="light">{{ recipient.submissionId }}</span>
                                         {% endif %}
                                     {% else %}
                                         <span class="light">-</span>
@@ -261,7 +255,7 @@
                                     <div class="menu">
                                         <ul>
                                             <li>
-                                                <a class="customer-action error" data-action="delete" data-id="{{ customer.id }}" data-name="{{ customer.name }}">
+                                                <a class="recipient-action error" data-action="delete" data-id="{{ recipient.id }}" data-name="{{ recipient.name }}">
                                                     {{ 'Delete'|t('campaign-manager') }}
                                                 </a>
                                             </li>
@@ -273,7 +267,7 @@
                     {% else %}
                         <tr>
                             <td colspan="8" style="text-align: center; padding: 2em;">
-                                {{ 'No customers found.'|t('campaign-manager') }}
+                                {{ 'No recipients found.'|t('campaign-manager') }}
                             </td>
                         </tr>
                     {% endif %}
@@ -285,16 +279,16 @@
     <div id="footer" class="flex flex-justify">
         <div class="light">
             <div class="flex pagination">
-                <nav class="flex" aria-label="customer pagination">
+                <nav class="flex" aria-label="recipient pagination">
                     <button type="button" class="page-link prev-page {{ page <= 1 ? 'disabled' : '' }}" {{ page <= 1 ? 'disabled' : '' }} title="Previous Page"></button>
                     <button type="button" class="page-link next-page {{ page >= totalPages ? 'disabled' : '' }}" {{ page >= totalPages ? 'disabled' : '' }} title="Next Page"></button>
                 </nav>
                 <div class="page-info" style="margin: 0 12px; color: #596673;">
                     {% set endRange = min(offset + limit, totalCount) %}
                     {% if totalCount == 0 %}
-                        {{ 'no customers'|t('campaign-manager') }}
+                        {{ 'no recipients'|t('campaign-manager') }}
                     {% else %}
-                        {{ offset + 1 }} – {{ endRange }} {{ 'of'|t('campaign-manager') }} {{ totalCount }} {{ totalCount == 1 ? 'customer'|t('campaign-manager') : 'customers'|t('campaign-manager') }}
+                        {{ offset + 1 }} – {{ endRange }} {{ 'of'|t('campaign-manager') }} {{ totalCount }} {{ totalCount == 1 ? 'recipient'|t('campaign-manager') : 'recipients'|t('campaign-manager') }}
                     {% endif %}
                 </div>
             </div>
@@ -367,7 +361,7 @@
                 if (jobsQueued > 0) {
                     Craft.cp.displayNotice('{{ "Campaign job queued. Check the queue for progress."|t("campaign-manager") }}');
                 } else {
-                    Craft.cp.displayNotice('{{ "No pending customers to process."|t("campaign-manager") }}');
+                    Craft.cp.displayNotice('{{ "No pending recipients to process."|t("campaign-manager") }}');
                 }
             }
         }).catch(function(error) {
@@ -375,25 +369,25 @@
         });
     });
 
-    // Customer actions
-    document.querySelectorAll('.customer-action').forEach(link => {
+    // Recipient actions
+    document.querySelectorAll('.recipient-action').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const action = this.dataset.action;
-            const customerId = this.dataset.id;
-            const customerName = this.dataset.name;
+            const recipientId = this.dataset.id;
+            const recipientName = this.dataset.name;
 
             if (action === 'delete') {
-                if (confirm('{{ "Delete customer"|t("campaign-manager") }} "' + customerName + '"? {{ "This cannot be undone."|t("campaign-manager") }}')) {
-                    Craft.sendActionRequest('POST', 'campaign-manager/customers/delete-from-cp', {
-                        data: { id: customerId }
+                if (confirm('{{ "Delete recipient"|t("campaign-manager") }} "' + recipientName + '"? {{ "This cannot be undone."|t("campaign-manager") }}')) {
+                    Craft.sendActionRequest('POST', 'campaign-manager/recipients/delete-from-cp', {
+                        data: { id: recipientId }
                     }).then(function(response) {
                         if (response.data.success) {
-                            Craft.cp.displayNotice('{{ "Customer deleted"|t("campaign-manager") }}');
+                            Craft.cp.displayNotice('{{ "Recipient deleted"|t("campaign-manager") }}');
                             setTimeout(() => window.location.reload(), 1000);
                         }
                     }).catch(function(error) {
-                        Craft.cp.displayError('{{ "Failed to delete customer"|t("campaign-manager") }}');
+                        Craft.cp.displayError('{{ "Failed to delete recipient"|t("campaign-manager") }}');
                     });
                 }
             }

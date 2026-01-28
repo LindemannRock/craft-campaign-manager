@@ -34,6 +34,8 @@ class CampaignQuery extends ElementQuery
 
     /**
      * Narrows the query results based on the campaigns' type.
+     *
+     * @since 5.0.0
      */
     public function campaignType(mixed $value): static
     {
@@ -43,11 +45,30 @@ class CampaignQuery extends ElementQuery
 
     /**
      * Narrows the query results based on the campaigns' form ID.
+     *
+     * @since 5.0.0
      */
     public function formId(mixed $value): static
     {
         $this->formId = $value;
         return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function statusCondition(string $status): mixed
+    {
+        return match ($status) {
+            Campaign::STATUS_ENABLED => [
+                'elements.enabled' => true,
+                'elements_sites.enabled' => true,
+            ],
+            Campaign::STATUS_DISABLED => [
+                'elements_sites.enabled' => false,
+            ],
+            default => parent::statusCondition($status),
+        };
     }
 
     /**
@@ -69,6 +90,8 @@ class CampaignQuery extends ElementQuery
             'campaignmanager_campaigns.invitationDelayPeriod',
             'campaignmanager_campaigns.invitationExpiryPeriod',
             'campaignmanager_campaigns.senderId',
+            // Ensure we get the enabled status from elements_sites
+            'elements_sites.enabled',
         ]);
 
         if ($this->campaignType !== null) {

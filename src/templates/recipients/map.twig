@@ -19,7 +19,7 @@
     {% for s in craft.app.sites.getAllSites() %}
         {% set siteMenuItems = siteMenuItems|merge([{
             label: s.name,
-            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: s.handle}),
+            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-recipients', {site: s.handle}),
             selected: s.handle == site.handle
         }]) %}
     {% endfor %}
@@ -37,14 +37,14 @@
 
 {% set crumbs = crumbs|merge([
     { label: settings.pluginName, url: cpUrl('campaign-manager', {site: site.handle}) },
-    { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: site.handle}) },
-    { label: 'Import Customers'|t('campaign-manager'), url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: site.handle}) },
+    { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: site.handle}) },
+    { label: 'Import Recipients'|t('campaign-manager'), url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-recipients', {site: site.handle}) },
 ]) %}
 
 {% block content %}
     <h2 style="margin-top: 0;">{{ 'Map CSV Columns'|t('campaign-manager') }}</h2>
 
-    <p>{{ 'Your CSV has {count} rows. Map each CSV column to a customer field.'|t('campaign-manager', {count: rowCount}) }}</p>
+    <p>{{ 'Your CSV has {count} rows. Map each CSV column to a recipient field.'|t('campaign-manager', {count: rowCount}) }}</p>
 
     <h3>{{ 'Preview of CSV Data'|t('campaign-manager') }}</h3>
     <div style="overflow-x: auto; margin-bottom: 30px;">
@@ -74,10 +74,10 @@
     <hr>
 
     <h3>{{ 'Column Mapping'|t('campaign-manager') }}</h3>
-    <p>{{ 'Map your CSV columns to customer fields. Name and at least one of Email or Phone must be mapped.'|t('campaign-manager') }}<br>
+    <p>{{ 'Map your CSV columns to recipient fields. Name and at least one of Email or Phone must be mapped.'|t('campaign-manager') }}<br>
     <span class="light">{{ '* At least one required'|t('campaign-manager') }}</span></p>
 
-    <form method="post" action="{{ actionUrl('campaign-manager/customers/preview') }}">
+    <form method="post" action="{{ actionUrl('campaign-manager/recipients/preview') }}">
         {{ csrfInput() }}
         {{ hiddenInput('campaignId', campaignId) }}
         {{ hiddenInput('queueSending', queueSending ? '1' : '0') }}
@@ -112,7 +112,7 @@
                                                 {% set lowerHeader = header|lower %}
 
                                                 {# Auto-detect mapping based on header name #}
-                                                {% if option.value == 'name' and (lowerHeader in ['name', 'customer name', 'customer_name', 'customername', 'full name', 'fullname', 'full_name']) %}
+                                                {% if option.value == 'name' and (lowerHeader in ['name', 'recipient name', 'recipient_name', 'recipientname', 'full name', 'fullname', 'full_name']) %}
                                                     {% set isMatch = true %}
                                                 {% elseif option.value == 'email' and (lowerHeader in ['email', 'e-mail', 'email address', 'emailaddress', 'email_address', 'mail']) %}
                                                     {% set isMatch = true %}
@@ -149,6 +149,73 @@
 
         <hr style="margin: 30px 0;">
 
+        <h3>{{ 'Phone Number Settings'|t('campaign-manager') }}</h3>
+
+        {# Get allowed countries from campaign's provider #}
+        {% set providerHandle = campaign.providerHandle ?? settings.defaultProviderHandle %}
+        {% set allowedCountries = providerHandle ? craft.campaignManager.sms.getAllowedCountries(providerHandle) : [] %}
+        {% set isAllCountries = allowedCountries == ['*'] %}
+
+        {% if allowedCountries|length > 0 %}
+            <p>{{ 'Select the country for phone numbers in the CSV. Numbers with country codes (e.g., +965...) will be auto-detected.'|t('campaign-manager') }}</p>
+
+            {# Build country options #}
+            {% set countryOptions = [] %}
+            {% if isAllCountries %}
+                {% for option in lrDialCodes() %}
+                    {% set dc = lrDialCode(option.value) %}
+                    {% if dc %}
+                        {% set countryOptions = countryOptions|merge([{
+                            label: option.value ~ ' +' ~ dc ~ ' - ' ~ lrCountryName(option.value),
+                            value: option.value
+                        }]) %}
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                {% for code in allowedCountries %}
+                    {% set dialCode = lrDialCode(code) %}
+                    {% if dialCode %}
+                        {% set countryOptions = countryOptions|merge([{
+                            label: code ~ ' +' ~ dialCode ~ ' - ' ~ lrCountryName(code),
+                            value: code
+                        }]) %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            <div class="field" style="margin-top: 10px;">
+                <div class="heading">
+                    <label for="phoneCountry">{{ 'Phone Country'|t('campaign-manager') }}</label>
+                </div>
+                <div class="input">
+                    <div class="select">
+                        <select id="phoneCountry" name="phoneCountry">
+                            {% for option in countryOptions %}
+                                <option value="{{ option.value }}" {% if loop.first %}selected{% endif %}>
+                                    {{ option.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {% include 'lindemannrock-base/_components/info-box' with {
+                message: 'Phone numbers can be local (e.g., 94400999) or include country code (e.g., 96594400999). Numbers with country codes will be validated against allowed countries.'|t('campaign-manager'),
+                type: 'tip',
+                margin: 'top'
+            } only %}
+        {% else %}
+            {% include 'lindemannrock-base/_components/info-box' with {
+                message: 'No SMS provider configured. Phone numbers will be skipped during import.'|t('campaign-manager'),
+                type: 'warning',
+                margin: 'none'
+            } only %}
+            {{ hiddenInput('phoneCountry', '') }}
+        {% endif %}
+
+        <hr style="margin: 30px 0;">
+
         <h3>{{ 'Default Language'|t('campaign-manager') }}</h3>
         <p>{{ 'Used as fallback when the Language column is not mapped, or when a row has an empty/invalid language value.'|t('campaign-manager') }}</p>
 
@@ -176,7 +243,7 @@
         <hr style="margin: 30px 0;">
 
         <div class="buttons">
-            <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: site.handle}) }}" class="btn">{{ 'Cancel'|t('campaign-manager') }}</a>
+            <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-recipients', {site: site.handle}) }}" class="btn">{{ 'Cancel'|t('campaign-manager') }}</a>
             <button type="submit" class="btn submit" id="importBtn">{{ 'Preview Import'|t('campaign-manager') }}</button>
         </div>
     </form>
@@ -198,7 +265,7 @@
                     <label>{{ 'Campaign'|t('campaign-manager') }}</label>
                 </div>
                 <div class="input">
-                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: site.handle}) }}">{{ campaign.title }}</a>
+                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: site.handle}) }}">{{ campaign.title }}</a>
                 </div>
             </div>
 

@@ -29,6 +29,7 @@ use craft\web\Application as WebApplication;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\web\View;
+use lindemannrock\base\helpers\ColorHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\behaviors\CampaignBehavior;
 use lindemannrock\campaignmanager\behaviors\CampaignQueryBehavior;
@@ -36,9 +37,10 @@ use lindemannrock\campaignmanager\behaviors\FormBehavior;
 use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\integrations\SmsManagerIntegration;
 use lindemannrock\campaignmanager\models\Settings;
+use lindemannrock\campaignmanager\services\AnalyticsService;
 use lindemannrock\campaignmanager\services\CampaignsService;
-use lindemannrock\campaignmanager\services\CustomersService;
 use lindemannrock\campaignmanager\services\EmailsService;
+use lindemannrock\campaignmanager\services\RecipientsService;
 use lindemannrock\campaignmanager\services\SmsService;
 use lindemannrock\campaignmanager\variables\CampaignManagerVariable;
 use lindemannrock\campaignmanager\web\twig\Extension;
@@ -58,8 +60,9 @@ use yii\base\Event;
  * @package   CampaignManager
  * @since     5.0.0
  *
+ * @property-read AnalyticsService $analytics
  * @property-read CampaignsService $campaigns
- * @property-read CustomersService $customers
+ * @property-read RecipientsService $recipients
  * @property-read EmailsService $emails
  * @property-read SmsService $sms
  * @property-read Settings $settings
@@ -100,19 +103,31 @@ class CampaignManager extends Plugin
         // Set alias for resources
         Craft::setAlias('@lindemannrock/campaignmanager', __DIR__);
 
-        // Bootstrap base module (logging + Twig extension)
+        // Bootstrap base module (logging + Twig extension + colors)
         PluginHelper::bootstrap(
             $this,
             'campaignManagerHelper',
             ['campaignManager:viewLogs'],
-            ['campaignManager:downloadLogs']
+            ['campaignManager:downloadLogs'],
+            [
+                'colorSets' => [
+                    'messageStatus' => [
+                        'pending' => ColorHelper::getPaletteColor('amber'),
+                        'sent' => ColorHelper::getPaletteColor('green'),
+                        'delivered' => ColorHelper::getPaletteColor('teal'),
+                        'opened' => ColorHelper::getPaletteColor('blue'),
+                        'failed' => ColorHelper::getPaletteColor('red'),
+                    ],
+                ],
+            ]
         );
         PluginHelper::applyPluginNameFromConfig($this);
 
         // Set up services
         $this->setComponents([
+            'analytics' => AnalyticsService::class,
             'campaigns' => CampaignsService::class,
-            'customers' => CustomersService::class,
+            'recipients' => RecipientsService::class,
             'emails' => EmailsService::class,
             'sms' => SmsService::class,
         ]);
@@ -172,11 +187,19 @@ class CampaignManager extends Plugin
                 ];
             }
 
-            // Customers
-            if ($user->checkPermission('campaignManager:viewCustomers')) {
-                $item['subnav']['customers'] = [
-                    'label' => Craft::t('campaign-manager', 'Customers'),
-                    'url' => 'campaign-manager/customers',
+            // Recipients
+            if ($user->checkPermission('campaignManager:viewRecipients')) {
+                $item['subnav']['recipients'] = [
+                    'label' => Craft::t('campaign-manager', 'Recipients'),
+                    'url' => 'campaign-manager/recipients',
+                ];
+            }
+
+            // Analytics
+            if ($user->checkPermission('campaignManager:viewAnalytics')) {
+                $item['subnav']['analytics'] = [
+                    'label' => Craft::t('campaign-manager', 'Analytics'),
+                    'url' => 'campaign-manager/analytics',
                 ];
             }
 
@@ -205,7 +228,32 @@ class CampaignManager extends Plugin
      */
     protected function createSettingsModel(): ?Model
     {
-        return new Settings();
+        try {
+            return Settings::loadFromDatabase();
+        } catch (\Exception $e) {
+            return new Settings();
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getSettings(): ?Model
+    {
+        $settings = parent::getSettings();
+
+        if ($settings) {
+            $config = Craft::$app->getConfig()->getConfigFromFile('campaign-manager');
+            if (!empty($config) && is_array($config)) {
+                foreach ($config as $key => $value) {
+                    if (property_exists($settings, $key)) {
+                        $settings->$key = $value;
+                    }
+                }
+            }
+        }
+
+        return $settings;
     }
 
     /**
@@ -218,6 +266,8 @@ class CampaignManager extends Plugin
 
     /**
      * Translation helper
+     *
+     * @since 5.0.0
      */
     public static function t(string $message, array $params = [], ?string $language = null): string
     {
@@ -237,6 +287,8 @@ class CampaignManager extends Plugin
 
     /**
      * Handle field layout changes from project config
+     *
+     * @since 5.0.0
      */
     public function handleChangedFieldLayout(ConfigEvent $event): void
     {
@@ -254,6 +306,8 @@ class CampaignManager extends Plugin
 
     /**
      * Handle field layout deletion from project config
+     *
+     * @since 5.0.0
      */
     public function handleDeletedFieldLayout(ConfigEvent $event): void
     {
@@ -318,7 +372,7 @@ class CampaignManager extends Plugin
                     return;
                 }
 
-                self::$plugin->customers->processCampaignSubmission($submission, $invitationCode);
+                self::$plugin->recipients->processCampaignSubmission($submission, $invitationCode);
             }
         );
 
@@ -362,13 +416,13 @@ class CampaignManager extends Plugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
             function(RegisterUrlRulesEvent $event) {
-                $event->rules['customers/load'] = 'campaign-manager/customers/load';
-                $event->rules['customers/delete'] = 'campaign-manager/customers/delete-from-cp';
+                $event->rules['recipients/load'] = 'campaign-manager/recipients/load';
+                $event->rules['recipients/delete'] = 'campaign-manager/recipients/delete-from-cp';
 
                 $settings = $this->getSettings();
-                if (isset($settings->invitationTemplate)) {
-                    $event->rules[$settings->invitationRoute] = ['template' => $settings->invitationTemplate];
-                }
+                // Use custom template or fallback to plugin's default template
+                $template = $settings->invitationTemplate ?: 'campaign-manager/invite';
+                $event->rules[$settings->invitationRoute . '/<token:{slug}>'] = ['template' => $template];
             }
         );
 
@@ -413,17 +467,23 @@ class CampaignManager extends Plugin
             'campaign-manager/campaigns/new' => 'campaign-manager/campaigns/edit',
             'campaign-manager/campaigns/<campaignId:\d+>' => 'campaign-manager/campaigns/edit',
 
-            // Customers (global view)
-            'campaign-manager/customers' => 'campaign-manager/customers/global-index',
-            'campaign-manager/customers/export' => 'campaign-manager/customers/export-global',
+            // Recipients (global view)
+            'campaign-manager/recipients' => 'campaign-manager/recipients/global-index',
+            'campaign-manager/recipients/export' => 'campaign-manager/recipients/export-global',
 
-            // Customers (campaign-specific)
-            'campaign-manager/campaigns/<campaignId:\d+>/customers' => 'campaign-manager/customers/index',
-            'campaign-manager/campaigns/<campaignId:\d+>/add-customer' => 'campaign-manager/customers/add-form',
-            'campaign-manager/campaigns/<campaignId:\d+>/import-customers' => 'campaign-manager/customers/import-form',
-            'campaign-manager/campaigns/<campaignId:\d+>/map-customers' => 'campaign-manager/customers/map',
-            'campaign-manager/campaigns/<campaignId:\d+>/export-customers' => 'campaign-manager/customers/export-customers',
-            'campaign-manager/customers/load' => 'campaign-manager/customers/load',
+            // Recipients (campaign-specific)
+            'campaign-manager/campaigns/<campaignId:\d+>/recipients' => 'campaign-manager/recipients/index',
+            'campaign-manager/campaigns/<campaignId:\d+>/add-recipient' => 'campaign-manager/recipients/add-form',
+            'campaign-manager/campaigns/<campaignId:\d+>/import-recipients' => 'campaign-manager/recipients/import-form',
+            'campaign-manager/campaigns/<campaignId:\d+>/map-recipients' => 'campaign-manager/recipients/map',
+            'campaign-manager/campaigns/<campaignId:\d+>/export-recipients' => 'campaign-manager/recipients/export-recipients',
+            'campaign-manager/recipients/export-responses' => 'campaign-manager/recipients/export-responses',
+            'campaign-manager/recipients/load' => 'campaign-manager/recipients/load',
+
+            // Analytics
+            'campaign-manager/analytics' => 'campaign-manager/analytics/index',
+            'campaign-manager/analytics/export' => 'campaign-manager/analytics/export',
+            'campaign-manager/analytics/export-campaign' => 'campaign-manager/analytics/export-campaign',
 
             // Settings
             'campaign-manager/settings' => 'campaign-manager/settings/index',
@@ -454,17 +514,25 @@ class CampaignManager extends Plugin
                     ],
                 ],
             ],
-            'campaignManager:manageCustomers' => [
-                'label' => Craft::t('campaign-manager', 'Manage customers'),
+            'campaignManager:manageRecipients' => [
+                'label' => Craft::t('campaign-manager', 'Manage recipients'),
                 'nested' => [
-                    'campaignManager:viewCustomers' => [
-                        'label' => Craft::t('campaign-manager', 'View customers'),
+                    'campaignManager:viewRecipients' => [
+                        'label' => Craft::t('campaign-manager', 'View recipients'),
                     ],
-                    'campaignManager:importCustomers' => [
-                        'label' => Craft::t('campaign-manager', 'Import customers'),
+                    'campaignManager:importRecipients' => [
+                        'label' => Craft::t('campaign-manager', 'Import recipients'),
                     ],
-                    'campaignManager:deleteCustomers' => [
-                        'label' => Craft::t('campaign-manager', 'Delete customers'),
+                    'campaignManager:deleteRecipients' => [
+                        'label' => Craft::t('campaign-manager', 'Delete recipients'),
+                    ],
+                ],
+            ],
+            'campaignManager:viewAnalytics' => [
+                'label' => Craft::t('campaign-manager', 'View analytics'),
+                'nested' => [
+                    'campaignManager:exportAnalytics' => [
+                        'label' => Craft::t('campaign-manager', 'Export analytics'),
                     ],
                 ],
             ],

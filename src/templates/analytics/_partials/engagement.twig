@@ -1,0 +1,79 @@
+{# Engagement Tab - Open rates and engagement metrics #}
+
+{# Engagement Stats Grid #}
+<div class="lr-analytics-stats">
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.emailsOpened,
+        label: 'Emails Opened'|t('campaign-manager'),
+        id: 'emails-opened',
+        color: '#3b82f6',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.smsOpened,
+        label: 'SMS Opened'|t('campaign-manager'),
+        id: 'sms-opened',
+        color: '#8b5cf6',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.emailOpenRate,
+        label: 'Email Open Rate'|t('campaign-manager'),
+        id: 'email-open-rate',
+        suffix: '%',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.smsOpenRate,
+        label: 'SMS Open Rate'|t('campaign-manager'),
+        id: 'sms-open-rate',
+        suffix: '%',
+    } only %}
+</div>
+
+{# Engagement Over Time Chart #}
+<div class="lr-analytics-charts">
+    <div class="lr-chart-container full-width">
+        <h3>{{ 'Opens Over Time'|t('campaign-manager') }}</h3>
+        <div style="height: 250px;">
+            <canvas id="engagement-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+{# Channel Comparison Table #}
+<div class="lr-chart-container" style="margin-top: 24px;">
+    <h3>{{ 'Channel Comparison'|t('campaign-manager') }}</h3>
+    <div class="lr-table-scroll">
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'Channel'|t('campaign-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Sent'|t('campaign-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Opened'|t('campaign-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Open Rate'|t('campaign-manager') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>{{ 'Email'|t('campaign-manager') }}</strong></td>
+                    <td style="text-align: right;">{{ summaryStats.emailsSent|number_format }}</td>
+                    <td style="text-align: right; color: #3b82f6;">{{ summaryStats.emailsOpened|number_format }}</td>
+                    <td style="text-align: right;">{{ summaryStats.emailOpenRate }}%</td>
+                </tr>
+                <tr>
+                    <td><strong>{{ 'SMS'|t('campaign-manager') }}</strong></td>
+                    <td style="text-align: right;">{{ summaryStats.smsSent|number_format }}</td>
+                    <td style="text-align: right; color: #8b5cf6;">{{ summaryStats.smsOpened|number_format }}</td>
+                    <td style="text-align: right;">{{ summaryStats.smsOpenRate }}%</td>
+                </tr>
+                <tr style="border-top: 2px solid #e5e7eb;">
+                    <td><strong>{{ 'Total'|t('campaign-manager') }}</strong></td>
+                    <td style="text-align: right;"><strong>{{ summaryStats.totalSent|number_format }}</strong></td>
+                    <td style="text-align: right;"><strong>{{ summaryStats.totalOpened|number_format }}</strong></td>
+                    <td style="text-align: right;"><strong>{{ summaryStats.openRate }}%</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

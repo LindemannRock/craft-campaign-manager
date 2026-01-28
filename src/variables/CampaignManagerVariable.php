@@ -18,8 +18,9 @@ use craft\i18n\Locale;
 use craft\web\View;
 use Illuminate\Support\Collection;
 use lindemannrock\campaignmanager\CampaignManager;
+use lindemannrock\campaignmanager\services\AnalyticsService;
 use lindemannrock\campaignmanager\services\CampaignsService;
-use lindemannrock\campaignmanager\services\CustomersService;
+use lindemannrock\campaignmanager\services\RecipientsService;
 use lindemannrock\campaignmanager\services\SmsService;
 use yii\base\Behavior;
 
@@ -34,6 +35,8 @@ class CampaignManagerVariable extends Behavior
 {
     /**
      * Get the campaigns service
+     *
+     * @since 5.0.0
      */
     public function getCampaigns(): CampaignsService
     {
@@ -41,15 +44,19 @@ class CampaignManagerVariable extends Behavior
     }
 
     /**
-     * Get the customers service
+     * Get the recipients service
+     *
+     * @since 5.0.0
      */
-    public function getCustomers(): CustomersService
+    public function getRecipients(): RecipientsService
     {
-        return CampaignManager::$plugin->customers;
+        return CampaignManager::$plugin->recipients;
     }
 
     /**
      * Get the SMS service
+     *
+     * @since 5.0.0
      */
     public function getSms(): SmsService
     {
@@ -57,7 +64,19 @@ class CampaignManagerVariable extends Behavior
     }
 
     /**
+     * Get the analytics service
+     *
+     * @since 5.1.0
+     */
+    public function getAnalytics(): AnalyticsService
+    {
+        return CampaignManager::$plugin->analytics;
+    }
+
+    /**
      * Render CKEditor HTML for message editing
+     *
+     * @since 5.0.0
      */
     public function ckeEditorHtml(mixed $value, string $name, string $handle, ?ElementInterface $element = null): string
     {
@@ -221,6 +240,7 @@ JS,
      * Get text part language options
      *
      * @return array<int, array<string, mixed>>
+     * @since 5.0.0
      */
     public static function textPartLanguage(): array
     {

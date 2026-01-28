@@ -8,7 +8,9 @@
 
 namespace lindemannrock\campaignmanager\models;
 
+use Craft;
 use craft\base\Model;
+use craft\behaviors\EnvAttributeParserBehavior;
 use craft\elements\Entry;
 use lindemannrock\base\traits\SettingsConfigTrait;
 use lindemannrock\base\traits\SettingsDisplayNameTrait;
@@ -65,13 +67,28 @@ class Settings extends Model
 
     /**
      * @var int|null Default SMS Manager sender ID to use for campaigns
+     * @deprecated Use defaultSenderIdHandle instead
      */
     public ?int $defaultSenderIdId = null;
 
     /**
-     * @var string Default country code for phone validation (ISO 3166-1 alpha-2)
+     * @var string|null Default SMS Manager provider handle
      */
-    public string $defaultCountryCode = 'KW';
+    public ?string $defaultProviderHandle = null;
+
+    /**
+     * @var string|null Default SMS Manager sender ID handle
+     */
+    public ?string $defaultSenderIdHandle = null;
+
+    // =========================================================================
+    // INTERFACE SETTINGS
+    // =========================================================================
+
+    /**
+     * @var int Number of items to display per page in lists
+     */
+    public int $itemsPerPage = 50;
 
     // =========================================================================
     // LOGGING SETTINGS
@@ -91,6 +108,22 @@ class Settings extends Model
         $this->setLoggingHandle('campaign-manager');
     }
 
+    /**
+     * @inheritdoc
+     */
+    protected function defineBehaviors(): array
+    {
+        return [
+            'parser' => [
+                'class' => EnvAttributeParserBehavior::class,
+                'attributes' => [
+                    'invitationRoute',
+                    'invitationTemplate',
+                ],
+            ],
+        ];
+    }
+
     // =========================================================================
     // SETTINGS PERSISTENCE TRAIT IMPLEMENTATION
     // =========================================================================
@@ -100,7 +133,7 @@ class Settings extends Model
      */
     protected static function tableName(): string
     {
-        return '{{%campaignmanager_settings}}';
+        return 'campaignmanager_settings';
     }
 
     /**
@@ -122,7 +155,8 @@ class Settings extends Model
             'campaignSectionHandle',
             'invitationRoute',
             'invitationTemplate',
-            'defaultCountryCode',
+            'defaultProviderHandle',
+            'defaultSenderIdHandle',
             'logLevel',
         ];
     }
@@ -134,6 +168,7 @@ class Settings extends Model
     {
         return [
             'defaultSenderIdId',
+            'itemsPerPage',
         ];
     }
 
@@ -161,6 +196,8 @@ class Settings extends Model
 
     /**
      * Get campaign type options formatted for dropdowns
+     *
+     * @since 5.0.0
      */
     public function getCampaignTypeOptions(): ?array
     {
@@ -187,14 +224,45 @@ class Settings extends Model
         return [
             ['pluginName', 'string'],
             ['pluginName', 'default', 'value' => 'Campaign Manager'],
+            ['invitationRoute', 'required'],
             ['invitationRoute', 'string'],
             ['invitationRoute', 'default', 'value' => 'cm/invite'],
+            ['invitationRoute', 'match', 'pattern' => '/^[a-zA-Z0-9\-\_\/]+$/', 'message' => Craft::t('campaign-manager', 'Only letters, numbers, hyphens, underscores, and slashes are allowed.')],
+            ['invitationRoute', 'validateInvitationRoute'],
             ['invitationTemplate', 'string'],
             ['campaignElementType', 'string'],
             ['defaultSenderIdId', 'integer'],
-            ['defaultCountryCode', 'string', 'length' => 2],
-            ['defaultCountryCode', 'default', 'value' => 'KW'],
+            [['defaultProviderHandle', 'defaultSenderIdHandle'], 'string', 'max' => 64],
             [['logLevel'], 'in', 'range' => ['debug', 'info', 'warning', 'error']],
+            ['itemsPerPage', 'required'],
+            ['itemsPerPage', 'integer', 'min' => 10, 'max' => 500],
+            ['itemsPerPage', 'default', 'value' => 50],
         ];
+    }
+
+    /**
+     * Validate invitation route format
+     *
+     * @since 5.0.0
+     */
+    public function validateInvitationRoute(string $attribute): void
+    {
+        $value = $this->$attribute;
+
+        if (empty($value)) {
+            return;
+        }
+
+        // Remove leading/trailing slashes for validation
+        $value = trim($value, '/');
+
+        // Check for invalid patterns
+        if (str_contains($value, '//')) {
+            $this->addError($attribute, Craft::t('campaign-manager', 'Route cannot contain double slashes.'));
+        }
+
+        if (preg_match('/\s/', $value)) {
+            $this->addError($attribute, Craft::t('campaign-manager', 'Route cannot contain spaces.'));
+        }
     }
 }

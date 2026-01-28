@@ -1,0 +1,248 @@
+{% extends 'campaign-manager/_layouts/settings' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'General Settings'|t('campaign-manager') %}
+{% set selectedSettingsItem = 'general' %}
+{% set settingsCrumb = 'General'|t('campaign-manager') %}
+{% set fullPageForm = true %}
+
+{% block content %}
+    {{ actionInput('campaign-manager/settings/save') }}
+    {{ redirectInput('campaign-manager/settings') }}
+
+    <h2 style="margin-top: 0px;">{{ "General Settings"|t('campaign-manager') }}</h2>
+
+    {{ forms.textField({
+        label: 'Plugin Name'|t('campaign-manager'),
+        instructions: 'The display name for this plugin in the control panel.'|t('campaign-manager'),
+        id: 'pluginName',
+        name: 'settings[pluginName]',
+        value: settings.pluginName,
+        errors: settings.getErrors('pluginName'),
+    }) }}
+
+    <hr>
+
+    <h2>{{ "SMS Settings"|t('campaign-manager') }}</h2>
+
+    {% if craft.campaignManager.sms.isSmsManagerAvailable() %}
+        {% set providerOptions = craft.campaignManager.sms.getProviderOptions() %}
+        {% set senderIdsByProvider = craft.campaignManager.sms.getSenderIdOptionsByProvider() %}
+
+        {# Build allowed countries and provider names by provider for JS #}
+        {% set countriesByProvider = {} %}
+        {% set providerNames = {} %}
+        {% set countryNames = {} %}
+        {% for provider in craft.campaignManager.sms.getAvailableProviders() %}
+            {% set countries = craft.campaignManager.sms.getAllowedCountries(provider.handle) %}
+            {% set countriesByProvider = countriesByProvider|merge({(provider.handle): countries}) %}
+            {% set providerNames = providerNames|merge({(provider.handle): provider.name}) %}
+            {# Build country names lookup #}
+            {% for code in countries %}
+                {% if code != '*' and countryNames[code] is not defined %}
+                    {% set countryNames = countryNames|merge({(code): lrCountryName(code)}) %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+
+        {{ forms.selectField({
+            label: 'Default Provider'|t('campaign-manager'),
+            instructions: 'The default SMS provider to use when sending campaign invitations.'|t('campaign-manager'),
+            id: 'defaultProviderHandle',
+            name: 'settings[defaultProviderHandle]',
+            value: settings.defaultProviderHandle,
+            options: providerOptions,
+            errors: settings.getErrors('defaultProviderHandle'),
+            disabled: settings.isOverriddenByConfig('defaultProviderHandle'),
+            warning: settings.isOverriddenByConfig('defaultProviderHandle') ?
+                "This is being overridden by the <code>defaultProviderHandle</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
+        }) }}
+
+        {% set currentSenderIdOptions = settings.defaultProviderHandle ? craft.campaignManager.sms.getSenderIdOptions(settings.defaultProviderHandle) : [{label: 'Select a provider first...'|t('campaign-manager'), value: ''}] %}
+        {{ forms.selectField({
+            label: 'Default Sender ID'|t('campaign-manager'),
+            instructions: 'The default SMS sender ID to use when sending campaign invitations.'|t('campaign-manager'),
+            id: 'defaultSenderIdHandle',
+            name: 'settings[defaultSenderIdHandle]',
+            value: settings.defaultSenderIdHandle,
+            options: currentSenderIdOptions,
+            errors: settings.getErrors('defaultSenderIdHandle'),
+            disabled: settings.isOverriddenByConfig('defaultSenderIdHandle') or not settings.defaultProviderHandle,
+            warning: settings.isOverriddenByConfig('defaultSenderIdHandle') ?
+                "This is being overridden by the <code>defaultSenderIdHandle</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
+        }) }}
+
+        {# Show current provider's allowed countries #}
+        {% set currentProvider = null %}
+        {% for provider in craft.campaignManager.sms.getAvailableProviders() %}
+            {% if provider.handle == settings.defaultProviderHandle %}
+                {% set currentProvider = provider %}
+            {% endif %}
+        {% endfor %}
+        {% set currentCountries = settings.defaultProviderHandle ? craft.campaignManager.sms.getAllowedCountries(settings.defaultProviderHandle) : [] %}
+        {% set formattedCountries = [] %}
+        {% for code in currentCountries %}
+            {% if code != '*' %}
+                {% set formattedCountries = formattedCountries|merge([lrCountryName(code) ~ ' (' ~ code ~ ')']) %}
+            {% endif %}
+        {% endfor %}
+        {% set countryMessage = currentCountries == ['*'] ? 'Allowed countries for <strong>' ~ (currentProvider.name ?? '') ~ '</strong>: All countries.' : 'Allowed countries for <strong>' ~ (currentProvider.name ?? '') ~ '</strong>: ' ~ formattedCountries|join(', ') ~ '.' %}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            message: countryMessage,
+            type: 'info',
+            margin: 'top',
+            boxId: 'provider-countries-box',
+            messageId: 'provider-countries-message',
+            hidden: not settings.defaultProviderHandle,
+        } %}
+
+        {% js %}
+            (function() {
+                var senderIdsByProvider = {{ senderIdsByProvider|json_encode|raw }};
+                var countriesByProvider = {{ countriesByProvider|json_encode|raw }};
+                var providerNames = {{ providerNames|json_encode|raw }};
+                var countryNames = {{ countryNames|json_encode|raw }};
+                var providerSelect = document.getElementById('defaultProviderHandle');
+                var senderIdSelect = document.getElementById('defaultSenderIdHandle');
+                var senderIdField = senderIdSelect.closest('.field');
+                var senderIdInput = senderIdSelect.closest('.input');
+                var countriesBox = document.getElementById('provider-countries-box');
+                var countriesMessage = document.getElementById('provider-countries-message');
+                var currentSenderIdValue = '{{ settings.defaultSenderIdHandle|e('js') }}';
+
+                function formatCountry(code) {
+                    var name = countryNames[code] || code;
+                    return name + ' (' + code + ')';
+                }
+
+                function updateSenderIdOptions() {
+                    var providerHandle = providerSelect.value;
+                    var options = senderIdsByProvider[providerHandle] || [];
+
+                    // Clear existing options
+                    senderIdSelect.innerHTML = '';
+
+                    // Add placeholder
+                    var placeholder = document.createElement('option');
+                    placeholder.value = '';
+                    placeholder.textContent = providerHandle ? '{{ "Select a sender ID..."|t('campaign-manager')|e('js') }}' : '{{ "Select a provider first..."|t('campaign-manager')|e('js') }}';
+                    senderIdSelect.appendChild(placeholder);
+
+                    // Add sender ID options
+                    options.forEach(function(opt) {
+                        var option = document.createElement('option');
+                        option.value = opt.value;
+                        option.textContent = opt.label;
+                        if (opt.value === currentSenderIdValue) {
+                            option.selected = true;
+                        }
+                        senderIdSelect.appendChild(option);
+                    });
+
+                    // Enable/disable based on provider selection
+                    var isDisabled = !providerHandle;
+                    senderIdSelect.disabled = isDisabled;
+                    if (senderIdInput) {
+                        senderIdInput.classList.toggle('disabled', isDisabled);
+                    }
+                    if (senderIdField) {
+                        senderIdField.classList.toggle('disabled', isDisabled);
+                    }
+
+                    // Update countries info box
+                    if (countriesBox && countriesMessage) {
+                        if (providerHandle) {
+                            var countries = countriesByProvider[providerHandle] || [];
+                            var providerName = providerNames[providerHandle] || providerHandle;
+                            var message;
+                            if (countries.length === 1 && countries[0] === '*') {
+                                message = '{{ "Allowed countries for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>: {{ "All countries."|t('campaign-manager')|e('js') }}';
+                            } else if (countries.length > 0) {
+                                var formatted = countries.map(formatCountry).join(', ');
+                                message = '{{ "Allowed countries for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>: ' + formatted + '.';
+                            } else {
+                                message = '{{ "No country restrictions for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>.';
+                            }
+                            countriesMessage.innerHTML = message;
+                            countriesBox.style.display = '';
+                        } else {
+                            countriesBox.style.display = 'none';
+                        }
+                    }
+                }
+
+                providerSelect.addEventListener('change', function() {
+                    currentSenderIdValue = ''; // Reset when provider changes
+                    updateSenderIdOptions();
+                });
+            })();
+        {% endjs %}
+    {% else %}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            type: 'notice',
+            message: 'SMS Manager plugin is not installed or enabled. <a href="' ~ cpUrl('settings/plugins') ~ '">Enable SMS Manager</a> to configure SMS settings.'|t('campaign-manager')
+        } %}
+    {% endif %}
+
+    <hr>
+
+    <h2>{{ "Invitation Settings"|t('campaign-manager') }}</h2>
+
+    {{ forms.textField({
+        label: 'Invitation Route'|t('campaign-manager'),
+        instructions: 'The URL path for invitation pages (without leading slash).'|t('campaign-manager'),
+        id: 'invitationRoute',
+        name: 'settings[invitationRoute]',
+        value: settings.invitationRoute,
+        placeholder: 'cm/invite',
+        required: true,
+        errors: settings.getErrors('invitationRoute'),
+        disabled: settings.isOverriddenByConfig('invitationRoute'),
+        warning: settings.isOverriddenByConfig('invitationRoute') ?
+            "This is being overridden by the <code>invitationRoute</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Invitation Template'|t('campaign-manager'),
+        instructions: 'Path to your Invitation template in your templates/ folder (e.g., campaign-manager/invite).'|t('campaign-manager'),
+        id: 'invitationTemplate',
+        name: 'settings[invitationTemplate]',
+        value: settings.invitationTemplate,
+        placeholder: 'campaign-manager/invite',
+        errors: settings.getErrors('invitationTemplate'),
+        tip: "Copy reference template from <code>plugins/campaign-manager/src/templates/invite.twig</code> to <code>templates/campaign-manager/invite.twig</code>"|t('campaign-manager')|raw,
+        disabled: settings.isOverriddenByConfig('invitationTemplate'),
+        warning: settings.isOverriddenByConfig('invitationTemplate') ?
+            "This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
+    }) }}
+
+    <hr>
+
+    <h2>{{ "Logging Settings"|t('campaign-manager') }}</h2>
+
+    {% set logOptions = [
+        {value: 'error', label: 'Error (Critical errors only)'|t('campaign-manager')},
+        {value: 'warning', label: 'Warning (Errors and warnings)'|t('campaign-manager')},
+        {value: 'info', label: 'Info (General information)'|t('campaign-manager')},
+    ] %}
+
+    {% if craft.app.config.general.devMode %}
+        {% set logOptions = logOptions|merge([
+            {value: 'debug', label: 'Debug (Detailed debugging)'|t('campaign-manager')}
+        ]) %}
+    {% endif %}
+
+    {{ forms.selectField({
+        label: 'Log Level'|t('campaign-manager'),
+        instructions: 'Choose what types of messages to log. Debug level requires devMode to be enabled.'|t('campaign-manager'),
+        id: 'logLevel',
+        name: 'settings[logLevel]',
+        value: settings.logLevel,
+        options: logOptions,
+        errors: settings.getErrors('logLevel'),
+        disabled: settings.isOverriddenByConfig('logLevel'),
+        warning: settings.isOverriddenByConfig('logLevel') ?
+            "This is being overridden by the <code>logLevel</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
+    }) }}
+
+{% endblock %}

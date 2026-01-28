@@ -13,21 +13,21 @@ use craft\queue\BaseJob;
 use Exception;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\PhoneHelper;
-use lindemannrock\campaignmanager\records\CustomerRecord;
+use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use yii\queue\RetryableJobInterface;
 
 /**
- * Import Customers Job
+ * Import Recipients Job
  *
- * Processes a CSV file and imports customers in batches.
+ * Processes a CSV file and imports recipients in batches.
  * After import completes, queues ProcessCampaignJob for each site.
  *
  * @author    LindemannRock
  * @package   CampaignManager
  * @since     3.0.0
  */
-class ImportCustomersJob extends BaseJob implements RetryableJobInterface
+class ImportRecipientsJob extends BaseJob implements RetryableJobInterface
 {
     use LoggingTrait;
 
@@ -63,7 +63,7 @@ class ImportCustomersJob extends BaseJob implements RetryableJobInterface
     protected function defaultDescription(): ?string
     {
         $settings = CampaignManager::$plugin->getSettings();
-        return Craft::t('campaign-manager', '{pluginName}: Importing customers for campaign #{id}', [
+        return Craft::t('campaign-manager', '{pluginName}: Importing recipients for campaign #{id}', [
             'pluginName' => $settings->getDisplayName(),
             'id' => $this->campaignId,
         ]);
@@ -92,7 +92,7 @@ class ImportCustomersJob extends BaseJob implements RetryableJobInterface
         $totalSaved = 0;
         $errors = 0;
         $skipped = 0;
-        $siteIdsWithCustomers = [];
+        $siteIdsWithRecipients = [];
         $batch = [];
 
         $this->logInfo('Starting CSV import', [
@@ -146,7 +146,7 @@ class ImportCustomersJob extends BaseJob implements RetryableJobInterface
                     $sms = $phoneValidation['e164'];
                 }
 
-                $customer = new CustomerRecord([
+                $recipient = new RecipientRecord([
                     'campaignId' => $this->campaignId,
                     'siteId' => $siteId,
                     'name' => $name,
@@ -154,11 +154,11 @@ class ImportCustomersJob extends BaseJob implements RetryableJobInterface
                     'sms' => $sms,
                 ]);
 
-                $batch[] = $customer;
+                $batch[] = $recipient;
 
-                // Track which sites have customers
-                if (!in_array($siteId, $siteIdsWithCustomers)) {
-                    $siteIdsWithCustomers[] = $siteId;
+                // Track which sites have recipients
+                if (!in_array($siteId, $siteIdsWithRecipients)) {
+                    $siteIdsWithRecipients[] = $siteId;
                 }
 
                 // Process batch when it reaches the size limit
@@ -199,12 +199,12 @@ class ImportCustomersJob extends BaseJob implements RetryableJobInterface
             'totalSaved' => $totalSaved,
             'skipped' => $skipped,
             'errors' => $errors,
-            'sitesWithCustomers' => $siteIdsWithCustomers,
+            'sitesWithRecipients' => $siteIdsWithRecipients,
         ]);
 
-        // Queue ProcessCampaignJob for each site that received customers
-        if ($this->queueSending && !empty($siteIdsWithCustomers)) {
-            foreach ($siteIdsWithCustomers as $siteId) {
+        // Queue ProcessCampaignJob for each site that received recipients
+        if ($this->queueSending && !empty($siteIdsWithRecipients)) {
+            foreach ($siteIdsWithRecipients as $siteId) {
                 Craft::$app->getQueue()->push(new ProcessCampaignJob([
                     'campaignId' => $this->campaignId,
                     'siteId' => $siteId,
@@ -221,9 +221,9 @@ class ImportCustomersJob extends BaseJob implements RetryableJobInterface
     }
 
     /**
-     * Save a batch of customer records
+     * Save a batch of recipient records
      *
-     * @param CustomerRecord[] $batch
+     * @param RecipientRecord[] $batch
      * @return array{saved: int, errors: int}
      */
     private function saveBatch(array $batch): array
@@ -231,21 +231,21 @@ class ImportCustomersJob extends BaseJob implements RetryableJobInterface
         $saved = 0;
         $errors = 0;
 
-        foreach ($batch as $customer) {
+        foreach ($batch as $recipient) {
             try {
-                if ($customer->save()) {
+                if ($recipient->save()) {
                     $saved++;
                 } else {
                     $errors++;
-                    $this->logWarning('Failed to save customer', [
-                        'name' => $customer->name,
-                        'errors' => $customer->getErrorSummary(true),
+                    $this->logWarning('Failed to save recipient', [
+                        'name' => $recipient->name,
+                        'errors' => $recipient->getErrorSummary(true),
                     ]);
                 }
             } catch (Exception $e) {
                 $errors++;
-                $this->logError('Exception saving customer', [
-                    'name' => $customer->name,
+                $this->logError('Exception saving recipient', [
+                    'name' => $recipient->name,
                     'error' => $e->getMessage(),
                 ]);
             }

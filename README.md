@@ -6,7 +6,7 @@
 [![Formie](https://img.shields.io/badge/Formie-3.0%2B-purple.svg)](https://verbb.io/craft-plugins/formie)
 [![License](https://img.shields.io/packagist/l/lindemannrock/craft-campaign-manager.svg)](LICENSE)
 
-Campaign management for customer surveys with SMS and email invitations for Craft CMS 5.x.
+Campaign management for surveys with SMS and email invitations for Craft CMS 5.x.
 
 ## Beta Notice
 
@@ -17,32 +17,38 @@ This plugin is currently in active development and provided under the MIT Licens
 ## Features
 
 - **Campaign Management**: Create and manage survey campaigns linked to Formie forms
-  - Multi-site support with site-specific customers
+  - Multi-site support with site-specific recipients
   - Campaign types for organization
   - Configurable invitation delay and expiry periods
-- **Customer Management**:
-  - Import customers from CSV files
-  - Add individual customers manually
+- **Recipient Management**:
+  - Import recipients from CSV files
+  - Add individual recipients manually
   - Track invitation status (sent, opened, submitted)
-  - Unique invitation codes per customer
-  - Export customers to CSV/JSON
+  - Unique invitation codes per recipient
+  - Export recipients to CSV/JSON/Excel
 - **Multi-Channel Invitations**:
   - SMS invitations via [SMS Manager](https://github.com/LindemannRock/craft-sms-manager)
   - Email invitations with customizable templates
   - Bitly URL shortening for SMS links
 - **Queue-Based Processing**:
-  - Batch processing for large customer lists
+  - Batch processing for large recipient lists
   - Background job execution
   - Progress tracking
+- **Analytics Dashboard**:
+  - Overview stats (recipients, invitations, opens, submissions)
+  - Daily activity charts
+  - Channel distribution (Email/SMS/Both)
+  - Engagement tracking over time
+  - Conversion funnel visualization
+  - Campaign performance comparison
+  - Export analytics to CSV/JSON/Excel
+  - Filter by campaign, site, and date range
 - **Survey Response Tracking**:
-  - Link Formie submissions to customers
+  - Link Formie submissions to recipients
   - Track survey completion rates
   - Invitation expiry handling
-- **Comprehensive Analytics**:
-  - Customer counts per campaign
-  - Submission tracking
-  - Date range filtering
-- **User Permissions**: Granular access control for campaigns, customers, and settings
+  - View responses directly in campaign edit page
+- **User Permissions**: Granular access control for campaigns, recipients, analytics, and settings
 - **Logging**: Structured logging via Logging Library with configurable levels
 
 ## Requirements
@@ -87,7 +93,7 @@ composer require lindemannrock/craft-campaign-manager
 
 ### Settings
 
-Navigate to **Survey Campaigns → Settings** in the control panel to configure:
+Navigate to **Campaign Manager → Settings** in the control panel to configure:
 
 **General Settings:**
 - **Plugin Name**: Customize the display name in the control panel
@@ -114,7 +120,7 @@ Create a `config/campaign-manager.php` file to override default settings:
 <?php
 return [
     // Plugin Settings
-    'pluginName' => 'Survey Campaigns',
+    'pluginName' => 'Campaign Manager',
     'campaignSectionHandle' => 'campaigns',
 
     // Logging Settings
@@ -140,7 +146,7 @@ Create a Craft section for campaigns with the following fields:
 - **Form** (Formie Form): The survey form
 - **Invitation Delay Period** (Text): ISO 8601 duration (e.g., `P1D` for 1 day)
 - **Invitation Expiry Period** (Text): ISO 8601 duration (e.g., `P30D` for 30 days)
-- **SMS Invitation Message** (Plain Text): SMS template with `{survey_link}` and `{customer_name}` tokens
+- **SMS Invitation Message** (Plain Text): SMS template with `{invitationUrl}` and `{customer_name}` tokens
 - **Email Invitation Subject** (Plain Text): Email subject line
 - **Email Invitation Message** (Rich Text): Email template with tokens
 - **Sender ID** (Text): SMS sender ID handle
@@ -150,7 +156,7 @@ Create a Craft section for campaigns with the following fields:
 
 ### 2. Configure Plugin Settings
 
-1. Navigate to **Survey Campaigns → Settings**
+1. Navigate to **Campaign Manager → Settings**
 2. Set the **Campaign Section Handle** to match your section
 3. Configure Bitly API key if using SMS invitations
 
@@ -162,15 +168,15 @@ Create a template for the survey page (e.g., `templates/survey.twig`):
 {% extends '_layouts/surveys.twig' %}
 
 {% block content %}
-    {% set invitationCode = craft.app.request.getQueryParam('invitationCode') %}
+    {% set invitationCode = craft.app.request.getQueryParam('code') %}
 
     {% if invitationCode %}
-        {% set customer = campaignManager.customers.getCustomerByInvitationCode(invitationCode) %}
-        {% set campaign = customer.getCampaign() %}
+        {% set recipient = campaignManager.recipients.getRecipientByInvitationCode(invitationCode) %}
+        {% set campaign = recipient.getCampaign() %}
 
-        {% if customer.hasSubmission() %}
+        {% if recipient.hasSubmission() %}
             {{ campaign.surveysAlreadyResponded|raw }}
-        {% elseif customer.invitationIsExpired() %}
+        {% elseif recipient.invitationIsExpired() %}
             {{ campaign.surveysInvitationExpired|raw }}
         {% else %}
             {{ campaign.surveysWelcome|raw }}
@@ -186,23 +192,23 @@ Create a template for the survey page (e.g., `templates/survey.twig`):
 
 ### Managing Campaigns
 
-1. Navigate to **Survey Campaigns** in the control panel
+1. Navigate to **Campaign Manager** in the control panel
 2. Click **New Campaign** to create a campaign entry
 3. Configure the campaign settings and associated form
 4. Save the campaign
 
-### Adding Customers
+### Adding Recipients
 
-#### Single Customer
+#### Single Recipient
 
-1. Navigate to the campaign's customer list
-2. Click **Add → New Customer**
-3. Enter customer details (name, email, phone, site)
+1. Navigate to the campaign's recipient list
+2. Click **Add → New Recipient**
+3. Enter recipient details (name, email, phone, site)
 4. Save
 
 #### Import from CSV
 
-1. Navigate to the campaign's customer list
+1. Navigate to the campaign's recipient list
 2. Click **Add → Import from CSV**
 3. Upload a CSV file with columns:
    - `Name` (required)
@@ -223,22 +229,40 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
 
 #### Single Campaign
 
-1. Navigate to the campaign's customer list
+1. Navigate to the campaign's recipient list
 2. Click **Run Campaign**
 3. Invitations will be queued and sent in batches
 
 #### All Campaigns
 
-1. Navigate to **Survey Campaigns**
+1. Navigate to **Campaign Manager → Campaigns**
 2. Click **Run All**
 3. All campaigns will be processed
 
-### Exporting Customers
+### Viewing Analytics
 
-1. Navigate to the campaign's customer list
+1. Navigate to **Campaign Manager → Analytics**
+2. Use filters to select campaign, site, and date range
+3. View metrics across four tabs:
+   - **Overview**: Key stats and campaign performance table
+   - **Delivery**: Daily activity and channel distribution
+   - **Engagement**: Open rates over time
+   - **Conversion**: Funnel visualization and breakdown
+4. Export data using the Export button
+
+### Viewing Responses
+
+1. Navigate to a campaign and click Edit
+2. Click the **Responses** tab
+3. View all recipients who submitted the form
+4. Click "View" to see full submission details in Formie
+
+### Exporting Recipients
+
+1. Navigate to the campaign's recipient list
 2. Click **Export**
-3. Choose format (CSV or JSON)
-4. Download includes all customer data and status
+3. Choose format (CSV, JSON, or Excel)
+4. Download includes all recipient data and status
 
 ## Template Variables
 
@@ -255,21 +279,24 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
 {% set campaigns = campaignManager.campaigns.find().site('en').all() %}
 ```
 
-### campaignManager.customers
+### campaignManager.recipients
 
 ```twig
-{# Get customer by invitation code #}
-{% set customer = campaignManager.customers.getCustomerByInvitationCode(code) %}
+{# Get recipient by invitation code #}
+{% set recipient = campaignManager.recipients.getRecipientByInvitationCode(code) %}
 
-{# Mark customer as opened #}
-{% do campaignManager.customers.markAsOpened(customer) %}
+{# Mark recipient as opened #}
+{% do campaignManager.recipients.markAsOpened(recipient) %}
 
-{# Check customer status #}
-{% if customer.hasSubmission() %}
+{# Check recipient status #}
+{% if recipient.hasSubmission() %}
     {# Already submitted #}
-{% elseif customer.invitationIsExpired() %}
+{% elseif recipient.invitationIsExpired() %}
     {# Invitation expired #}
 {% endif %}
+
+{# Get recipients with submissions for a campaign #}
+{% set respondents = campaignManager.recipients.getWithSubmissions(campaignId, siteId) %}
 ```
 
 ## Console Commands
@@ -291,13 +318,15 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
   - Edit campaigns
   - Delete campaigns
 
-### Customer Permissions
-- **Manage customers**
-  - View customers
-  - Create customers
-  - Import customers
-  - Delete customers
-  - Export customers
+### Recipient Permissions
+- **Manage recipients**
+  - View recipients
+  - Import recipients
+  - Delete recipients
+
+### Analytics Permissions
+- **View analytics**: Access the analytics dashboard
+- **Export analytics**: Export analytics data
 
 ### Settings Permissions
 - **Manage settings**
@@ -305,26 +334,26 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
 ## Events
 
 ```php
-use lindemannrock\campaignmanager\services\CustomersService;
-use lindemannrock\campaignmanager\events\CustomerEvent;
+use lindemannrock\campaignmanager\services\RecipientsService;
+use lindemannrock\campaignmanager\events\RecipientEvent;
 use yii\base\Event;
 
 // Before sending invitation
 Event::on(
-    CustomersService::class,
-    CustomersService::EVENT_BEFORE_SEND_INVITATION,
-    function(CustomerEvent $event) {
-        // Access: $event->customer, $event->campaign
+    RecipientsService::class,
+    RecipientsService::EVENT_BEFORE_SEND_INVITATION,
+    function(RecipientEvent $event) {
+        // Access: $event->recipient, $event->campaign
         // Set $event->isValid = false to cancel
     }
 );
 
 // After sending invitation
 Event::on(
-    CustomersService::class,
-    CustomersService::EVENT_AFTER_SEND_INVITATION,
-    function(CustomerEvent $event) {
-        // Access: $event->customer, $event->success
+    RecipientsService::class,
+    RecipientsService::EVENT_AFTER_SEND_INVITATION,
+    function(RecipientEvent $event) {
+        // Access: $event->recipient, $event->success
     }
 );
 ```
@@ -336,12 +365,12 @@ Event::on(
 1. **Check SMS Manager is configured**: Ensure providers and sender IDs are set up
 2. **Check Bitly API key**: Required for SMS URL shortening
 3. **Check queue is running**: `./craft queue/run`
-4. **Check logs**: Survey Campaigns → System Logs
+4. **Check logs**: Campaign Manager → Logs
 
 ### Survey Page Not Loading
 
-1. **Verify invitation code**: Check the URL has a valid `invitationCode` parameter
-2. **Check customer exists**: The invitation code must match a customer record
+1. **Verify invitation code**: Check the URL has a valid `code` parameter
+2. **Check recipient exists**: The invitation code must match a recipient record
 3. **Check campaign has form**: The campaign must have a Formie form assigned
 
 ### CSV Import Failing
@@ -358,7 +387,7 @@ Event::on(
 
 ## Logging
 
-Survey Campaigns uses the [LindemannRock Logging Library](https://github.com/LindemannRock/craft-logging-library) for system logging.
+Campaign Manager uses the [LindemannRock Logging Library](https://github.com/LindemannRock/craft-logging-library) for system logging.
 
 ### Log Levels
 - **Error**: Critical errors only (default)
@@ -369,7 +398,7 @@ Survey Campaigns uses the [LindemannRock Logging Library](https://github.com/Lin
 ### Log Files
 - **Location**: `storage/logs/campaign-manager-YYYY-MM-DD.log`
 - **Retention**: 30 days (automatic cleanup)
-- **Web Interface**: View logs at Survey Campaigns → System Logs
+- **Web Interface**: View logs at Campaign Manager → Logs
 
 ## Support
 

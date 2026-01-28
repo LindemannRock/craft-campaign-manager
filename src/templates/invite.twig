@@ -1,0 +1,57 @@
+{#
+ # Campaign Manager - Invitation Template
+ #
+ # This is the default invitation template. Copy this to your templates folder
+ # and customize it for your needs.
+ #
+ # Available variables:
+ #   - token: The invitation token from the URL
+ #
+ # Example usage in your template:
+ #   {% set recipient = craft.campaignManager.recipients.findByToken(token) %}
+ #   {% if recipient %}
+ #       ... show invitation content ...
+ #   {% else %}
+ #       ... show error or expired message ...
+ #   {% endif %}
+ #}
+
+<!DOCTYPE html>
+<html lang="{{ craft.app.language }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Invitation'|t('campaign-manager') }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .error { color: #c00; }
+        .success { color: #090; }
+    </style>
+</head>
+<body>
+    {% set recipient = craft.campaignManager.recipients.findByToken(token ?? null) %}
+
+    {% if recipient %}
+        {% set campaign = recipient.getCampaign() %}
+        <h1>{{ campaign.title ?? 'Invitation'|t('campaign-manager') }}</h1>
+
+        {% if recipient.hasResponded %}
+            <p class="error">{{ 'You have already responded to this invitation.'|t('campaign-manager') }}</p>
+        {% elseif recipient.isExpired %}
+            <p class="error">{{ 'This invitation has expired.'|t('campaign-manager') }}</p>
+        {% else %}
+            <p>{{ 'Welcome! Please complete the form below.'|t('campaign-manager') }}</p>
+            {# Add your form or content here #}
+        {% endif %}
+    {% else %}
+        <h1>{{ 'Invalid Invitation'|t('campaign-manager') }}</h1>
+        <p class="error">{{ 'This invitation link is not valid or has expired.'|t('campaign-manager') }}</p>
+    {% endif %}
+</body>
+</html>

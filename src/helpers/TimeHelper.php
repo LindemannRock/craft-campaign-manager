@@ -19,12 +19,14 @@ use Exception;
  *
  * @author    LindemannRock
  * @package   CampaignManager
- * @since     3.0.0
+ * @since     5.0.0
  */
 class TimeHelper
 {
     /**
      * Get current DateTime
+     *
+     * @since 5.0.0
      */
     public static function now(): DateTime
     {
@@ -33,6 +35,8 @@ class TimeHelper
 
     /**
      * Get a DateTime from now plus interval
+     *
+     * @since 5.0.0
      */
     public static function fromNow(DateInterval|string|int $interval): DateTime
     {
@@ -50,6 +54,7 @@ class TimeHelper
      * - DateInterval object
      *
      * @throws Exception if the interval cannot be parsed
+     * @since 5.0.0
      */
     public static function normalizeInterval(DateInterval|string|int $interval): DateInterval
     {
@@ -71,6 +76,8 @@ class TimeHelper
 
     /**
      * Check if an interval string is valid
+     *
+     * @since 5.0.0
      */
     public static function isValidInterval(DateInterval|string|int $interval): bool
     {

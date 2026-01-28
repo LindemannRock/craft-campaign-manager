@@ -1,0 +1,88 @@
+{# Conversion Tab - Response funnel and conversion metrics #}
+
+{# Conversion Stats Grid #}
+<div class="lr-analytics-stats">
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.totalRecipients,
+        label: 'Total Recipients'|t('campaign-manager'),
+        id: 'conv-total-recipients',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.totalOpened,
+        label: 'Opened Invitations'|t('campaign-manager'),
+        id: 'conv-opened',
+        color: '#8b5cf6',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.submissions,
+        label: 'Form Responses'|t('campaign-manager'),
+        id: 'conv-responses',
+        color: '#10b981',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.conversionRate,
+        label: 'Conversion Rate'|t('campaign-manager'),
+        id: 'conv-rate',
+        suffix: '%',
+        color: '#10b981',
+    } only %}
+</div>
+
+{# Conversion Funnel Chart #}
+<div class="lr-analytics-charts">
+    <div class="lr-chart-container full-width">
+        <h3>{{ 'Conversion Funnel'|t('campaign-manager') }}</h3>
+        <div style="height: 250px;">
+            <canvas id="funnel-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+{# Funnel Breakdown Table #}
+<div class="lr-chart-container" style="margin-top: 24px;">
+    <h3>{{ 'Funnel Breakdown'|t('campaign-manager') }}</h3>
+    <div class="lr-table-scroll">
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'Stage'|t('campaign-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Count'|t('campaign-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Percentage'|t('campaign-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Drop-off'|t('campaign-manager') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set stages = [
+                    { name: 'Total Recipients'|t('campaign-manager'), count: summaryStats.totalRecipients },
+                    { name: 'Invitations Sent'|t('campaign-manager'), count: summaryStats.totalSent },
+                    { name: 'Opened'|t('campaign-manager'), count: summaryStats.totalOpened },
+                    { name: 'Responded'|t('campaign-manager'), count: summaryStats.submissions },
+                ] %}
+                {% set baseline = summaryStats.totalRecipients %}
+                {% for stage in stages %}
+                    {% set pct = baseline > 0 ? (stage.count / baseline * 100)|round(1) : 0 %}
+                    {% set prevCount = loop.first ? stage.count : stages[loop.index0 - 1].count %}
+                    {% set dropoff = prevCount > 0 ? ((prevCount - stage.count) / prevCount * 100)|round(1) : 0 %}
+                    <tr>
+                        <td><strong>{{ stage.name }}</strong></td>
+                        <td style="text-align: right;">{{ stage.count|number_format }}</td>
+                        <td style="text-align: right;">{{ pct }}%</td>
+                        <td style="text-align: right; color: {{ loop.first ? '#6b7280' : '#ef4444' }};">
+                            {{ loop.first ? '-' : dropoff ~ '%' }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Tips #}
+{% include 'lindemannrock-base/_components/info-box' with {
+    type: 'tip',
+    message: 'To improve conversion rates, consider: personalized messaging, shorter forms, mobile optimization, and timely follow-ups.'|t('campaign-manager'),
+    margin: 'top',
+} %}

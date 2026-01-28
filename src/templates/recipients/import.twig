@@ -8,18 +8,30 @@
 {% set site = site ?? craft.app.sites.getCurrentSite() %}
 {% set campaignId = campaignId ?? campaign.id %}
 
-{% set title = 'Import Customers'|t('campaign-manager') %}
+{% set title = 'Import Recipients'|t('campaign-manager') %}
 {% set fullPageForm = false %}
 {% set selectedSubnavItem = 'campaigns' %}
 
-{# Site switcher in crumbs #}
+{# Get enabled sites for this campaign #}
+{% set enabledSites = [] %}
+{% for s in craft.app.sites.getAllSites() %}
+    {% set campaignForSite = craft.campaignManager.campaigns.find().id(campaignId).siteId(s.id).status(null).one() %}
+    {% if campaignForSite and campaignForSite.getEnabledForSite() %}
+        {% set enabledSites = enabledSites|merge([s]) %}
+    {% endif %}
+{% endfor %}
+
+{# Check if campaign is enabled for any site #}
+{% set campaignDisabled = enabledSites|length == 0 %}
+
+{# Site switcher in crumbs - only show enabled sites #}
 {% set crumbs = [] %}
-{% if craft.app.getIsMultiSite() %}
+{% if craft.app.getIsMultiSite() and enabledSites|length > 1 %}
     {% set siteMenuItems = [] %}
-    {% for s in craft.app.sites.getAllSites() %}
+    {% for s in enabledSites %}
         {% set siteMenuItems = siteMenuItems|merge([{
             label: s.name,
-            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: s.handle}),
+            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-recipients', {site: s.handle}),
             selected: s.handle == site.handle
         }]) %}
     {% endfor %}
@@ -37,26 +49,34 @@
 
 {% set crumbs = crumbs|merge([
     { label: settings.pluginName, url: cpUrl('campaign-manager', {site: site.handle}) },
-    { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: site.handle}) },
+    { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId, {site: site.handle}) },
+    { label: 'Recipients'|t('campaign-manager'), url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: site.handle}) },
+    { label: 'Import'|t('campaign-manager') },
 ]) %}
 
 {% block content %}
-    {% if errors is defined %}
-        <div class="pane error" style="margin-bottom: 24px;">
-            <p><strong>{{ 'Error:'|t('campaign-manager') }}</strong></p>
-            <p>{{ errors }}</p>
-        </div>
-    {% endif %}
+    {% if campaignDisabled %}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            message: 'This campaign is disabled for all sites. Enable it for at least one site before importing recipients.'|t('campaign-manager'),
+            type: 'warning',
+        } %}
+    {% else %}
+        {% if errors is defined %}
+            <div class="pane error" style="margin-bottom: 24px;">
+                <p><strong>{{ 'Error:'|t('campaign-manager') }}</strong></p>
+                <p>{{ errors }}</p>
+            </div>
+        {% endif %}
 
-    <h2 style="margin-top: 0;">{{ 'Import Customers from CSV'|t('campaign-manager') }}</h2>
+        <h2 style="margin-top: 0;">{{ 'Import Recipients from CSV'|t('campaign-manager') }}</h2>
 
-    <p>{{ 'Upload a CSV file to import customers into this campaign. You will be able to map columns and preview before importing.'|t('campaign-manager') }}</p>
+    <p>{{ 'Upload a CSV file to import recipients into this campaign. You will be able to map columns and preview before importing.'|t('campaign-manager') }}</p>
 
     {% set csvFormatTip %}
         <h4>{{ 'CSV Format'|t('campaign-manager') }}</h4>
         <p><strong>{{ 'Required columns:'|t('campaign-manager') }}</strong></p>
         <ul>
-            <li><code>Name</code> - {{ 'Customer name'|t('campaign-manager') }}</li>
+            <li><code>Name</code> - {{ 'Recipient name'|t('campaign-manager') }}</li>
         </ul>
         <p><strong>{{ 'Optional columns:'|t('campaign-manager') }}</strong></p>
         <ul>
@@ -80,13 +100,13 @@ Ahmed Ali,ahmed@example.com,96598765432,ar</pre>
         </div>
     </div>
 
-    <form method="post" action="{{ actionUrl('campaign-manager/customers/upload') }}" enctype="multipart/form-data">
+    <form method="post" action="{{ actionUrl('campaign-manager/recipients/upload') }}" enctype="multipart/form-data">
         {{ csrfInput() }}
         {{ hiddenInput('campaignId', campaignId) }}
 
         {{ forms.fileField({
             label: 'CSV File'|t('campaign-manager'),
-            instructions: 'Select a CSV file to import customers. Delimiter (comma, semicolon, tab) is auto-detected.'|t('campaign-manager'),
+            instructions: 'Select a CSV file to import recipients. Delimiter (comma, semicolon, tab) is auto-detected.'|t('campaign-manager'),
             id: 'file',
             name: 'file',
             required: true
@@ -104,9 +124,11 @@ Ahmed Ali,ahmed@example.com,96598765432,ar</pre>
             <button type="submit" class="btn submit">{{ 'Upload & Map Columns'|t('campaign-manager') }}</button>
         </div>
     </form>
+    {% endif %}
 {% endblock %}
 
 {% block details %}
+    {% if not campaignDisabled %}
     <fieldset>
         <div class="meta">
             <div class="field">
@@ -114,7 +136,7 @@ Ahmed Ali,ahmed@example.com,96598765432,ar</pre>
                     <label>{{ 'Campaign'|t('campaign-manager') }}</label>
                 </div>
                 <div class="input">
-                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: site.handle}) }}">{{ campaign.title }}</a>
+                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: site.handle}) }}">{{ campaign.title }}</a>
                 </div>
             </div>
 
@@ -128,6 +150,7 @@ Ahmed Ali,ahmed@example.com,96598765432,ar</pre>
             </div>
         </div>
     </fieldset>
+    {% endif %}
 {% endblock %}
 
 {% js %}
@@ -146,7 +169,7 @@ document.getElementById('download-template-btn').addEventListener('click', funct
     var actionInput = document.createElement('input');
     actionInput.type = 'hidden';
     actionInput.name = 'action';
-    actionInput.value = 'campaign-manager/customers/download-sample';
+    actionInput.value = 'campaign-manager/recipients/download-sample';
     form.appendChild(actionInput);
 
     document.body.appendChild(form);

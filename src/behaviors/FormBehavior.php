@@ -8,7 +8,7 @@
 
 namespace lindemannrock\campaignmanager\behaviors;
 
-use lindemannrock\campaignmanager\records\CustomerRecord;
+use lindemannrock\campaignmanager\records\RecipientRecord;
 use verbb\formie\elements\Form;
 use yii\base\Behavior;
 
@@ -23,7 +23,7 @@ use yii\base\Behavior;
  */
 class FormBehavior extends Behavior
 {
-    private ?CustomerRecord $_customer = null;
+    private ?RecipientRecord $_recipient = null;
 
     /**
      * @inheritdoc
@@ -34,18 +34,18 @@ class FormBehavior extends Behavior
     }
 
     /**
-     * Get the customer
+     * Get the recipient
      */
-    public function getCustomer(): ?CustomerRecord
+    public function getRecipient(): ?RecipientRecord
     {
-        return $this->_customer;
+        return $this->_recipient;
     }
 
     /**
-     * Set the customer
+     * Set the recipient
      */
-    public function setCustomer(CustomerRecord $customer): void
+    public function setRecipient(RecipientRecord $recipient): void
     {
-        $this->_customer = $customer;
+        $this->_recipient = $recipient;
     }
 }

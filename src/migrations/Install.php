@@ -34,7 +34,8 @@ class Install extends Migration
         $this->createSettingsTable();
         $this->createCampaignsTable();
         $this->createCampaignsContentTable();
-        $this->createCustomersTable();
+        $this->createRecipientsTable();
+        $this->createStatisticsTable();
     }
 
     /**
@@ -56,8 +57,10 @@ class Install extends Migration
             'invitationRoute' => $this->string()->defaultValue('campaign-manager/invitation'),
             'invitationTemplate' => $this->string(),
             'defaultSenderIdId' => $this->integer(),
-            'defaultCountryCode' => $this->string(2)->defaultValue('KW'),
+            'defaultProviderHandle' => $this->string(64),
+            'defaultSenderIdHandle' => $this->string(64),
             'campaignTypeOptions' => $this->text(),
+            'itemsPerPage' => $this->integer()->defaultValue(50),
             'logLevel' => $this->string()->defaultValue('error'),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
@@ -68,7 +71,7 @@ class Install extends Migration
         $this->insert($tableName, [
             'pluginName' => 'Campaign Manager',
             'invitationRoute' => 'campaign-manager/invitation',
-            'defaultCountryCode' => 'KW',
+            'itemsPerPage' => 50,
             'logLevel' => 'error',
             'dateCreated' => Db::prepareDateForDb(new \DateTime()),
             'dateUpdated' => Db::prepareDateForDb(new \DateTime()),
@@ -94,6 +97,7 @@ class Install extends Migration
             'invitationDelayPeriod' => $this->string(),
             'invitationExpiryPeriod' => $this->string(),
             'senderId' => $this->string(),
+            'providerHandle' => $this->string(64),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -171,11 +175,11 @@ class Install extends Migration
     }
 
     /**
-     * Create the customers table
+     * Create the recipients table
      */
-    private function createCustomersTable(): void
+    private function createRecipientsTable(): void
     {
-        $tableName = '{{%campaignmanager_customers}}';
+        $tableName = '{{%campaignmanager_recipients}}';
 
         if ($this->db->tableExists($tableName)) {
             return;
@@ -238,6 +242,61 @@ class Install extends Migration
     }
 
     /**
+     * Create the statistics table for analytics
+     */
+    private function createStatisticsTable(): void
+    {
+        $tableName = '{{%campaignmanager_analytics}}';
+
+        if ($this->db->tableExists($tableName)) {
+            return;
+        }
+
+        $this->createTable($tableName, [
+            'id' => $this->primaryKey(),
+            'campaignId' => $this->integer()->notNull(),
+            'siteId' => $this->integer()->notNull(),
+            'date' => $this->date()->notNull(),
+            // Delivery metrics
+            'totalRecipients' => $this->integer()->notNull()->defaultValue(0),
+            'emailsSent' => $this->integer()->notNull()->defaultValue(0),
+            'smsSent' => $this->integer()->notNull()->defaultValue(0),
+            // Engagement metrics
+            'emailsOpened' => $this->integer()->notNull()->defaultValue(0),
+            'smsOpened' => $this->integer()->notNull()->defaultValue(0),
+            // Conversion metrics
+            'submissions' => $this->integer()->notNull()->defaultValue(0),
+            'expired' => $this->integer()->notNull()->defaultValue(0),
+            // Standard timestamps
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        // Create unique index for campaignId + siteId + date
+        $this->createIndex(null, $tableName, ['campaignId', 'siteId', 'date'], true);
+
+        // Add foreign keys
+        $this->addForeignKey(
+            null,
+            $tableName,
+            ['campaignId'],
+            '{{%campaignmanager_campaigns}}',
+            ['id'],
+            'CASCADE'
+        );
+
+        $this->addForeignKey(
+            null,
+            $tableName,
+            ['siteId'],
+            Site::tableName(),
+            ['id'],
+            'CASCADE'
+        );
+    }
+
+    /**
      * @inheritdoc
      */
     public function safeDown(): void
@@ -246,7 +305,8 @@ class Install extends Migration
         $this->delete('{{%elements}}', ['type' => Campaign::class]);
 
         // Drop tables in reverse order due to foreign key constraints
-        $this->dropTableIfExists('{{%campaignmanager_customers}}');
+        $this->dropTableIfExists('{{%campaignmanager_analytics}}');
+        $this->dropTableIfExists('{{%campaignmanager_recipients}}');
         $this->dropTableIfExists('{{%campaignmanager_campaigns_content}}');
         $this->dropTableIfExists('{{%campaignmanager_campaigns}}');
         $this->dropTableIfExists('{{%campaignmanager_settings}}');

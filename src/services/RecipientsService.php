@@ -16,19 +16,19 @@ use craft\helpers\UrlHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\TimeHelper;
 use lindemannrock\campaignmanager\records\CampaignRecord;
-use lindemannrock\campaignmanager\records\CustomerRecord;
+use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use verbb\formie\elements\Submission;
 use yii\db\ActiveQuery;
 
 /**
- * Customers Service
+ * Recipients Service
  *
  * @author    LindemannRock
  * @package   CampaignManager
- * @since     3.0.0
+ * @since     5.0.0
  */
-class CustomersService extends Component
+class RecipientsService extends Component
 {
     use LoggingTrait;
 
@@ -42,21 +42,24 @@ class CustomersService extends Component
     }
 
     /**
-     * Get a customer query
+     * Get a recipient query
+     *
+     * @since 5.0.0
      */
     public function find(): ActiveQuery
     {
-        return CustomerRecord::find();
+        return RecipientRecord::find();
     }
 
     /**
-     * Find customers by campaign and site
+     * Find recipients by campaign and site
      *
-     * @return CustomerRecord[]
+     * @return RecipientRecord[]
+     * @since 5.0.0
      */
     public function findByCampaignAndSite(int $campaignId, int $siteId, string $dateRange = 'all'): array
     {
-        $query = CustomerRecord::find()
+        $query = RecipientRecord::find()
             ->where([
                 'campaignId' => $campaignId,
                 'siteId' => $siteId,
@@ -69,7 +72,7 @@ class CustomersService extends Component
                 ->andWhere(['<=', 'dateCreated', $dates['end']->format('Y-m-d 23:59:59')]);
         }
 
-        /** @var CustomerRecord[] $result */
+        /** @var RecipientRecord[] $result */
         $result = $query->all();
 
         return $result;
@@ -80,6 +83,7 @@ class CustomersService extends Component
      *
      * @param string $dateRange Date range parameter
      * @return array{start: \DateTime, end: \DateTime}
+     * @since 5.0.0
      */
     public function getDateRangeFromParam(string $dateRange): array
     {
@@ -103,12 +107,14 @@ class CustomersService extends Component
     }
 
     /**
-     * Get a customer by invitation code
+     * Get a recipient by invitation code
+     *
+     * @since 5.0.0
      */
-    public function getCustomerByInvitationCode(string $code): ?CustomerRecord
+    public function getRecipientByInvitationCode(string $code): ?RecipientRecord
     {
-        /** @var CustomerRecord|null $result */
-        $result = CustomerRecord::find()
+        /** @var RecipientRecord|null $result */
+        $result = RecipientRecord::find()
             ->where([
                 'or',
                 ['emailInvitationCode' => $code],
@@ -121,63 +127,71 @@ class CustomersService extends Component
 
     /**
      * Generate a unique invitation code
+     *
+     * @since 5.0.0
      */
     public function getUniqueInvitationCode(): string
     {
         do {
             $code = StringHelper::randomString(12);
-            $customer = CustomerRecord::find()
+            $recipient = RecipientRecord::find()
                 ->where([
                     'or',
                     ['emailInvitationCode' => $code],
                     ['smsInvitationCode' => $code],
                 ])
                 ->one();
-        } while (!empty($customer));
+        } while (!empty($recipient));
 
         return $code;
     }
 
     /**
-     * Delete a customer by ID
+     * Delete a recipient by ID
+     *
+     * @since 5.0.0
      */
-    public function deleteCustomerById(int $id): bool
+    public function deleteRecipientById(int $id): bool
     {
-        return (bool)CustomerRecord::deleteAll(['id' => $id]);
+        return (bool)RecipientRecord::deleteAll(['id' => $id]);
     }
 
     /**
-     * Parse an invitation message with customer data
+     * Parse an invitation message with recipient data
+     *
+     * @since 5.0.0
      */
-    public function parseInvitationMessageForCustomer(string $message, CustomerRecord $customerRecord): string
+    public function parseInvitationMessageForRecipient(string $message, RecipientRecord $recipientRecord): string
     {
-        $campaign = $customerRecord->getCampaign();
+        $campaign = $recipientRecord->getCampaign();
 
         // Build the invitation URL from the plugin's invitation route setting
         $settings = CampaignManager::$plugin->getSettings();
         $invitationRoute = $settings->invitationRoute ?? 'campaign-manager/invitation';
 
-        // Get the customer's site base URL
-        $customerSite = Craft::$app->getSites()->getSiteById($customerRecord->siteId);
-        $baseUrl = $customerSite?->getBaseUrl() ?? Craft::$app->getSites()->getPrimarySite()->getBaseUrl();
+        // Get the recipient's site base URL
+        $recipientSite = Craft::$app->getSites()->getSiteById($recipientRecord->siteId);
+        $baseUrl = $recipientSite?->getBaseUrl() ?? Craft::$app->getSites()->getPrimarySite()->getBaseUrl();
 
         // Build full invitation URL with code
-        $invitationUrl = rtrim($baseUrl, '/') . '/' . ltrim($invitationRoute, '/') . '?code=' . $customerRecord->smsInvitationCode;
+        $invitationUrl = rtrim($baseUrl, '/') . '/' . ltrim($invitationRoute, '/') . '?code=' . $recipientRecord->smsInvitationCode;
         $shortenedUrl = $this->getBitlyUrl($invitationUrl);
 
         return Craft::$app->view->renderObjectTemplate(
             $message,
-            $customerRecord,
+            $recipientRecord,
             [
                 'invitationUrl' => $shortenedUrl,
                 'survey_link' => $shortenedUrl, // backwards compatibility
-                'customer_name' => $customerRecord->name,
+                'recipient_name' => $recipientRecord->name,
             ]
         );
     }
 
     /**
      * Shorten a URL using Bitly API
+     *
+     * @since 5.0.0
      */
     public function getBitlyUrl(string $surveyUrl): string
     {
@@ -228,49 +242,63 @@ class CustomersService extends Component
 
     /**
      * Process and send an SMS invitation
+     *
+     * @since 5.0.0
      */
-    public function processSmsInvitation(CampaignRecord $campaign, CustomerRecord $customer, ?int $senderIdId = null): bool
-    {
+    public function processSmsInvitation(
+        CampaignRecord $campaign,
+        RecipientRecord $recipient,
+        ?string $providerHandle = null,
+        ?string $senderIdHandle = null,
+    ): bool {
         // Get content record for translatable SMS message
-        $contentRecord = $campaign->getContentForSite($customer->siteId);
+        $contentRecord = $campaign->getContentForSite($recipient->siteId);
         $smsInvitationMessage = $contentRecord?->smsInvitationMessage;
 
-        $result = $this->sendSmsInvitation($smsInvitationMessage, $customer, $senderIdId);
+        // Use campaign's provider/sender ID if not overridden
+        $providerHandle = $providerHandle ?? $campaign->providerHandle;
+        $senderIdHandle = $senderIdHandle ?? $campaign->senderId;
+
+        $result = $this->sendSmsInvitation($smsInvitationMessage, $recipient, $providerHandle, $senderIdHandle);
         if ($result) {
-            $customer->smsSendDate = TimeHelper::now();
-            $customer->save(false);
+            $recipient->smsSendDate = TimeHelper::now();
+            $recipient->save(false);
         }
 
         return $result;
     }
 
     /**
-     * Mark a customer as having opened their invitation
+     * Mark a recipient as having opened their invitation
+     *
+     * @since 5.0.0
      */
-    public function markAsOpened(CustomerRecord $customer): void
+    public function markAsOpened(RecipientRecord $recipient): void
     {
-        $customer->smsOpenDate = TimeHelper::now();
-        $customer->emailOpenDate = $customer->smsOpenDate;
-        $customer->save(false);
+        $recipient->smsOpenDate = TimeHelper::now();
+        $recipient->emailOpenDate = $recipient->smsOpenDate;
+        $recipient->save(false);
     }
 
     /**
      * Process a form submission for a campaign
+     *
+     * @since 5.0.0
      */
     public function processCampaignSubmission(Submission $submission, string $invitationCode): void
     {
-        $customer = $this->getCustomerByInvitationCode($invitationCode);
+        $recipient = $this->getRecipientByInvitationCode($invitationCode);
 
-        if (!$customer) {
-            $this->logWarning('Customer not found for invitation code', ['code' => $invitationCode]);
+        if (!$recipient) {
+            $this->logWarning('Recipient not found for invitation code', ['code' => $invitationCode]);
             return;
         }
 
-        $submission->setFieldValue('customerName', $customer->name);
-        $submission->setFieldValue('customerMobile', $customer->sms);
-        $submission->setFieldValue('customerEmail', $customer->email);
+        $submission->setFieldValue('recipientName', $recipient->name);
+        $submission->setFieldValue('recipientMobile', $recipient->sms);
+        $submission->setFieldValue('recipientEmail', $recipient->email);
 
-        $campaign = $customer->getCampaign();
+        $campaign = $recipient->getCampaign();
         if ($campaign) {
             $submission->setFieldValue('campaignName', $campaign->title);
         }
@@ -278,23 +306,30 @@ class CustomersService extends Component
         $submission->updateTitle($submission->getForm());
         Craft::$app->getElements()->saveElement($submission, false);
 
-        $customer->submissionId = $submission->getId();
-        $customer->save(false);
+        $recipient->submissionId = $submission->getId();
+        $recipient->save(false);
     }
 
     /**
      * Send an SMS invitation
+     *
+     * @since 5.0.0
      */
-    public function sendSmsInvitation(string $message, CustomerRecord $customer, ?int $senderIdId = null): bool
-    {
-        $parsedMessage = $this->parseInvitationMessageForCustomer($message, $customer);
-        $language = $customer->getSite()?->getLocale()->getLanguageID() ?? 'en';
+    public function sendSmsInvitation(
+        string $message,
+        RecipientRecord $recipient,
+        ?string $providerHandle = null,
+        ?string $senderIdHandle = null,
+    ): bool {
+        $parsedMessage = $this->parseInvitationMessageForRecipient($message, $recipient);
+        $language = $recipient->getSite()?->getLocale()->getLanguageID() ?? 'en';
 
         return CampaignManager::$plugin->sms->sendSms(
-            $customer->sms,
+            $recipient->sms,
             $parsedMessage,
             $language,
-            $senderIdId
+            $providerHandle,
+            $senderIdHandle,
         );
     }
 
@@ -302,6 +337,7 @@ class CustomersService extends Component
      * Get the CP URL for surveys
      *
      * @param array<string, mixed> $params
+     * @since 5.0.0
      */
     public function getCpUrl(string $path, array $params = []): string
     {
@@ -311,5 +347,62 @@ class CustomersService extends Component
         }
 
         return UrlHelper::cpUrl($path, $params);
+    }
+
+    /**
+     * Get recipients with form submissions for a campaign
+     *
+     * @param int $campaignId Campaign ID
+     * @param int|null $siteId Site ID (null for all sites)
+     * @param string $dateRange Date range filter (all, today, yesterday, last7days, last30days, last90days)
+     * @return array<RecipientRecord> Recipients with submissions attached
+     * @since 5.1.0
+     */
+    public function getWithSubmissions(int $campaignId, ?int $siteId = null, string $dateRange = 'all'): array
+    {
+        $query = RecipientRecord::find()
+            ->where(['campaignId' => $campaignId])
+            ->andWhere(['not', ['submissionId' => null]])
+            ->orderBy(['dateUpdated' => SORT_DESC]);
+
+        // Filter by site if specified
+        if ($siteId !== null) {
+            $query->andWhere(['siteId' => $siteId]);
+        }
+
+        /** @var RecipientRecord[] $recipients */
+        $recipients = $query->all();
+
+        // Calculate date range bounds
+        $startDate = null;
+        $endDate = new \DateTime();
+
+        if ($dateRange !== 'all') {
+            $dates = $this->getDateRangeFromParam($dateRange);
+            $startDate = $dates['start'];
+            $endDate = $dates['end'];
+        }
+
+        // Eager load submissions and filter by date range
+        $filteredRecipients = [];
+        foreach ($recipients as $recipient) {
+            if ($recipient->submissionId) {
+                /** @var Submission|null $submission */
+                $submission = Submission::find()->id($recipient->submissionId)->one();
+                $recipient->submission = $submission;
+
+                // Filter by date range if applicable
+                if ($startDate !== null && $submission) {
+                    $submissionDate = $submission->dateCreated;
+                    if ($submissionDate >= $startDate && $submissionDate <= $endDate) {
+                        $filteredRecipients[] = $recipient;
+                    }
+                } else {
+                    $filteredRecipients[] = $recipient;
+                }
+            }
+        }
+
+        return $filteredRecipients;
     }
 }

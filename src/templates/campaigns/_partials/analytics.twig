@@ -1,0 +1,184 @@
+{#
+ # Per-Campaign Analytics Tab
+ #
+ # Uses the base plugin's analytics-panel partial for consistent styling.
+ #
+ # Variables available:
+ # - campaign: The campaign element
+ # - currentSite: The current site
+ #}
+
+{# Get date range from URL #}
+{% set dateRange = craft.app.request.getQueryParam('range') ?? 'last30days' %}
+
+{# Get analytics data for this campaign #}
+{% set stats = craft.campaignManager.analytics.getCampaignStats(campaign.id, null, dateRange) %}
+{% set dailyData = craft.campaignManager.analytics.getCampaignDailyTrend(campaign.id, null, dateRange) %}
+
+{% embed 'lindemannrock-base/_partials/analytics-panel' with {
+    config: {
+        dateRange: {
+            enabled: true,
+            current: dateRange,
+            param: 'range',
+            hash: 'analytics',
+        },
+        export: {
+            action: 'campaign-manager/analytics/export-campaign',
+            permission: 'campaignManager:viewRecipients',
+            extraParams: {campaignId: campaign.id},
+        },
+    }
+} %}
+    {% block content %}
+        {# Summary Stats #}
+        <div class="lr-analytics-stats">
+            {% include 'lindemannrock-base/_components/stat-box' with {
+                value: stats.totalRecipients,
+                label: 'Recipients'|t('campaign-manager'),
+            } only %}
+
+            {% include 'lindemannrock-base/_components/stat-box' with {
+                value: stats.totalSent,
+                label: 'Sent'|t('campaign-manager'),
+                sublabel: stats.totalRecipients > 0 ? ((stats.totalSent / stats.totalRecipients) * 100)|round(1) ~ '% ' ~ 'of recipients'|t('campaign-manager') : null,
+            } only %}
+
+            {% include 'lindemannrock-base/_components/stat-box' with {
+                value: stats.totalOpened,
+                label: 'Opened'|t('campaign-manager'),
+                sublabel: stats.totalSent > 0 ? ((stats.totalOpened / stats.totalSent) * 100)|round(1) ~ '% ' ~ 'open rate'|t('campaign-manager') : null,
+            } only %}
+
+            {% include 'lindemannrock-base/_components/stat-box' with {
+                value: stats.submissions,
+                label: 'Responses'|t('campaign-manager'),
+                sublabel: stats.totalRecipients > 0 ? ((stats.submissions / stats.totalRecipients) * 100)|round(1) ~ '% ' ~ 'conversion'|t('campaign-manager') : null,
+                color: '#10b981',
+            } only %}
+
+            {% include 'lindemannrock-base/_components/stat-box' with {
+                value: stats.conversionRate,
+                label: 'Conversion Rate'|t('campaign-manager'),
+                suffix: '%',
+                color: '#10b981',
+            } only %}
+        </div>
+
+        {# Charts #}
+        {% if stats.totalRecipients > 0 %}
+            <div class="lr-analytics-charts two-columns">
+                {# Daily Trend Chart #}
+                <div class="lr-chart-container">
+                    <h3>{{ 'Daily Activity'|t('campaign-manager') }}</h3>
+                    <div style="height: 250px;">
+                        <canvas id="campaign-daily-chart"></canvas>
+                    </div>
+                </div>
+
+                {# Channel Breakdown #}
+                <div class="lr-chart-container">
+                    <h3>{{ 'Channel Breakdown'|t('campaign-manager') }}</h3>
+                    <div style="height: 250px;">
+                        <canvas id="campaign-channel-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            {# Recent Responses #}
+            {% set recentResponses = craft.campaignManager.recipients.getWithSubmissions(campaign.id, null, dateRange)|slice(0, 10) %}
+            {% if recentResponses|length %}
+                <div class="lr-chart-container" style="margin-top: 24px;">
+                    <h3>{{ 'Recent Responses'|t('campaign-manager') }}</h3>
+                    <div class="lr-table-scroll">
+                        <table class="data fullwidth">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'Recipient'|t('campaign-manager') }}</th>
+                                    <th>{{ 'Email'|t('campaign-manager') }}</th>
+                                    <th>{{ 'Site'|t('campaign-manager') }}</th>
+                                    <th style="text-align: right;">{{ 'Responded'|t('campaign-manager') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for recipient in recentResponses %}
+                                    <tr>
+                                        <td><strong>{{ recipient.name ?? '-' }}</strong></td>
+                                        <td>{{ recipient.email ?? '-' }}</td>
+                                        <td>
+                                            {% set recipientSite = craft.app.sites.getSiteById(recipient.siteId) %}
+                                            {{ recipientSite ? recipientSite.name : '-' }}
+                                        </td>
+                                        <td style="text-align: right;">
+                                            {% if recipient.submission %}
+                                                {{ recipient.submission.dateCreated|datetime('short') }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="lr-analytics-empty">
+                <p>{{ 'No data available yet.'|t('campaign-manager') }}</p>
+                <p class="light">{{ 'Analytics will appear here once recipients are added to this campaign.'|t('campaign-manager') }}</p>
+            </div>
+        {% endif %}
+    {% endblock %}
+{% endembed %}
+
+{# Chart initialization - uses lrCreateChart from AnalyticsAsset #}
+{% if stats.totalRecipients > 0 %}
+<script>
+document.addEventListener('lr:panelChartsReady', function() {
+    // Daily Trend Chart
+    window.lrCreateChart('campaign-daily-chart', 'line', {
+        labels: {{ dailyData.labels|json_encode|raw }},
+        datasets: [
+            {
+                label: '{{ "Sent"|t('campaign-manager')|e('js') }}',
+                data: {{ dailyData.sent|json_encode|raw }},
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.3,
+                fill: true
+            },
+            {
+                label: '{{ "Opened"|t('campaign-manager')|e('js') }}',
+                data: {{ dailyData.opened|json_encode|raw }},
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                tension: 0.3,
+                fill: true
+            },
+            {
+                label: '{{ "Responses"|t('campaign-manager')|e('js') }}',
+                data: {{ dailyData.submissions|json_encode|raw }},
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.3,
+                fill: true
+            }
+        ]
+    });
+
+    // Channel Breakdown Chart
+    window.lrCreateChart('campaign-channel-chart', 'doughnut', {
+        labels: ['{{ "SMS"|t('campaign-manager')|e('js') }}', '{{ "Email"|t('campaign-manager')|e('js') }}'],
+        datasets: [{
+            data: [{{ stats.smsSent ?? 0 }}, {{ stats.emailSent ?? 0 }}],
+            backgroundColor: ['#10b981', '#3b82f6']
+        }]
+    }, {
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    });
+});
+</script>
+{% endif %}

@@ -2,18 +2,22 @@
 {% import '_includes/forms.twig' as forms %}
 
 {% set plugin = craft.app.plugins.getPlugin('campaign-manager') %}
-{% set settings = plugin.getSettings() %}
+{% set settings = settings ?? plugin.getSettings() %}
 
 {% set title = title ?? 'Settings'|t('campaign-manager') %}
 {% set selectedSubnavItem = 'settings' %}
 
 {% set crumbs = [
     { label: settings.pluginName, url: url('campaign-manager') },
-    { label: 'Settings'|t('campaign-manager'), url: url('campaign-manager/settings') }
+    { label: 'Settings'|t('campaign-manager'), url: url('campaign-manager/settings') },
 ] %}
+{% if settingsCrumb is defined %}
+    {% set crumbs = crumbs|merge([{ label: settingsCrumb }]) %}
+{% endif %}
 
 {% set settingsNavItems = {
     'general': { label: 'General'|t('campaign-manager'), url: 'campaign-manager/settings' },
+    'interface': { label: 'Interface'|t('campaign-manager'), url: 'campaign-manager/settings/interface' },
     'field-layout': { label: 'Field Layout'|t('campaign-manager'), url: 'campaign-manager/settings/field-layout' },
 } %}
 

@@ -13,14 +13,14 @@ use craft\queue\BaseJob;
 use Exception;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\records\CampaignRecord;
-use lindemannrock\campaignmanager\records\CustomerRecord;
+use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use yii\queue\RetryableJobInterface;
 
 /**
  * Process Campaign Job
  *
- * Finds pending customers and spawns batch jobs for sending invitations.
+ * Finds pending recipients and spawns batch jobs for sending invitations.
  *
  * @author    LindemannRock
  * @package   CampaignManager
@@ -78,6 +78,21 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
      */
     public function execute($queue): void
     {
+        // Check if campaign element is enabled
+        $campaignElement = \lindemannrock\campaignmanager\elements\Campaign::find()
+            ->id($this->campaignId)
+            ->siteId($this->siteId)
+            ->status(null)
+            ->one();
+
+        if (!$campaignElement || !$campaignElement->enabled) {
+            $this->logInfo('Skipping disabled campaign', [
+                'campaignId' => $this->campaignId,
+                'siteId' => $this->siteId,
+            ]);
+            return;
+        }
+
         $campaign = CampaignRecord::findOneForSite($this->campaignId, $this->siteId);
 
         if (!$campaign) {
@@ -88,23 +103,23 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
             return;
         }
 
-        // Get pending customer IDs (not full records to save memory)
-        $customerIds = $this->getPendingCustomerIds($campaign);
-        $totalCustomers = count($customerIds);
+        // Get pending recipient IDs (not full records to save memory)
+        $recipientIds = $this->getPendingRecipientIds($campaign);
+        $totalRecipients = count($recipientIds);
 
         $this->logInfo('Processing campaign', [
             'campaignId' => $this->campaignId,
             'siteId' => $this->siteId,
-            'pendingCustomers' => $totalCustomers,
+            'pendingRecipients' => $totalRecipients,
         ]);
 
-        if ($totalCustomers === 0) {
-            $this->logInfo('No pending customers to process');
+        if ($totalRecipients === 0) {
+            $this->logInfo('No pending recipients to process');
             return;
         }
 
         // Split into batches and queue each batch
-        $batches = array_chunk($customerIds, self::BATCH_SIZE);
+        $batches = array_chunk($recipientIds, self::BATCH_SIZE);
         $totalBatches = count($batches);
 
         $this->logInfo('Creating batch jobs', [
@@ -116,7 +131,7 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
             Craft::$app->getQueue()->push(new SendBatchJob([
                 'campaignId' => $this->campaignId,
                 'siteId' => $this->siteId,
-                'customerIds' => $batchIds,
+                'recipientIds' => $batchIds,
                 'sendSms' => $this->sendSms,
                 'sendEmail' => $this->sendEmail,
             ]));
@@ -127,16 +142,16 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
         $this->logInfo('Batch jobs queued', [
             'campaignId' => $this->campaignId,
             'totalBatches' => $totalBatches,
-            'totalCustomers' => $totalCustomers,
+            'totalRecipients' => $totalRecipients,
         ]);
     }
 
     /**
-     * Get pending customer IDs (customers that need SMS or email)
+     * Get pending recipient IDs (recipients that need SMS or email)
      *
      * @return int[]
      */
-    private function getPendingCustomerIds(CampaignRecord $campaign): array
+    private function getPendingRecipientIds(CampaignRecord $campaign): array
     {
         // Load translatable content for this site
         $content = $campaign->getContentForSite($this->siteId);
@@ -149,7 +164,7 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
             return [];
         }
 
-        $query = CustomerRecord::find()
+        $query = RecipientRecord::find()
             ->select(['id'])
             ->where(['campaignId' => $campaign->id, 'siteId' => $this->siteId]);
 

@@ -1,0 +1,74 @@
+{# Overview Tab - Summary stats and daily trend chart #}
+
+{# Summary Stats Grid #}
+<div class="lr-analytics-stats">
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.totalRecipients,
+        label: 'Total Recipients'|t('campaign-manager'),
+        id: 'total-recipients',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.totalSent,
+        label: 'Invitations Sent'|t('campaign-manager'),
+        id: 'total-sent',
+        color: '#3b82f6',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.submissions,
+        label: 'Form Responses'|t('campaign-manager'),
+        id: 'total-submissions',
+        color: '#10b981',
+    } only %}
+
+    {% include 'lindemannrock-base/_components/stat-box' with {
+        value: summaryStats.conversionRate,
+        label: 'Conversion Rate'|t('campaign-manager'),
+        id: 'conversion-rate',
+        suffix: '%',
+    } only %}
+</div>
+
+{# Daily Trend Chart #}
+<div class="lr-analytics-charts">
+    <div class="lr-chart-container full-width">
+        <h3>{{ 'Daily Activity'|t('campaign-manager') }}</h3>
+        <div style="height: 250px;">
+            <canvas id="daily-trend-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+{# Campaign Performance Table #}
+<div class="lr-chart-container" style="margin-top: 24px;">
+    <h3>{{ 'Campaign Performance'|t('campaign-manager') }}</h3>
+    <div class="lr-table-scroll">
+        <table class="data fullwidth">
+            <thead>
+                <tr>
+                    <th>{{ 'Campaign'|t('campaign-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Recipients'|t('campaign-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Responses'|t('campaign-manager') }}</th>
+                    <th style="text-align: right;">{{ 'Conversion Rate'|t('campaign-manager') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if campaignBreakdown|length %}
+                    {% for item in campaignBreakdown %}
+                        <tr>
+                            <td><strong>{{ item.campaignName }}</strong></td>
+                            <td style="text-align: right;">{{ item.totalRecipients|number_format }}</td>
+                            <td style="text-align: right; color: #10b981;">{{ item.submissions|number_format }}</td>
+                            <td style="text-align: right;">{{ item.conversionRate }}%</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="light" style="text-align: center;">{{ 'No data available'|t('campaign-manager') }}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>

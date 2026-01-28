@@ -1,311 +1,64 @@
-{% extends "_layouts/cp" %}
-{% import "_includes/forms" as forms %}
+{% extends '_layouts/elementindex' %}
 
 {% set plugin = craft.app.plugins.getPlugin('campaign-manager') %}
 {% set settings = plugin.getSettings() %}
 
-{% set title = "Campaigns"|t('campaign-manager') %}
-{% set fullPageForm = false %}
+{% set title = 'Campaigns'|t('campaign-manager') %}
+{% set elementType = elementType %}
 {% set selectedSubnavItem = 'campaigns' %}
+{% set canCreate = currentUser.can('campaignManager:createCampaigns') %}
 
-{# Site handling #}
-{% set siteHandle = craft.app.request.getParam('site') %}
-{% set site = siteHandle ? craft.app.getSites().getSiteByHandle(siteHandle) : craft.app.sites.getPrimarySite() %}
+{% set crumbs = [
+    { label: settings.pluginName, url: cpUrl('campaign-manager') },
+    { label: 'Campaigns'|t('campaign-manager') }
+] %}
 
-{# Get query parameters #}
-{% set search = craft.app.request.getParam('search', '') %}
-{% set sort = craft.app.request.getParam('sort', 'sent') %}
-{% set dir = craft.app.request.getParam('dir', 'desc') %}
-{% set page = craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
-{% set limit = 50 %}
-{% set offset = (page - 1) * limit %}
-
-{# Get campaigns #}
-{% set allCampaigns = campaignManager.campaigns.find().site(site.handle).all() %}
-
-{# Search filter #}
-{% if search %}
-    {% set allCampaigns = allCampaigns|filter(c => search|lower in c.title|lower) %}
-{% endif %}
-
-{# Sort #}
-{% if sort == 'title' %}
-    {% set allCampaigns = dir == 'asc' ? allCampaigns|sort((a, b) => a.title|lower <=> b.title|lower) : allCampaigns|sort((a, b) => b.title|lower <=> a.title|lower) %}
-{% elseif sort == 'sent' %}
-    {% set allCampaigns = dir == 'asc' ? allCampaigns|sort((a, b) => a.getSentCountBySiteId(site.id) <=> b.getSentCountBySiteId(site.id)) : allCampaigns|sort((a, b) => b.getSentCountBySiteId(site.id) <=> a.getSentCountBySiteId(site.id)) %}
-{% elseif sort == 'smsOpened' %}
-    {% set allCampaigns = dir == 'asc' ? allCampaigns|sort((a, b) => a.getSmsOpenedCountBySiteId(site.id) <=> b.getSmsOpenedCountBySiteId(site.id)) : allCampaigns|sort((a, b) => b.getSmsOpenedCountBySiteId(site.id) <=> a.getSmsOpenedCountBySiteId(site.id)) %}
-{% endif %}
-
-{# Pagination #}
-{% set totalCount = allCampaigns|length %}
-{% set totalPages = (totalCount / limit)|round(0, 'ceil') %}
-{% set campaigns = allCampaigns|slice(offset, limit) %}
-
-{# Site switcher in crumbs #}
-{% set crumbs = [] %}
-{% if craft.app.getIsMultiSite() %}
-    {% set siteMenuItems = [] %}
-    {% for s in craft.app.sites.getAllSites() %}
-        {% set siteMenuItems = siteMenuItems|merge([{
-            label: s.name,
-            url: cpUrl('campaign-manager', {site: s.handle}),
-            selected: s.handle == site.handle
-        }]) %}
-    {% endfor %}
-
-    {% set crumbs = [{
-        id: 'site-crumb',
-        icon: 'world',
-        label: site.name|t('site'),
-        menu: {
-            items: siteMenuItems,
-            label: 'Select site'|t('app')
-        }
-    }] %}
-{% endif %}
-
-{% set crumbs = crumbs|merge([
-    { label: settings.pluginName, url: cpUrl('campaign-manager', {site: site.handle}) },
-]) %}
-
-{% block toolbar %}
-    <div id="toolbar" class="flex" style="align-items: flex-end;">
-        <div class="flex-grow">
-            <form method="get" action="{{ url('campaign-manager') }}">
-                <div class="flex">
-                    <div class="search-container texticon flex-grow">
-                        <span class="texticon-icon search icon" aria-hidden="true"></span>
-                        <input type="text" class="clearable text fullwidth" name="search" value="{{ search }}" placeholder="{{ 'Search campaigns...'|t('campaign-manager') }}" autocomplete="off" dir="ltr" aria-label="Search" {% if search %} autofocus {% endif %}>
-                        <button type="button" class="clear-btn {{ search ? '' : 'hidden' }}" title="Clear search" role="button" aria-label="Clear search"></button>
-                        <input type="hidden" name="site" value="{{ site.handle }}">
-                        <input type="hidden" name="sort" value="{{ sort }}">
-                        <input type="hidden" name="dir" value="{{ dir }}">
-                    </div>
-                </div>
-            </form>
-        </div>
-        <form method="POST" style="display: inline;">
-            {{ csrfInput() }}
-            <input type="hidden" name="action" value="campaign-manager/campaigns/run-all">
-            <input type="hidden" aria-hidden="true" name="redirect" value="{{ 'campaign-manager'|hash }}">
-            <button type="submit" class="btn">{{ 'Run All'|t('campaign-manager') }}</button>
-        </form>
-        <a href="{{ cpUrl('entries/' ~ settings.campaignSectionHandle ~ '/new', {site: site.handle}) }}" class="btn submit add icon" id="new-campaign-btn">
-            <span class="label-full">{{ 'New Campaign'|t('campaign-manager') }}</span>
-            <span class="label-short" style="display: none;">{{ 'New'|t('campaign-manager') }}</span>
+{% block actionButton %}
+    {% if canCreate %}
+        <a href="{{ cpUrl('campaign-manager/campaigns/new') }}" class="btn submit add icon">
+            {{ 'New campaign'|t('campaign-manager') }}
         </a>
-    </div>
+    {% endif %}
 {% endblock %}
 
-{% css %}
-@media (max-width: 768px) {
-    #new-campaign-btn .label-full {
-        display: none;
-    }
-    #new-campaign-btn .label-short {
-        display: inline;
-    }
-    #new-campaign-btn:before {
-        margin-inline-end: 0 !important;
-    }
-}
-{% endcss %}
+{% js %}
+// Initialize menu buttons when table updates
+Garnish.on(Craft.BaseElementIndex, 'updateElements', function() {
+    initCampaignMenus();
+});
 
-{% block content %}
-    <style>
-        .checkbox-cell {
-            width: 40px !important;
-            text-align: center;
-        }
-        #toolbar.flex {
-            flex-wrap: nowrap;
-            gap: 8px;
-        }
-        #toolbar .flex-grow {
-            min-width: 0;
-            flex-shrink: 1;
-        }
-    </style>
+// Initial load
+Garnish.$doc.ready(function() {
+    initCampaignMenus();
+});
 
-    <div id="elements" class="elements">
-        <div class="tableview tablepane">
-            <table class="data fullwidth">
-                <thead>
-                    <tr>
-                        <th scope="col" data-attribute="title" class="orderable {{ sort == 'title' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="title">{{ "Title"|t('campaign-manager') }}</button>
-                        </th>
-                        <th scope="col">{{ "Type"|t('campaign-manager') }}</th>
-                        <th scope="col">{{ "Customers"|t('campaign-manager') }}</th>
-                        <th scope="col" data-attribute="sent" class="orderable {{ sort == 'sent' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="sent">{{ "Sent"|t('campaign-manager') }}</button>
-                        </th>
-                        <th scope="col" data-attribute="smsOpened" class="orderable {{ sort == 'smsOpened' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="smsOpened">{{ "SMS Opened"|t('campaign-manager') }}</button>
-                        </th>
-                        <th scope="col">{{ "Submissions"|t('campaign-manager') }}</th>
-                        <th scope="col" class="thin">{{ "Actions"|t('campaign-manager') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if campaigns|length %}
-                        {% for campaign in campaigns %}
-                            <tr data-id="{{ campaign.id }}">
-                                <td>
-                                    <a class="label-link" href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/customers', {site: site.handle}) }}">
-                                        {{ campaign.title }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {% if campaign.campaignType is defined and campaign.campaignType %}
-                                        <span class="light">{{ campaign.campaignType }}</span>
-                                    {% else %}
-                                        <span class="light">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/customers', {site: site.handle}) }}">
-                                        {{ campaign.getCustomerCountBySiteId(site.id) }} {{ 'customers'|t('campaign-manager') }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <span>{{ campaign.getSentCountBySiteId(site.id)|number }}</span>
-                                </td>
-                                <td>
-                                    <span>{{ campaign.getSmsOpenedCountBySiteId(site.id)|number }}</span>
-                                </td>
-                                <td>
-                                    <span>{{ campaign.getSubmissionCount()|number }} {{ 'submissions'|t('campaign-manager') }}</span>
-                                </td>
-                                <td class="thin" style="text-align: right;">
-                                    <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('campaign-manager') }}"></button>
-                                    <div class="menu">
-                                        <ul>
-                                            <li>
-                                                <a href="{{ campaign.cpEditUrl }}">{{ 'Edit'|t('campaign-manager') }}</a>
-                                            </li>
-                                            <li>
-                                                <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/customers', {site: site.handle}) }}">{{ 'View Customers'|t('campaign-manager') }}</a>
-                                            </li>
-                                            <li>
-                                                <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/add-customer', {site: site.handle}) }}">{{ 'Add Customer'|t('campaign-manager') }}</a>
-                                            </li>
-                                            <li>
-                                                <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/import-customers', {site: site.handle}) }}">{{ 'Import Customers'|t('campaign-manager') }}</a>
-                                            </li>
-                                            <li><hr class="padded"></li>
-                                            <li>
-                                                <a class="campaign-action" data-action="run" data-id="{{ campaign.id }}">{{ 'Run Campaign'|t('campaign-manager') }}</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 2em;">
-                                {{ 'No campaigns found.'|t('campaign-manager') }}
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="footer" class="flex flex-justify">
-        <div class="light">
-            <div class="flex pagination">
-                <nav class="flex" aria-label="campaign pagination">
-                    <button type="button" class="page-link prev-page {{ page <= 1 ? 'disabled' : '' }}" {{ page <= 1 ? 'disabled' : '' }} title="Previous Page"></button>
-                    <button type="button" class="page-link next-page {{ page >= totalPages ? 'disabled' : '' }}" {{ page >= totalPages ? 'disabled' : '' }} title="Next Page"></button>
-                </nav>
-                <div class="page-info" style="margin: 0 12px; color: #596673;">
-                    {% set endRange = min(offset + limit, totalCount) %}
-                    {% if totalCount == 0 %}
-                        {{ 'no campaigns'|t('campaign-manager') }}
-                    {% else %}
-                        {{ offset + 1 }} – {{ endRange }} {{ 'of'|t('campaign-manager') }} {{ totalCount }} {{ totalCount == 1 ? 'campaign'|t('campaign-manager') : 'campaigns'|t('campaign-manager') }}
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
+function initCampaignMenus() {
     // Initialize menu buttons
-    document.querySelectorAll('.menubtn').forEach(btn => {
-        if (typeof Craft !== 'undefined' && Craft.MenuBtn) {
-            new Craft.MenuBtn(btn);
-        } else if (typeof Garnish !== 'undefined' && Garnish.MenuBtn) {
+    document.querySelectorAll('.campaign-actions-menu .menubtn').forEach(function(btn) {
+        if (!btn.menuBtn) {
             new Garnish.MenuBtn(btn);
         }
     });
 
-    // Clear search
-    const clearBtn = document.querySelector('.clear-btn');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function() {
-            const searchInput = document.querySelector('input[name="search"]');
-            searchInput.value = '';
-            searchInput.form.submit();
-        });
-    }
+    // Handle Run Campaign action
+    document.querySelectorAll('.campaign-run-action').forEach(function(link) {
+        if (link.hasListener) return;
+        link.hasListener = true;
 
-    // Search on Enter
-    const searchInput = document.querySelector('input[name="search"]');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function(e) {
-            if (e.key === 'Enter') {
-                this.form.submit();
-            }
-        });
-    }
-
-    // Pagination
-    document.querySelector('.prev-page:not(.disabled)')?.addEventListener('click', function() {
-        window.location.href = '?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&page={{ page - 1 }}';
-    });
-
-    document.querySelector('.next-page:not(.disabled)')?.addEventListener('click', function() {
-        window.location.href = '?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&page={{ page + 1 }}';
-    });
-
-    // Sort buttons
-    document.querySelectorAll('th.orderable button').forEach(button => {
-        button.addEventListener('click', function() {
-            const sortField = this.dataset.sort;
-            const currentSort = '{{ sort }}';
-            const currentDir = '{{ dir }}';
-            let newDir = 'asc';
-            if (sortField === currentSort) {
-                newDir = currentDir === 'asc' ? 'desc' : 'asc';
-            }
-            window.location.href = '?site={{ site.handle }}&search={{ search }}&sort=' + sortField + '&dir=' + newDir + '&page=1';
-        });
-    });
-
-    // Campaign actions
-    document.querySelectorAll('.campaign-action').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const action = this.dataset.action;
-            const campaignId = this.dataset.id;
+            var campaignId = this.dataset.campaignId;
 
-            if (action === 'run') {
-                Craft.sendActionRequest('POST', 'campaign-manager/campaigns/run-all', {
-                    data: { campaignId: campaignId }
-                }).then(function(response) {
-                    if (response.data.success) {
-                        Craft.cp.displayNotice('{{ "Campaign started"|t("campaign-manager") }}');
-                    }
-                }).catch(function(error) {
-                    Craft.cp.displayError('{{ "Failed to run campaign"|t("campaign-manager") }}');
-                });
-            }
+            Craft.sendActionRequest('POST', 'campaign-manager/campaigns/run-all', {
+                data: { campaignId: campaignId }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice('{{ "Campaign started"|t("campaign-manager") }}');
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError('{{ "Failed to run campaign"|t("campaign-manager") }}');
+            });
         });
     });
-    </script>
-{% endblock %}
+}
+{% endjs %}

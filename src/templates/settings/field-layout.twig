@@ -1,8 +1,9 @@
-{% extends 'campaign-manager/settings/_layout' %}
+{% extends 'campaign-manager/_layouts/settings' %}
 {% import '_includes/forms.twig' as forms %}
 
 {% set title = 'Field Layout'|t('campaign-manager') %}
 {% set selectedSettingsItem = 'field-layout' %}
+{% set settingsCrumb = 'Field Layout'|t('campaign-manager') %}
 {% set fullPageForm = not (readOnly ?? false) %}
 {% if readOnly ?? false %}
     {% set contentNotice = readOnlyNotice() %}

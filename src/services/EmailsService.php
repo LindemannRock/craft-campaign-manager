@@ -16,7 +16,7 @@ use craft\web\View;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\TimeHelper;
 use lindemannrock\campaignmanager\records\CampaignRecord;
-use lindemannrock\campaignmanager\records\CustomerRecord;
+use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use Throwable;
 
@@ -25,7 +25,7 @@ use Throwable;
  *
  * @author    LindemannRock
  * @package   CampaignManager
- * @since     3.0.0
+ * @since     5.0.0
  */
 class EmailsService extends Component
 {
@@ -41,17 +41,19 @@ class EmailsService extends Component
     }
 
     /**
-     * Send a notification email to a customer
+     * Send a notification email to a recipient
+     *
+     * @since 5.0.0
      */
-    public function sendNotificationEmail(CustomerRecord $customer, CampaignRecord $campaign): bool
+    public function sendNotificationEmail(RecipientRecord $recipient, CampaignRecord $campaign): bool
     {
         try {
-            $message = $this->getMessage($customer, $campaign);
+            $message = $this->getMessage($recipient, $campaign);
             $result = $this->sendEmail($message);
 
             if ($result) {
-                $customer->emailSendDate = TimeHelper::now();
-                $customer->save(false);
+                $recipient->emailSendDate = TimeHelper::now();
+                $recipient->save(false);
             }
 
             return $result;
@@ -64,10 +66,10 @@ class EmailsService extends Component
     /**
      * Build the email message
      */
-    private function getMessage(CustomerRecord $customer, CampaignRecord $campaign): Message
+    private function getMessage(RecipientRecord $recipient, CampaignRecord $campaign): Message
     {
         // Get content record for translatable fields
-        $contentRecord = $campaign->getContentForSite($customer->siteId);
+        $contentRecord = $campaign->getContentForSite($recipient->siteId);
         $emailInvitationMessageRaw = $contentRecord?->emailInvitationMessage;
         $emailInvitationSubject = $contentRecord?->emailInvitationSubject ?? '';
 
@@ -80,32 +82,32 @@ class EmailsService extends Component
         }
 
         $emailMessage = $emailInvitationMessage['form'] ?? $emailInvitationMessageRaw;
-        $campaignElement = $customer->getCampaign();
+        $campaignElement = $recipient->getCampaign();
 
         // Build the invitation URL from the plugin's invitation route setting
         $settings = CampaignManager::$plugin->getSettings();
         $invitationRoute = $settings->invitationRoute ?? 'campaign-manager/invitation';
 
-        // Get the customer's site base URL
-        $customerSite = Craft::$app->getSites()->getSiteById($customer->siteId);
-        $baseUrl = $customerSite?->getBaseUrl() ?? Craft::$app->getSites()->getPrimarySite()->getBaseUrl();
+        // Get the recipient's site base URL
+        $recipientSite = Craft::$app->getSites()->getSiteById($recipient->siteId);
+        $baseUrl = $recipientSite?->getBaseUrl() ?? Craft::$app->getSites()->getPrimarySite()->getBaseUrl();
 
         // Build full invitation URL with code
-        $invitationUrl = rtrim($baseUrl, '/') . '/' . ltrim($invitationRoute, '/') . '?code=' . $customer->emailInvitationCode;
-        $shortenedUrl = CampaignManager::$plugin->customers->getBitlyUrl($invitationUrl);
+        $invitationUrl = rtrim($baseUrl, '/') . '/' . ltrim($invitationRoute, '/') . '?code=' . $recipient->emailInvitationCode;
+        $shortenedUrl = CampaignManager::$plugin->recipients->getBitlyUrl($invitationUrl);
 
-        // Get language from customer's site
-        $site = Craft::$app->getSites()->getSiteById($customer->siteId);
+        // Get language from recipient's site
+        $site = Craft::$app->getSites()->getSiteById($recipient->siteId);
         $language = $site ? strtolower(substr($site->language, 0, 2)) : 'en';
 
         $variables = [
-            'customer_name' => $customer->name,
+            'recipient_name' => $recipient->name,
             'invitationUrl' => $shortenedUrl,
             'survey_link' => $shortenedUrl, // backwards compatibility
             'defaultLanguage' => $language,
         ];
 
-        $email = $customer->email;
+        $email = $recipient->email;
         $view = Craft::$app->getView();
 
         $message = new Message();
@@ -113,8 +115,8 @@ class EmailsService extends Component
         $message->setFrom([App::env('SYSTEM_EMAIL') => $senderName]);
 
         // Render subject and body with variable substitution
-        $subject = $view->renderObjectTemplate($emailInvitationSubject, $customer, $variables);
-        $textBody = $view->renderObjectTemplate($emailMessage ?? '', $customer, $variables);
+        $subject = $view->renderObjectTemplate($emailInvitationSubject, $recipient, $variables);
+        $textBody = $view->renderObjectTemplate($emailMessage ?? '', $recipient, $variables);
         $variables['body'] = $textBody;
 
         // Render HTML template

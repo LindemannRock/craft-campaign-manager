@@ -18,7 +18,7 @@
     {% for s in craft.app.sites.getAllSites() %}
         {% set siteMenuItems = siteMenuItems|merge([{
             label: s.name,
-            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: s.handle}),
+            url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-recipients', {site: s.handle}),
             selected: s.handle == site.handle
         }]) %}
     {% endfor %}
@@ -36,8 +36,8 @@
 
 {% set crumbs = crumbs|merge([
     { label: settings.pluginName, url: cpUrl('campaign-manager', {site: site.handle}) },
-    { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: site.handle}) },
-    { label: 'Import Customers'|t('campaign-manager'), url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: site.handle}) },
+    { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: site.handle}) },
+    { label: 'Import Recipients'|t('campaign-manager'), url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-recipients', {site: site.handle}) },
 ]) %}
 
 {% block content %}
@@ -73,7 +73,7 @@
             } %}
         {% else %}
             {% include 'lindemannrock-base/_components/info-box' with {
-                message: '<strong>' ~ 'Invitations will not be sent automatically. You can send them later from the customers list.'|t('campaign-manager') ~ '</strong>',
+                message: '<strong>' ~ 'Invitations will not be sent automatically. You can send them later from the recipients list.'|t('campaign-manager') ~ '</strong>',
                 type: 'info',
                 variant: 'colored',
                 margin: 'bottom'
@@ -84,7 +84,7 @@
     {# Valid Rows #}
     {% if validRows|length > 0 %}
         <hr>
-        <h3>{{ 'Valid Customers to Import'|t('campaign-manager') }} ({{ validRows|length }})</h3>
+        <h3>{{ 'Valid Recipients to Import'|t('campaign-manager') }} ({{ validRows|length }})</h3>
         <div style="max-height: 400px; overflow: auto; border: 1px solid #e0e0e0; border-radius: 4px;">
             <table class="data fullwidth" style="margin: 0;">
                 <thead style="position: sticky; top: 0; background: #f7f7f7; z-index: 1;">
@@ -116,7 +116,7 @@
     {% if duplicateRows|length > 0 %}
         <hr>
         <h3>{{ 'Duplicates (will be skipped)'|t('campaign-manager') }} ({{ duplicateRows|length }})</h3>
-        <p class="light">{{ 'These customers have the same phone number or email as another row in the CSV.'|t('campaign-manager') }}</p>
+        <p class="light">{{ 'These recipients have the same phone number or email as another row in the CSV.'|t('campaign-manager') }}</p>
         <div style="max-height: 300px; overflow: auto; border: 1px solid #e0e0e0; border-radius: 4px;">
             <table class="data fullwidth" style="margin: 0;">
                 <thead style="position: sticky; top: 0; background: #fffbf0; z-index: 1;">
@@ -170,7 +170,7 @@
     <hr>
 
     {# Import Form #}
-    <form method="post" action="{{ actionUrl('campaign-manager/customers/import') }}" id="importForm">
+    <form method="post" action="{{ actionUrl('campaign-manager/recipients/import') }}" id="importForm">
         {{ csrfInput() }}
         {{ hiddenInput('campaignId', campaignId) }}
 
@@ -178,7 +178,7 @@
             <h3 style="margin-top: 0;">{{ 'Ready to Import'|t('campaign-manager') }}</h3>
             <p>
                 {% if summary.validRows > 0 %}
-                    {{ 'Click the button below to import {count} valid customer(s).'|t('campaign-manager', {count: summary.validRows}) }}
+                    {{ 'Click the button below to import {count} valid recipient(s).'|t('campaign-manager', {count: summary.validRows}) }}
                     {% if summary.duplicates > 0 %}
                         {{ '{duplicates} duplicate(s) will be skipped.'|t('campaign-manager', {duplicates: summary.duplicates}) }}
                     {% endif %}
@@ -186,19 +186,19 @@
                         {{ '{errors} invalid row(s) will be skipped.'|t('campaign-manager', {errors: summary.errors}) }}
                     {% endif %}
                 {% else %}
-                    {{ 'No valid customers found to import.'|t('campaign-manager') }}
+                    {{ 'No valid recipients found to import.'|t('campaign-manager') }}
                 {% endif %}
             </p>
 
             <div class="buttons" style="margin-top: 15px;">
-                <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-customers', {site: site.handle}) }}" class="btn">{{ 'Cancel'|t('campaign-manager') }}</a>
+                <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-recipients', {site: site.handle}) }}" class="btn">{{ 'Cancel'|t('campaign-manager') }}</a>
                 {% if summary.validRows > 0 %}
                     <button type="submit" class="btn submit">
-                        {{ 'Import {count} Customers'|t('campaign-manager', {count: summary.validRows}) }}
+                        {{ 'Import {count} Recipients'|t('campaign-manager', {count: summary.validRows}) }}
                     </button>
                 {% else %}
                     <button type="button" class="btn disabled" disabled>
-                        {{ 'No Valid Customers to Import'|t('campaign-manager') }}
+                        {{ 'No Valid Recipients to Import'|t('campaign-manager') }}
                     </button>
                 {% endif %}
             </div>
@@ -214,7 +214,7 @@
                     <label>{{ 'Campaign'|t('campaign-manager') }}</label>
                 </div>
                 <div class="input">
-                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/customers', {site: site.handle}) }}">{{ campaign.title }}</a>
+                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: site.handle}) }}">{{ campaign.title }}</a>
                 </div>
             </div>
 
@@ -235,7 +235,7 @@
     if (importForm) {
         importForm.addEventListener('submit', function(e) {
             const count = {{ summary.validRows }};
-            if (!confirm('Import ' + count + ' customer(s)?')) {
+            if (!confirm('Import ' + count + ' recipient(s)?')) {
                 e.preventDefault();
                 return false;
             }

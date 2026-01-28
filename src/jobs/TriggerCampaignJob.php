@@ -16,14 +16,14 @@ use Exception;
 use lindemannrock\campaignmanager\behaviors\CampaignBehavior;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\records\CampaignRecord;
-use lindemannrock\campaignmanager\records\CustomerRecord;
+use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use yii\queue\RetryableJobInterface;
 
 /**
  * Trigger Campaign Job
  *
- * Triggers pending customers in a campaign to receive SMS and email invitations.
+ * Triggers pending recipients in a campaign to receive SMS and email invitations.
  *
  * @author    LindemannRock
  * @package   CampaignManager
@@ -39,9 +39,14 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
     public ?int $campaignId = null;
 
     /**
-     * @var int|null Sender ID to use for SMS (uses campaign's senderId if null)
+     * @var string|null Provider handle to use for SMS (uses campaign's providerHandle if null)
      */
-    public ?int $senderIdId = null;
+    public ?string $providerHandle = null;
+
+    /**
+     * @var string|null Sender ID handle to use for SMS (uses campaign's senderId if null)
+     */
+    public ?string $senderIdHandle = null;
 
     /**
      * @inheritdoc
@@ -109,7 +114,7 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
         $step = 0;
         $failed = 0;
         $success = 0;
-        $totalCustomers = 0;
+        $totalRecipients = 0;
 
         foreach ($campaigns as $campaign) {
             $this->logInfo('Processing Campaign Site for emails', ['siteId' => $campaign->siteId]);
@@ -145,20 +150,20 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
                 continue;
             }
 
-            $customers = $record->getPendingEmailCustomers($campaign->siteId);
-            $totalCustomers += count($customers);
+            $recipients = $record->getPendingEmailRecipients($campaign->siteId);
+            $totalRecipients += count($recipients);
             $step++;
 
-            $this->logInfo('Processing email customers', [
-                'count' => count($customers),
+            $this->logInfo('Processing email recipients', [
+                'count' => count($recipients),
                 'campaignId' => $campaign->id,
             ]);
 
-            /** @var CustomerRecord $customer */
-            foreach ($customers as $customer) {
+            /** @var RecipientRecord $recipient */
+            foreach ($recipients as $recipient) {
                 $result = false;
 
-                if (empty($customer->email)) {
+                if (empty($recipient->email)) {
                     $success++;
                     $this->logWarning('Skipping email notification as email is not valid');
                     continue;
@@ -166,7 +171,7 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
 
                 try {
                     $result = CampaignManager::$plugin->emails->sendNotificationEmail(
-                        $customer,
+                        $recipient,
                         $record
                     );
                 } catch (Exception $e) {
@@ -182,7 +187,7 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
         }
 
         $this->logInfo('Campaign Email trigger finished', [
-            'total' => $totalCustomers,
+            'total' => $totalRecipients,
             'success' => $success,
             'failed' => $failed,
         ]);
@@ -198,7 +203,7 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
         $step = 0;
         $failed = 0;
         $success = 0;
-        $totalCustomers = 0;
+        $totalRecipients = 0;
 
         foreach ($campaigns as $campaign) {
             /** @var CampaignBehavior|null $behavior */
@@ -217,13 +222,13 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
                 continue;
             }
 
-            // Check for sender ID - either from campaign record or job parameter
-            $senderIdId = $this->senderIdId;
-            $campaignSenderId = $record->senderId;
+            // Check for provider/sender ID - either from campaign record or job parameter
+            $providerHandle = $this->providerHandle ?? $record->providerHandle;
+            $senderIdHandle = $this->senderIdHandle ?? $record->senderId;
 
-            // If no sender ID is configured, skip
-            if (empty($campaignSenderId) && empty($senderIdId)) {
-                $this->logWarning('Invalid Campaign, requires a Sender ID', ['id' => $campaign->id]);
+            // If no provider or sender ID is configured, skip
+            if (empty($providerHandle) && empty($senderIdHandle)) {
+                $this->logWarning('Invalid Campaign, requires a Provider and Sender ID', ['id' => $campaign->id]);
                 $step++;
                 continue;
             }
@@ -237,28 +242,29 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
                 continue;
             }
 
-            $customers = $record->getPendingSmsCustomers($campaign->siteId);
-            $totalCustomers += count($customers);
+            $recipients = $record->getPendingSmsRecipients($campaign->siteId);
+            $totalRecipients += count($recipients);
             $step++;
 
-            $this->logInfo('Processing SMS customers', [
-                'count' => count($customers),
+            $this->logInfo('Processing SMS recipients', [
+                'count' => count($recipients),
                 'campaignId' => $campaign->id,
             ]);
 
-            /** @var CustomerRecord $customer */
-            foreach ($customers as $customer) {
-                if (empty($customer->sms)) {
+            /** @var RecipientRecord $recipient */
+            foreach ($recipients as $recipient) {
+                if (empty($recipient->sms)) {
                     $success++;
                     $this->logWarning('Skipping SMS notification as phone number is not valid');
                     continue;
                 }
 
                 // Use SMS Manager to send SMS
-                $result = CampaignManager::$plugin->customers->processSmsInvitation(
+                $result = CampaignManager::$plugin->recipients->processSmsInvitation(
                     $record,
-                    $customer,
-                    $senderIdId
+                    $recipient,
+                    $providerHandle,
+                    $senderIdHandle,
                 );
 
                 if ($result) {
@@ -270,7 +276,7 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
         }
 
         $this->logInfo('Campaign SMS trigger finished', [
-            'total' => $totalCustomers,
+            'total' => $totalRecipients,
             'success' => $success,
             'failed' => $failed,
         ]);
