@@ -214,13 +214,13 @@ Create a template for the survey page (e.g., `templates/survey.twig`):
    - `Name` (required)
    - `Email` (optional)
    - `Phone` (optional)
-   - `Language` (optional: `en` or `ar`)
+   - `Site` (optional: site handle like `en`, `ar` or site ID like `1`, `2`)
 4. Choose whether to send invitations after import
 5. Click Import
 
 **CSV Format Example:**
 ```csv
-Name,Email,Phone,Language
+Name,Email,Phone,Site
 John Doe,john@example.com,96512345678,en
 Ahmed Ali,ahmed@example.com,96598765432,ar
 ```

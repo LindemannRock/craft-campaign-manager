@@ -82,10 +82,10 @@
         <ul>
             <li><code>Email</code> - {{ 'Email address for email invitations'|t('campaign-manager') }}</li>
             <li><code>Phone</code> / <code>SMS</code> - {{ 'Phone number for SMS invitations'|t('campaign-manager') }}</li>
-            <li><code>Language</code> - {{ 'en or ar (determines site)'|t('campaign-manager') }}</li>
+            <li><code>Site</code> - {{ 'Site handle (e.g., en, ar)'|t('campaign-manager') }}</li>
         </ul>
         <p><strong>{{ 'Example:'|t('campaign-manager') }}</strong></p>
-        <pre style="background: #f3f4f6; padding: 8px; border-radius: 4px; font-size: 12px;">Name,Email,Phone,Language
+        <pre style="background: #f3f4f6; padding: 8px; border-radius: 4px; font-size: 12px;">Name,Email,Phone,Site
 John Doe,john@example.com,96512345678,en
 Ahmed Ali,ahmed@example.com,96598765432,ar</pre>
     {% endset %}
@@ -95,7 +95,7 @@ Ahmed Ali,ahmed@example.com,96598765432,ar</pre>
             <label>{{ 'CSV File Format'|t('campaign-manager') }}</label>
             <span class="info">{{ csvFormatTip|raw }}</span>
             <div class="instructions">
-                <p>{{ 'Your CSV should include Name, Email, Phone, and Language columns. Click the info icon for details.'|t('campaign-manager') }}</p>
+                <p>{{ 'Your CSV should include Name, Email, Phone, and Site columns. Click the info icon for details.'|t('campaign-manager') }}</p>
             </div>
         </div>
     </div>

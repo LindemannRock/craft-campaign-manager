@@ -8,15 +8,24 @@
 {% set site = site ?? craft.app.sites.getCurrentSite() %}
 {% set campaignId = campaignId ?? campaign.id %}
 
+{# Get enabled sites for this campaign #}
+{% set enabledSites = [] %}
+{% for s in craft.app.sites.getAllSites() %}
+    {% set campaignForSite = craft.campaignManager.campaigns.find().id(campaignId).siteId(s.id).status(null).one() %}
+    {% if campaignForSite and campaignForSite.getEnabledForSite() %}
+        {% set enabledSites = enabledSites|merge([s]) %}
+    {% endif %}
+{% endfor %}
+
 {% set title = 'Map CSV Columns'|t('campaign-manager') %}
 {% set fullPageForm = false %}
 {% set selectedSubnavItem = 'campaigns' %}
 
-{# Site switcher in crumbs #}
+{# Site switcher in crumbs - only show enabled sites #}
 {% set crumbs = [] %}
-{% if craft.app.getIsMultiSite() %}
+{% if craft.app.getIsMultiSite() and enabledSites|length > 1 %}
     {% set siteMenuItems = [] %}
-    {% for s in craft.app.sites.getAllSites() %}
+    {% for s in enabledSites %}
         {% set siteMenuItems = siteMenuItems|merge([{
             label: s.name,
             url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/import-recipients', {site: s.handle}),
@@ -87,7 +96,7 @@
             {value: 'name', label: 'Name (required)'|t('campaign-manager')},
             {value: 'email', label: 'Email (required*)'|t('campaign-manager')},
             {value: 'sms', label: 'Phone / SMS (required*)'|t('campaign-manager')},
-            {value: 'language', label: 'Language (en/ar)'|t('campaign-manager')},
+            {value: 'site', label: 'Site'|t('campaign-manager')},
         ] %}
 
         <div class="field">
@@ -118,7 +127,7 @@
                                                     {% set isMatch = true %}
                                                 {% elseif option.value == 'sms' and (lowerHeader in ['sms', 'phone', 'mobile', 'telephone', 'tel', 'phone number', 'phonenumber', 'phone_number', 'mobile number', 'mobilenumber', 'mobile_number', 'cell', 'cellphone']) %}
                                                     {% set isMatch = true %}
-                                                {% elseif option.value == 'language' and (lowerHeader in ['language', 'lang', 'locale', 'site', 'site_language']) %}
+                                                {% elseif option.value == 'site' and (lowerHeader in ['site', 'language', 'lang', 'locale', 'site_language']) %}
                                                     {% set isMatch = true %}
                                                 {% endif %}
 
@@ -216,24 +225,15 @@
 
         <hr style="margin: 30px 0;">
 
-        <h3>{{ 'Default Language'|t('campaign-manager') }}</h3>
-        <p>{{ 'Used as fallback when the Language column is not mapped, or when a row has an empty/invalid language value.'|t('campaign-manager') }}</p>
-
-        {# Build unique languages from sites #}
-        {% set languageOptions = {} %}
-        {% for s in craft.app.sites.getAllSites() %}
-            {% set langCode = s.language|upper %}
-            {% if langCode not in languageOptions|keys %}
-                {% set languageOptions = languageOptions|merge({(langCode): s.id}) %}
-            {% endif %}
-        {% endfor %}
+        <h3>{{ 'Default Site'|t('campaign-manager') }}</h3>
+        <p>{{ 'Used as fallback when the Site column is not mapped, or when a row has an empty/invalid site value.'|t('campaign-manager') }}</p>
 
         <div class="input" style="margin-top: 10px;">
             <div class="select">
                 <select id="defaultSiteId" name="defaultSiteId">
-                    {% for langCode, siteId in languageOptions %}
-                        <option value="{{ siteId }}" {% if siteId == site.id %}selected{% endif %}>
-                            {{ langCode }}
+                    {% for s in enabledSites %}
+                        <option value="{{ s.id }}" {% if s.id == site.id %}selected{% endif %}>
+                            {{ s.name }}
                         </option>
                     {% endfor %}
                 </select>

@@ -268,23 +268,18 @@
             }) }}
         {% endif %}
 
-        {# Build unique languages from enabled sites only #}
-        {% set languageOptions = [] %}
-        {% set seenLanguages = {} %}
+        {# Build site options from enabled sites #}
+        {% set siteOptions = [] %}
         {% for s in enabledSites %}
-            {% set langCode = s.language|upper %}
-            {% if langCode not in seenLanguages|keys %}
-                {% set languageOptions = languageOptions|merge([{ label: langCode, value: s.id }]) %}
-                {% set seenLanguages = seenLanguages|merge({(langCode): s.id}) %}
-            {% endif %}
+            {% set siteOptions = siteOptions|merge([{ label: s.name, value: s.id }]) %}
         {% endfor %}
 
         {{ forms.selectField({
-            label: 'Language'|t('campaign-manager'),
-            instructions: 'The language for the invitation and response.'|t('campaign-manager'),
+            label: 'Site'|t('campaign-manager'),
+            instructions: 'The site for the invitation and response.'|t('campaign-manager'),
             id: 'siteId',
             name: 'siteId',
-            options: languageOptions,
+            options: siteOptions,
             value: recipient ? recipient.siteId : site.id,
             errors: recipient ? recipient.getErrors('siteId') : null,
             required: true

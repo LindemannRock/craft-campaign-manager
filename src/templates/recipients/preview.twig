@@ -92,7 +92,7 @@
                         <th>{{ 'Name'|t('campaign-manager') }}</th>
                         <th>{{ 'Email'|t('campaign-manager') }}</th>
                         <th>{{ 'Phone'|t('campaign-manager') }}</th>
-                        <th>{{ 'Language'|t('campaign-manager') }}</th>
+                        <th>{{ 'Site'|t('campaign-manager') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,7 +101,7 @@
                             <td>{{ row.name }}</td>
                             <td><code style="font-size: 11px;">{{ row.email ?? '-' }}</code></td>
                             <td><code style="font-size: 11px;">{{ row.sms ?? '-' }}</code></td>
-                            <td>{{ row.language|upper }}</td>
+                            <td>{{ row.siteName }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

@@ -1018,7 +1018,7 @@ class RecipientsController extends Controller
 
         // Determine default site ID from form
         $defaultSiteId = (int)$this->request->getBodyParam('defaultSiteId', 1);
-        $hasLanguageMapping = in_array('language', $mappedFields);
+        $hasSiteMapping = in_array('site', $mappedFields);
 
         // Get phone country for validation
         $phoneCountry = $this->request->getBodyParam('phoneCountry', '');
@@ -1060,7 +1060,7 @@ class RecipientsController extends Controller
                 'name' => null,
                 'email' => null,
                 'sms' => null,
-                'language' => '',
+                'site' => '',
             ];
 
             foreach ($columnMap as $colIndex => $fieldName) {
@@ -1092,19 +1092,26 @@ class RecipientsController extends Controller
                 continue;
             }
 
-            // Determine site ID from language column or use fallback
-            $language = $hasLanguageMapping ? strtolower(trim($recipientData['language'] ?? '')) : '';
-            if ($language === 'ar') {
-                $siteId = 2;
-            } elseif ($language === 'en') {
-                $siteId = 1;
-            } else {
-                $siteId = $defaultSiteId;
+            // Determine site ID from site column or use fallback
+            $siteValue = $hasSiteMapping ? strtolower(trim($recipientData['site'] ?? '')) : '';
+            $siteId = $defaultSiteId;
+
+            if ($siteValue !== '') {
+                // Try to find site by handle first
+                $matchedSite = Craft::$app->getSites()->getSiteByHandle($siteValue);
+
+                // If not found by handle, try by ID
+                if ($matchedSite === null && is_numeric($siteValue)) {
+                    $matchedSite = Craft::$app->getSites()->getSiteById((int)$siteValue);
+                }
+
+                if ($matchedSite !== null) {
+                    $siteId = $matchedSite->id;
+                }
             }
 
-            // Get language code for display
-            $site = Craft::$app->getSites()->getSiteById($siteId);
-            $languageCode = $site ? strtolower(substr($site->language, 0, 2)) : 'en';
+            // Get site for display
+            $siteForDisplay = Craft::$app->getSites()->getSiteById($siteId);
 
             // Validate and sanitize phone number
             $sms = $recipientData['sms'];
@@ -1238,7 +1245,7 @@ class RecipientsController extends Controller
                 'email' => $email,
                 'sms' => $sms,
                 'siteId' => $siteId,
-                'language' => $languageCode,
+                'siteName' => $siteForDisplay?->name ?? '',
             ];
         }
 
