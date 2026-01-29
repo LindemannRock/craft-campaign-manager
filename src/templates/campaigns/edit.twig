@@ -31,8 +31,12 @@
     { label: settings.pluginName, url: cpUrl('campaign-manager') }
 ]) %}
 
-{# Add "New Campaign" crumb for new campaigns #}
-{% if not campaign.id %}
+{# Add campaign title or "New Campaign" crumb #}
+{% if campaign.id %}
+    {% set crumbs = crumbs|merge([
+        { label: campaign.title }
+    ]) %}
+{% else %}
     {% set crumbs = crumbs|merge([
         { label: 'New Campaign'|t('campaign-manager') }
     ]) %}

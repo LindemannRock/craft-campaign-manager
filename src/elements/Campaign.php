@@ -271,6 +271,15 @@ class Campaign extends Element
     {
         $actions = [];
 
+        // View Recipients (single selection)
+        $actions[] = actions\ViewRecipientsAction::class;
+
+        // Add Recipient (single selection)
+        $actions[] = actions\AddRecipientAction::class;
+
+        // Import Recipients (single selection)
+        $actions[] = actions\ImportRecipientsAction::class;
+
         // Set Status
         $actions[] = SetStatus::class;
 
@@ -341,6 +350,7 @@ class Campaign extends Element
             'submissionCount' => ['label' => Craft::t('campaign-manager', 'Submissions')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
+            'actions' => ['label' => ''],
         ];
     }
 
@@ -356,6 +366,7 @@ class Campaign extends Element
             'recipientCount',
             'submissionCount',
             'dateCreated',
+            'actions',
         ];
     }
 
@@ -414,6 +425,16 @@ class Campaign extends Element
     {
         // Load content data for current site
         $this->loadContent();
+    }
+
+    /**
+     * Get actions (used for table attribute rendering)
+     *
+     * @since 5.1.0
+     */
+    public function getActions(): string
+    {
+        return '';
     }
 
     /**
@@ -672,7 +693,7 @@ class Campaign extends Element
     /**
      * @inheritdoc
      */
-    public function getTableAttributeHtml(string $attribute): string
+    protected function attributeHtml(string $attribute): string
     {
         switch ($attribute) {
             case 'form':
@@ -703,6 +724,35 @@ class Campaign extends Element
 
             case 'campaignType':
                 return $this->campaignType ?: '—';
+
+            case 'actions':
+                $site = Craft::$app->getSites()->getSiteById($this->siteId);
+                $siteHandle = $site?->handle ?? 'en';
+                $campaignId = $this->getCanonicalId();
+
+                $viewUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/recipients", ['site' => $siteHandle]);
+                $addUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/add-recipient", ['site' => $siteHandle]);
+                $importUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/import-recipients", ['site' => $siteHandle]);
+
+                return sprintf(
+                    '<div class="campaign-actions-menu">
+                        <button type="button" class="btn menubtn" data-icon="settings" aria-label="%s"></button>
+                        <div class="menu">
+                            <ul>
+                                <li><a href="%s">%s</a></li>
+                                <li><a href="%s">%s</a></li>
+                                <li><a href="%s">%s</a></li>
+                            </ul>
+                        </div>
+                    </div>',
+                    Craft::t('app', 'Actions'),
+                    $viewUrl,
+                    Craft::t('campaign-manager', 'View Recipients'),
+                    $addUrl,
+                    Craft::t('campaign-manager', 'Add Recipient'),
+                    $importUrl,
+                    Craft::t('campaign-manager', 'Import Recipients')
+                );
         }
 
         return parent::attributeHtml($attribute);

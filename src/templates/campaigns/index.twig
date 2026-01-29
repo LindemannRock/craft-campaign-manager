@@ -9,8 +9,7 @@
 {% set canCreate = currentUser.can('campaignManager:createCampaigns') %}
 
 {% set crumbs = [
-    { label: settings.pluginName, url: cpUrl('campaign-manager') },
-    { label: 'Campaigns'|t('campaign-manager') }
+    { label: settings.pluginName, url: cpUrl('campaign-manager') }
 ] %}
 
 {% block actionButton %}
