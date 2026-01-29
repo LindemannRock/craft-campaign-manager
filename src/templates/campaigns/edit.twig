@@ -159,9 +159,9 @@
             }) }}
         {% endif %}
 
-        {# Form #}
+        {# Form - check ALL sites for responses since form is shared across sites #}
         {% if formOptions|length %}
-            {% set hasResponses = campaign.id and campaign.getSubmissionCount() > 0 %}
+            {% set hasResponses = campaign.id and campaign.hasSubmissionsAcrossAllSites() %}
             {{ forms.selectField({
                 label: 'Form'|t('campaign-manager'),
                 instructions: 'Select a Formie form to link with this campaign.'|t('campaign-manager'),

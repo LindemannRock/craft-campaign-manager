@@ -499,6 +499,26 @@ class Campaign extends Element
     }
 
     /**
+     * Check if this campaign has any submissions across ALL sites
+     *
+     * Use this when checking if the form can be changed - the form is shared
+     * across all sites, so we need to check all sites, not just the current one.
+     *
+     * @since 5.1.0
+     */
+    public function hasSubmissionsAcrossAllSites(): bool
+    {
+        if (!$this->id) {
+            return false;
+        }
+
+        return RecipientRecord::find()
+            ->where(['campaignId' => $this->id])
+            ->andWhere(['not', ['submissionId' => null]])
+            ->exists();
+    }
+
+    /**
      * Get recipients with pending SMS invitations
      *
      * @return RecipientRecord[]
