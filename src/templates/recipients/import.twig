@@ -9,7 +9,12 @@
 {% set campaignId = campaignId ?? campaign.id %}
 
 {% set title = 'Import Recipients'|t('campaign-manager') %}
-{% set fullPageForm = false %}
+{% set fullPageForm = true %}
+{% set mainFormAttributes = {
+    method: 'post',
+    action: actionUrl('campaign-manager/recipients/upload'),
+    enctype: 'multipart/form-data',
+} %}
 {% set selectedSubnavItem = 'campaigns' %}
 
 {# Get enabled sites for this campaign #}
@@ -90,40 +95,39 @@ John Doe,john@example.com,96512345678,en
 Ahmed Ali,ahmed@example.com,96598765432,ar</pre>
     {% endset %}
 
-    <div class="field">
-        <div class="heading">
-            <label>{{ 'CSV File Format'|t('campaign-manager') }}</label>
-            <span class="info">{{ csvFormatTip|raw }}</span>
-            <div class="instructions">
-                <p>{{ 'Your CSV should include Name, Email, Phone, and Site columns. Click the info icon for details.'|t('campaign-manager') }}</p>
-            </div>
-        </div>
-    </div>
+    {{ hiddenInput('campaignId', campaignId) }}
 
-    <form method="post" action="{{ actionUrl('campaign-manager/recipients/upload') }}" enctype="multipart/form-data">
-        {{ csrfInput() }}
-        {{ hiddenInput('campaignId', campaignId) }}
+    {% set maxRows = importLimits.maxRows ?? 4000 %}
+    {% set maxBytes = importLimits.maxBytes ?? 5242880 %}
+    {% set maxSize = craft.app.formatter.asShortSize(maxBytes, 2) %}
 
-        {{ forms.fileField({
-            label: 'CSV File'|t('campaign-manager'),
-            instructions: 'Select a CSV file to import recipients. Delimiter (comma, semicolon, tab) is auto-detected.'|t('campaign-manager'),
-            id: 'file',
-            name: 'file',
-            required: true
-        }) }}
-
-        {{ forms.lightswitchField({
-            label: 'Send Invitations After Import'|t('campaign-manager'),
-            instructions: 'Automatically queue invitation sending after import completes.'|t('campaign-manager'),
-            id: 'queueSending',
-            name: 'queueSending',
-            on: true,
-        }) }}
-
-        <div class="buttons">
-            <button type="submit" class="btn submit">{{ 'Upload & Map Columns'|t('campaign-manager') }}</button>
-        </div>
-    </form>
+    {% include 'lindemannrock-base/_partials/import-csv' with {
+        wrapForm: false,
+        formId: 'recipient-upload-form',
+        title: 'CSV File Format'|t('campaign-manager'),
+        description: 'Your CSV should include Name, Email, Phone, and Site columns. Click the info icon for details.'|t('campaign-manager'),
+        csvFormatTip: csvFormatTip,
+        fileLabel: 'CSV File'|t('campaign-manager'),
+        fileInstructions: 'Select a CSV file to import recipients. Delimiter (comma, semicolon, tab) is auto-detected.'|t('campaign-manager'),
+        fileId: 'csvFile',
+        fileName: 'csvFile',
+        delimiterLabel: 'CSV Delimiter'|t('campaign-manager'),
+        delimiterInstructions: 'Character used to separate values in your CSV (auto-detect is default)'|t('campaign-manager'),
+        delimiterValue: 'auto',
+        delimiterOptions: {
+            'auto': 'Auto (detect)'|t('campaign-manager'),
+            ',': 'Comma (,)'|t('campaign-manager'),
+            ';': 'Semicolon (;)'|t('campaign-manager'),
+            "\t": 'Tab'|t('campaign-manager'),
+            '|': 'Pipe (|)'|t('campaign-manager'),
+        },
+        showBackupToggle: false,
+        infoBoxMessage: 'The maximum file size is {size} and the import is limited to {rows} rows per file.'|t('campaign-manager', {
+            size: maxSize,
+            rows: maxRows|number_format
+        }),
+        submitLabel: 'Upload & Map Columns'|t('campaign-manager'),
+    } %}
     {% endif %}
 {% endblock %}
 
@@ -131,6 +135,14 @@ Ahmed Ali,ahmed@example.com,96598765432,ar</pre>
     {% if not campaignDisabled %}
     <fieldset>
         <div class="meta">
+            {{ forms.lightswitchField({
+                label: 'Send Invitation'|t('campaign-manager'),
+                instructions: 'Queue invitation to be sent after adding.'|t('campaign-manager'),
+                id: 'queueSending',
+                name: 'queueSending',
+                on: true,
+            }) }}
+
             <div class="field">
                 <div class="heading">
                     <label>{{ 'Campaign'|t('campaign-manager') }}</label>

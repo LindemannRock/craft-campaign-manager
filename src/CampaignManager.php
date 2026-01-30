@@ -478,7 +478,6 @@ class CampaignManager extends Plugin
             'campaign-manager/campaigns/<campaignId:\d+>/map-recipients' => 'campaign-manager/recipients/map',
             'campaign-manager/campaigns/<campaignId:\d+>/export-recipients' => 'campaign-manager/recipients/export-recipients',
             'campaign-manager/recipients/export-responses' => 'campaign-manager/recipients/export-responses',
-            'campaign-manager/recipients/load' => 'campaign-manager/recipients/load',
 
             // Analytics
             'campaign-manager/analytics' => 'campaign-manager/analytics/index',
@@ -512,6 +511,9 @@ class CampaignManager extends Plugin
                     'campaignManager:deleteCampaigns' => [
                         'label' => Craft::t('campaign-manager', 'Delete campaigns'),
                     ],
+                    'campaignManager:runCampaigns' => [
+                        'label' => Craft::t('campaign-manager', 'Run campaigns'),
+                    ],
                 ],
             ],
             'campaignManager:manageRecipients' => [
@@ -520,8 +522,14 @@ class CampaignManager extends Plugin
                     'campaignManager:viewRecipients' => [
                         'label' => Craft::t('campaign-manager', 'View recipients'),
                     ],
+                    'campaignManager:addRecipients' => [
+                        'label' => Craft::t('campaign-manager', 'Add recipients'),
+                    ],
                     'campaignManager:importRecipients' => [
                         'label' => Craft::t('campaign-manager', 'Import recipients'),
+                    ],
+                    'campaignManager:exportRecipients' => [
+                        'label' => Craft::t('campaign-manager', 'Export recipients'),
                     ],
                     'campaignManager:deleteRecipients' => [
                         'label' => Craft::t('campaign-manager', 'Delete recipients'),

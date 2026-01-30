@@ -301,6 +301,7 @@ class CampaignsController extends Controller
     {
         $this->requirePostRequest();
         $this->requireLogin();
+        $this->requirePermission('campaignManager:runCampaigns');
 
         $campaignId = Craft::$app->getRequest()->getBodyParam('campaignId');
         $siteId = Craft::$app->getRequest()->getBodyParam('siteId');

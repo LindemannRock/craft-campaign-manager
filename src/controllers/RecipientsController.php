@@ -12,6 +12,7 @@ use Craft;
 use craft\db\ActiveQuery;
 use craft\web\Controller;
 use craft\web\UploadedFile;
+use lindemannrock\base\helpers\CsvImportHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\PhoneHelper;
@@ -78,6 +79,7 @@ class RecipientsController extends Controller
     public function actionExportGlobal(): Response
     {
         $this->requireLogin();
+        $this->requirePermission('campaignManager:exportRecipients');
         $this->requirePermission('campaignManager:viewRecipients');
 
         $request = Craft::$app->getRequest();
@@ -205,6 +207,7 @@ class RecipientsController extends Controller
     public function actionExportResponses(): Response
     {
         $this->requireLogin();
+        $this->requirePermission('campaignManager:exportRecipients');
         $this->requirePermission('campaignManager:viewRecipients');
 
         $request = Craft::$app->getRequest();
@@ -327,6 +330,7 @@ class RecipientsController extends Controller
     public function actionIndex(int $campaignId): Response
     {
         $this->requireLogin();
+        $this->requirePermission('campaignManager:viewRecipients');
 
         $siteHandle = Craft::$app->getRequest()->getQueryParam('site');
         if ($siteHandle) {
@@ -360,6 +364,7 @@ class RecipientsController extends Controller
     public function actionAddForm(int $campaignId): Response
     {
         $this->requireLogin();
+        $this->requirePermission('campaignManager:addRecipients');
 
         $siteHandle = Craft::$app->getRequest()->getQueryParam('site');
         if ($siteHandle) {
@@ -393,6 +398,7 @@ class RecipientsController extends Controller
     public function actionImportForm(int $campaignId): Response
     {
         $this->requireLogin();
+        $this->requirePermission('campaignManager:importRecipients');
 
         $siteHandle = Craft::$app->getRequest()->getQueryParam('site');
         if ($siteHandle) {
@@ -415,6 +421,10 @@ class RecipientsController extends Controller
             'campaign' => $campaign,
             'campaignId' => $campaignId,
             'site' => $site,
+            'importLimits' => [
+                'maxRows' => CsvImportHelper::DEFAULT_MAX_ROWS,
+                'maxBytes' => CsvImportHelper::DEFAULT_MAX_BYTES,
+            ],
         ]);
     }
 
@@ -426,6 +436,8 @@ class RecipientsController extends Controller
     public function actionAdd(): ?Response
     {
         $this->requirePostRequest();
+        $this->requireLogin();
+        $this->requirePermission('campaignManager:addRecipients');
 
         // Check if campaign is enabled
         $campaignId = (int)$this->request->getRequiredParam('campaignId');
@@ -548,117 +560,6 @@ class RecipientsController extends Controller
     }
 
     /**
-     * Load recipients for DataTables
-     *
-     * @since 5.0.0
-     */
-    public function actionLoad(): Response
-    {
-        $this->requireLogin();
-
-        $length = $this->request->getRequiredParam('length');
-        $offset = $this->request->getRequiredParam('start');
-        $campaignId = $this->request->getRequiredParam('campaignId');
-        $draw = $this->request->getRequiredParam('draw');
-        $search = $this->request->getParam('search');
-        $order = $this->request->getParam('order');
-        $search = $search['value'] ?? null;
-        $column = $order['0']['column'] ?? null;
-        $dir = $order['0']['dir'] ?? null;
-
-        /** @var ActiveQuery $query */
-        $query = RecipientRecord::find()->where([
-            'campaignId' => $campaignId,
-            'siteId' => (int)$this->request->getRequiredParam('siteId'),
-        ]);
-
-        if (!empty($search)) {
-            $query->andFilterWhere([
-                'OR',
-                ['like', 'name', $search],
-                ['like', 'email', $search],
-                ['like', 'sms', $search],
-            ]);
-        }
-
-        if (!empty($column)) {
-            $orderBy = [];
-            switch ($column) {
-                case 1:
-                    $orderBy['name'] = $dir === 'asc' ? SORT_ASC : SORT_DESC;
-                    break;
-                case 2:
-                    $orderBy['email'] = $dir === 'asc' ? SORT_ASC : SORT_DESC;
-                    break;
-                case 5:
-                    $orderBy['smsSendDate'] = $dir === 'asc' ? SORT_ASC : SORT_DESC;
-                    $orderBy['emailSendDate'] = $dir === 'asc' ? SORT_ASC : SORT_DESC;
-                    break;
-                case 6:
-                    $orderBy['smsOpenDate'] = $dir === 'asc' ? SORT_ASC : SORT_DESC;
-                    $orderBy['emailOpenDate'] = $dir === 'asc' ? SORT_ASC : SORT_DESC;
-                    break;
-            }
-
-            $query->orderBy($orderBy);
-        }
-
-        $count = $query->count();
-
-        $pagination = new Pagination(['totalCount' => $count]);
-        $pagination->setPageSize($length);
-
-        $recipients = $query->offset($offset)
-            ->limit($pagination->limit)
-            ->all();
-
-        $data = [];
-
-        /** @var RecipientRecord $recipient */
-        foreach ($recipients as $recipient) {
-            $sentDate = $recipient->smsSendDate ?? $recipient->emailSendDate ?? '-';
-
-            if (is_object($sentDate)) {
-                $sentDate = $sentDate->format('Y-m-d h:m:s');
-            }
-
-            $openedDate = $recipient->smsOpenDate ?? $recipient->emailOpenDate ?? '-';
-
-            if (is_object($openedDate)) {
-                $openedDate = $openedDate->format('Y-m-d h:m:s');
-            }
-
-            $submissionLink = $recipient->submissionId
-                ? Formie::$plugin->getSubmissions()->getSubmissionById($recipient->submissionId)?->getCpEditUrl()
-                : null;
-            $submissionLink = $submissionLink
-                ? '<a href="' . $submissionLink . '">' . $recipient->submissionId . '</a>'
-                : '-';
-
-            $data[] = [
-                $recipient->getSite()->getLocale()->getLanguageID(),
-                $recipient->name,
-                $recipient->email,
-                $recipient->sms,
-                $recipient->smsInvitationCode,
-                $sentDate,
-                $openedDate,
-                $submissionLink,
-                '<a id="' . $recipient->id . '" class="btn delete" href="#">Delete</a>',
-            ];
-        }
-
-        $response = [
-            'draw' => $draw,
-            'recordsTotal' => $count,
-            'recordsFiltered' => $count,
-            'data' => $data,
-        ];
-
-        return $this->asJson($response);
-    }
-
-    /**
      * Download sample CSV
      *
      * @since 5.0.0
@@ -666,6 +567,8 @@ class RecipientsController extends Controller
     public function actionDownloadSample(): Response
     {
         $this->requirePostRequest();
+        $this->requireLogin();
+        $this->requirePermission('campaignManager:importRecipients');
         $templatePath = Craft::$app->getPath()->getConfigPath() . DIRECTORY_SEPARATOR . 'recipients-import-template.csv';
 
         return Craft::$app->getResponse()->sendFile($templatePath);
@@ -680,6 +583,7 @@ class RecipientsController extends Controller
     {
         $this->requirePostRequest();
         $this->requireLogin();
+        $this->requirePermission('campaignManager:deleteRecipients');
 
         $recipientId = (int)Craft::$app->request->getRequiredBodyParam('id');
 
@@ -728,6 +632,8 @@ class RecipientsController extends Controller
     public function actionDelete(): Response
     {
         $this->requirePostRequest();
+        $this->requireLogin();
+        $this->requirePermission('campaignManager:deleteRecipients');
 
         $recipientId = (int)Craft::$app->request->getRequiredBodyParam('id');
 
@@ -747,8 +653,9 @@ class RecipientsController extends Controller
     {
         $this->requirePostRequest();
         $this->requireLogin();
+        $this->requirePermission('campaignManager:importRecipients');
 
-        $file = UploadedFile::getInstanceByName('file');
+        $file = UploadedFile::getInstanceByName('csvFile');
         $campaignId = (int)$this->request->getRequiredParam('campaignId');
 
         // Check if campaign is enabled for at least one site
@@ -775,73 +682,33 @@ class RecipientsController extends Controller
             return $this->redirect("campaign-manager/campaigns/{$campaignId}/import-recipients");
         }
 
-        // Validate file type
-        if (!$this->validateCSV($file)) {
-            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Invalid file type. Please upload a CSV file.'));
-            return $this->redirect("campaign-manager/campaigns/{$campaignId}/import-recipients");
-        }
-
         $queueSending = (bool)$this->request->getBodyParam('queueSending', true);
 
-        // Save file temporarily for parsing
-        $tempPath = Craft::$app->getPath()->getTempPath() . '/recipient-import-' . uniqid() . '.csv';
-
-        if (!$file->saveAs($tempPath)) {
-            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Failed to save uploaded file. Please try again.'));
-            return $this->redirect("campaign-manager/campaigns/{$campaignId}/import-recipients");
+        // Get delimiter (auto-detect by default)
+        $delimiter = $this->request->getBodyParam('delimiter', 'auto');
+        $detectDelimiter = true;
+        if ($delimiter !== 'auto') {
+            if ($delimiter === "\t") {
+                $delimiter = "\t"; // Handle tab character
+            }
+            $detectDelimiter = false;
+        } else {
+            $delimiter = null;
         }
 
-        // Parse CSV
         try {
-            // Auto-detect delimiter from first line
-            $delimiter = $this->detectCsvDelimiter($tempPath);
-
-            $handle = fopen($tempPath, 'r');
-
-            if ($handle === false) {
-                throw new \Exception('Could not open uploaded file for reading.');
-            }
-
-            $headers = fgetcsv($handle, 0, $delimiter);
-
-            if (!$headers) {
-                fclose($handle);
-                throw new \Exception('Could not read CSV headers');
-            }
-
-            // Verify we got multiple columns (delimiter detection worked)
-            if (count($headers) === 1) {
-                fclose($handle);
-                throw new \Exception('Could not detect CSV delimiter. The file may have only one column or use an unsupported delimiter.');
-            }
-
-            // Read ALL rows into memory
-            $allRows = [];
-            while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
-                $allRows[] = $row;
-            }
-
-            fclose($handle);
-
-            // Delete temp file - we have the data in memory now
-            @unlink($tempPath);
-
-            $rowCount = count($allRows);
-
-            // Check for reasonable size limit
-            if ($rowCount > 4000) {
-                throw new \Exception('CSV file is too large. Maximum 4000 rows allowed for import. Please split your file into smaller batches.');
-            }
-
-            if ($rowCount === 0) {
-                throw new \Exception('CSV file is empty or contains only headers.');
-            }
+            $parsed = CsvImportHelper::parseUpload($file, [
+                'maxRows' => CsvImportHelper::DEFAULT_MAX_ROWS,
+                'maxBytes' => CsvImportHelper::DEFAULT_MAX_BYTES,
+                'delimiter' => $delimiter,
+                'detectDelimiter' => $detectDelimiter,
+            ]);
 
             // Store parsed data in session
             Craft::$app->getSession()->set('recipient-import', [
-                'headers' => $headers,
-                'allRows' => $allRows,
-                'rowCount' => $rowCount,
+                'headers' => $parsed['headers'],
+                'allRows' => $parsed['allRows'],
+                'rowCount' => $parsed['rowCount'],
                 'campaignId' => $campaignId,
                 'queueSending' => $queueSending,
             ]);
@@ -850,8 +717,6 @@ class RecipientsController extends Controller
             $siteHandle = $this->request->getParam('site', 'en');
             return $this->redirect("campaign-manager/campaigns/{$campaignId}/map-recipients?site={$siteHandle}");
         } catch (\Exception $e) {
-            // Clean up temp file on error
-            @unlink($tempPath);
             Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Failed to parse CSV: {error}', ['error' => $e->getMessage()]));
             return $this->redirect("campaign-manager/campaigns/{$campaignId}/import-recipients");
         }
@@ -865,6 +730,7 @@ class RecipientsController extends Controller
     public function actionMap(int $campaignId): Response
     {
         $this->requireLogin();
+        $this->requirePermission('campaignManager:importRecipients');
 
         $siteHandle = Craft::$app->getRequest()->getQueryParam('site');
         if ($siteHandle) {
@@ -919,6 +785,7 @@ class RecipientsController extends Controller
     public function actionPreview(): Response
     {
         $this->requireLogin();
+        $this->requirePermission('campaignManager:importRecipients');
 
         // Handle GET request (page refresh) - check for existing preview data
         if ($this->request->getIsGet()) {
@@ -1289,6 +1156,7 @@ class RecipientsController extends Controller
     {
         $this->requirePostRequest();
         $this->requireLogin();
+        $this->requirePermission('campaignManager:importRecipients');
 
         $campaignId = (int)$this->request->getRequiredParam('campaignId');
 
@@ -1407,6 +1275,7 @@ class RecipientsController extends Controller
     public function actionExportRecipients(int $campaignId): Response
     {
         $this->requireLogin();
+        $this->requirePermission('campaignManager:exportRecipients');
         $this->requirePermission('campaignManager:viewRecipients');
 
         $request = Craft::$app->getRequest();
@@ -1518,86 +1387,6 @@ class RecipientsController extends Controller
         }
 
         return ['start' => $startDate, 'end' => $endDate];
-    }
-
-    /**
-     * Auto-detect CSV delimiter from file content
-     *
-     * @since 5.1.0
-     */
-    private function detectCsvDelimiter(string $filePath): string
-    {
-        $delimiters = [
-            ',' => 0,
-            ';' => 0,
-            "\t" => 0,
-            '|' => 0,
-        ];
-
-        // Read first few lines to detect delimiter
-        $handle = fopen($filePath, 'r');
-        if ($handle === false) {
-            return ','; // Default to comma
-        }
-
-        $linesToCheck = 3;
-        $linesChecked = 0;
-
-        while (($line = fgets($handle)) !== false && $linesChecked < $linesToCheck) {
-            foreach ($delimiters as $delimiter => $count) {
-                $delimiters[$delimiter] += substr_count($line, $delimiter);
-            }
-            $linesChecked++;
-        }
-
-        fclose($handle);
-
-        // Find delimiter with highest count
-        $maxCount = 0;
-        $detected = ',';
-
-        foreach ($delimiters as $delimiter => $count) {
-            if ($count > $maxCount) {
-                $maxCount = $count;
-                $detected = $delimiter;
-            }
-        }
-
-        return $detected;
-    }
-
-    /**
-     * Validate a CSV file
-     */
-    private function validateCSV(?UploadedFile $file): bool
-    {
-        if (!$file) {
-            return false;
-        }
-
-        $csvMimeTypes = [
-            'text/csv',
-            'text/plain',
-            'application/csv',
-            'text/comma-separated-values',
-            'application/excel',
-            'application/vnd.ms-excel',
-            'application/vnd.msexcel',
-            'text/anytext',
-            'application/octet-stream',
-            'application/txt',
-        ];
-
-        $extension = strtolower($file->getExtension());
-        if (!in_array($extension, ['csv', 'txt'])) {
-            return false;
-        }
-
-        if (!in_array($file->type, $csvMimeTypes)) {
-            return false;
-        }
-
-        return true;
     }
 
     /**
