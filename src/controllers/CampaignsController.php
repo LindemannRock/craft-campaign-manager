@@ -35,7 +35,7 @@ class CampaignsController extends Controller
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('campaign-manager');
+        $this->setLoggingHandle(CampaignManager::$plugin->id);
     }
 
     /**

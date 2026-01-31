@@ -125,7 +125,7 @@ class Settings extends Model
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('campaign-manager');
+        $this->setLoggingHandle(static::pluginHandle());
     }
 
     /**

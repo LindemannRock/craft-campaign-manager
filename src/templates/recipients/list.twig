@@ -16,20 +16,13 @@
 {% set search = craft.app.request.getParam('search', '') %}
 {% set sort = craft.app.request.getParam('sort', 'sent') %}
 {% set dir = craft.app.request.getParam('dir', 'desc') %}
-{% set dateRange = craft.app.request.getParam('dateRange', 'all') %}
+{% set dateRange = craft.app.request.getParam('dateRange', defaultDateRange ?? 'last30days') %}
 {% set page = craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
 {% set limit = 50 %}
 {% set offset = (page - 1) * limit %}
 
-{# Date range labels #}
-{% set dateRangeLabels = {
-    'today': 'Today'|t('campaign-manager'),
-    'yesterday': 'Yesterday'|t('campaign-manager'),
-    'last7days': 'Last 7 days'|t('campaign-manager'),
-    'last30days': 'Last 30 days'|t('campaign-manager'),
-    'last90days': 'Last 90 days'|t('campaign-manager'),
-    'all': 'All time'|t('campaign-manager'),
-} %}
+{# Date range labels from base plugin #}
+{% set dateRangeLabels = lrDateRangeOptions('assoc') %}
 
 {# Get recipients with date filtering at SQL level #}
 {% set allRecipients = campaignManager.recipients.findByCampaignAndSite(campaignId, site.id, dateRange) %}

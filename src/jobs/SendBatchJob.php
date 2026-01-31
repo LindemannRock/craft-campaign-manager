@@ -61,7 +61,7 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('campaign-manager');
+        $this->setLoggingHandle(CampaignManager::$plugin->id);
     }
 
     /**

@@ -9,10 +9,10 @@
 namespace lindemannrock\campaignmanager\controllers;
 
 use Craft;
-use craft\db\ActiveQuery;
 use craft\web\Controller;
 use craft\web\UploadedFile;
 use lindemannrock\base\helpers\CsvImportHelper;
+use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\PhoneHelper;
@@ -20,7 +20,6 @@ use lindemannrock\campaignmanager\jobs\SendBatchJob;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use verbb\formie\Formie;
-use yii\data\Pagination;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
@@ -67,6 +66,7 @@ class RecipientsController extends Controller
             'recipients' => $recipients,
             'campaignOptions' => $campaignOptions,
             'settings' => $settings,
+            'defaultDateRange' => DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id),
         ]);
     }
 
@@ -84,13 +84,13 @@ class RecipientsController extends Controller
 
         $request = Craft::$app->getRequest();
         $format = $request->getQueryParam('format', 'csv');
-        $dateRange = $request->getQueryParam('dateRange', 'last30days');
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $campaignFilter = $request->getQueryParam('campaign', 'all');
         $siteFilter = $request->getQueryParam('siteFilter', 'all');
         $statusFilter = $request->getQueryParam('status', 'all');
 
         // Validate format is enabled
-        if (!ExportHelper::isFormatEnabled($format)) {
+        if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
         }
 
@@ -214,14 +214,14 @@ class RecipientsController extends Controller
         $format = $request->getQueryParam('format', 'csv');
         $campaignId = (int)$request->getQueryParam('campaignId');
         $siteFilter = $request->getQueryParam('siteFilter', 'all');
-        $dateRange = $request->getQueryParam('dateRange', 'all');
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
 
         if (!$campaignId) {
             throw new BadRequestHttpException('Campaign ID is required.');
         }
 
         // Validate format is enabled
-        if (!ExportHelper::isFormatEnabled($format)) {
+        if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
         }
 
@@ -353,6 +353,7 @@ class RecipientsController extends Controller
             'campaign' => $campaign,
             'campaignId' => $campaignId,
             'site' => $site,
+            'defaultDateRange' => DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id),
         ]);
     }
 
@@ -1281,11 +1282,11 @@ class RecipientsController extends Controller
         $request = Craft::$app->getRequest();
         $siteHandle = $request->getQueryParam('site');
         $site = $siteHandle ? Craft::$app->getSites()->getSiteByHandle($siteHandle) : Craft::$app->getSites()->getPrimarySite();
-        $dateRange = $request->getQueryParam('dateRange', 'all');
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $format = $request->getQueryParam('format', 'csv');
 
         // Validate format is enabled
-        if (!ExportHelper::isFormatEnabled($format)) {
+        if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
         }
 
@@ -1370,23 +1371,14 @@ class RecipientsController extends Controller
      */
     private function getDateRangeFromParam(string $dateRange): array
     {
-        $endDate = new \DateTime();
+        // Use centralized DateRangeHelper for full date range support
+        // (today, yesterday, last7days, last30days, last90days, thisMonth, lastMonth, thisYear, lastYear, all)
+        $bounds = DateRangeHelper::getBounds($dateRange);
 
-        $startDate = match ($dateRange) {
-            'today' => new \DateTime(),
-            'yesterday' => (new \DateTime())->modify('-1 day'),
-            'last7days' => (new \DateTime())->modify('-7 days'),
-            'last30days' => (new \DateTime())->modify('-30 days'),
-            'last90days' => (new \DateTime())->modify('-90 days'),
-            'all' => (new \DateTime())->modify('-365 days'),
-            default => (new \DateTime())->modify('-30 days'),
-        };
-
-        if ($dateRange === 'yesterday') {
-            $endDate = (new \DateTime())->modify('-1 day');
-        }
-
-        return ['start' => $startDate, 'end' => $endDate];
+        return [
+            'start' => $bounds['start'] ?? new \DateTime('-30 days'),
+            'end' => $bounds['end'] ?? new \DateTime(),
+        ];
     }
 
     /**

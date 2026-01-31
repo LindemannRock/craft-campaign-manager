@@ -40,7 +40,7 @@ class SettingsController extends Controller
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('campaign-manager');
+        $this->setLoggingHandle(CampaignManager::$plugin->id);
         $this->readOnly = !Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
     }
 

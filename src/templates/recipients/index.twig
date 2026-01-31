@@ -22,7 +22,7 @@
 {% set campaignFilter = craft.app.request.getParam('campaign', 'all') %}
 {% set statusFilter = craft.app.request.getParam('status', 'all') %}
 {% set siteFilterParam = craft.app.request.getParam('siteFilter', 'all') %}
-{% set dateRange = craft.app.request.getParam('dateRange', 'all') %}
+{% set dateRange = craft.app.request.getParam('dateRange', defaultDateRange ?? 'last30days') %}
 {% set sort = craft.app.request.getParam('sort', 'sent') %}
 {% set dir = craft.app.request.getParam('dir', 'desc') %}
 {% set page = craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
@@ -31,6 +31,8 @@
 
 {# ============================================================================
    DATE RANGE HELPER
+   Note: Date filtering should be done in the controller using
+   DateRangeHelper::applyToQuery() - the dateRanges dict here is legacy
    ============================================================================ #}
 
 {% set today = "now"|date('Y-m-d') %}
@@ -174,18 +176,10 @@
             options: siteFilterOptions,
         },
         {
-            type: 'dropdown',
+            type: 'dateRange',
             param: 'dateRange',
             current: dateRange,
-            label: 'All Time'|t('campaign-manager'),
-            options: [
-                {value: 'all', label: 'All Time'|t('campaign-manager')},
-                {value: 'today', label: 'Today'|t('campaign-manager')},
-                {value: 'yesterday', label: 'Yesterday'|t('campaign-manager')},
-                {value: 'last7days', label: 'Last 7 Days'|t('campaign-manager')},
-                {value: 'last30days', label: 'Last 30 Days'|t('campaign-manager')},
-                {value: 'last90days', label: 'Last 90 Days'|t('campaign-manager')},
-            ],
+            label: 'Date Range'|t('campaign-manager'),
         },
     ],
     search: {
@@ -227,6 +221,7 @@
     {% include 'lindemannrock-base/_components/export-menu' with {
         action: 'campaign-manager/recipients/export',
         permission: 'campaignManager:viewRecipients',
+        pluginHandle: pluginHandle,
     } only %}
 {% endblock %}
 

@@ -44,7 +44,6 @@ use lindemannrock\campaignmanager\services\RecipientsService;
 use lindemannrock\campaignmanager\services\SmsService;
 use lindemannrock\campaignmanager\variables\CampaignManagerVariable;
 use lindemannrock\campaignmanager\web\twig\Extension;
-use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\events\RegisterIntegrationsEvent as SmsManagerRegisterIntegrationsEvent;
 use lindemannrock\smsmanager\services\IntegrationsService as SmsManagerIntegrationsService;

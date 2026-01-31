@@ -13,6 +13,7 @@ use craft\base\Component;
 use craft\helpers\App;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
+use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\TimeHelper;
 use lindemannrock\campaignmanager\records\CampaignRecord;
@@ -38,7 +39,7 @@ class RecipientsService extends Component
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('campaign-manager');
+        $this->setLoggingHandle(CampaignManager::$plugin->id);
     }
 
     /**
@@ -87,23 +88,14 @@ class RecipientsService extends Component
      */
     public function getDateRangeFromParam(string $dateRange): array
     {
-        $endDate = new \DateTime();
+        // Use centralized DateRangeHelper for full date range support
+        // (today, yesterday, last7days, last30days, last90days, thisMonth, lastMonth, thisYear, lastYear, all)
+        $bounds = DateRangeHelper::getBounds($dateRange);
 
-        $startDate = match ($dateRange) {
-            'today' => new \DateTime(),
-            'yesterday' => (new \DateTime())->modify('-1 day'),
-            'last7days' => (new \DateTime())->modify('-7 days'),
-            'last30days' => (new \DateTime())->modify('-30 days'),
-            'last90days' => (new \DateTime())->modify('-90 days'),
-            'all' => (new \DateTime())->modify('-365 days'),
-            default => (new \DateTime())->modify('-30 days'),
-        };
-
-        if ($dateRange === 'yesterday') {
-            $endDate = (new \DateTime())->modify('-1 day');
-        }
-
-        return ['start' => $startDate, 'end' => $endDate];
+        return [
+            'start' => $bounds['start'] ?? new \DateTime('-30 days'),
+            'end' => $bounds['end'] ?? new \DateTime(),
+        ];
     }
 
     /**

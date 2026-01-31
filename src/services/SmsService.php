@@ -34,7 +34,7 @@ class SmsService extends Component
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('campaign-manager');
+        $this->setLoggingHandle(CampaignManager::$plugin->id);
     }
 
     /**
@@ -98,7 +98,7 @@ class SmsService extends Component
             language: $language ?? 'en',
             providerId: $providerId,
             senderIdId: $senderIdId,
-            sourcePlugin: 'campaign-manager',
+            sourcePlugin: CampaignManager::$plugin->id,
         );
     }
 

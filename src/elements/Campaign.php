@@ -387,7 +387,7 @@ class Campaign extends Element
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('campaign-manager');
+        $this->setLoggingHandle(CampaignManager::$plugin->id);
 
         // Load content for current site if we have an ID
         if ($this->id && $this->siteId && $this->emailInvitationMessage === null) {

@@ -37,7 +37,7 @@ class EmailsService extends Component
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('campaign-manager');
+        $this->setLoggingHandle(CampaignManager::$plugin->id);
     }
 
     /**
