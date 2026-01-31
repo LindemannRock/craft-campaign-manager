@@ -10,6 +10,7 @@ namespace lindemannrock\campaignmanager\controllers;
 
 use Craft;
 use craft\web\Controller;
+use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -33,7 +34,7 @@ class AnalyticsController extends Controller
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('campaign-manager');
+        $this->setLoggingHandle(CampaignManager::$plugin->id);
     }
 
     /**
@@ -51,7 +52,7 @@ class AnalyticsController extends Controller
         $analyticsService = CampaignManager::$plugin->analytics;
 
         // Get filter parameters
-        $dateRange = $request->getQueryParam('dateRange', 'last30days');
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $campaignId = $request->getQueryParam('campaign', 'all');
         $siteId = $request->getQueryParam('siteId', 'all');
 
@@ -110,7 +111,7 @@ class AnalyticsController extends Controller
 
         $request = Craft::$app->getRequest();
         $type = $request->getBodyParam('type', 'daily');
-        $dateRange = $request->getBodyParam('dateRange', 'last30days');
+        $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $campaignId = $request->getBodyParam('campaignId', 'all');
         $siteId = $request->getBodyParam('siteId', 'all');
 
@@ -159,13 +160,13 @@ class AnalyticsController extends Controller
         $this->requirePermission('campaignManager:exportAnalytics');
 
         $request = Craft::$app->getRequest();
-        $dateRange = $request->getQueryParam('dateRange', 'last30days');
+        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $format = $request->getQueryParam('format', 'csv');
         $campaignId = $request->getQueryParam('campaign', 'all');
         $siteId = $request->getQueryParam('siteId', 'all');
 
         // Validate format is enabled
-        if (!ExportHelper::isFormatEnabled($format)) {
+        if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
         }
 
@@ -263,7 +264,7 @@ class AnalyticsController extends Controller
         $request = Craft::$app->getRequest();
         $campaignId = $request->getQueryParam('campaignId');
         // Accept both 'range' and 'dateRange' parameter names
-        $dateRange = $request->getQueryParam('range') ?? $request->getQueryParam('dateRange', 'last30days');
+        $dateRange = $request->getQueryParam('range') ?? $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $format = $request->getQueryParam('format', 'csv');
 
         if (!$campaignId) {
@@ -271,7 +272,7 @@ class AnalyticsController extends Controller
         }
 
         // Validate format is enabled
-        if (!ExportHelper::isFormatEnabled($format)) {
+        if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
         }
 

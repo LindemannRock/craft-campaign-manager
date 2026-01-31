@@ -54,6 +54,7 @@ class ActivityLogsController extends Controller
         $records = $query->offset($offset)->limit($limit)->all();
         $items = [];
 
+        /** @var ActivityLogRecord $record */
         foreach ($records as $record) {
             $userName = $record->userId
                 ? Craft::$app->getUsers()->getUserById($record->userId)?->username
