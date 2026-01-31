@@ -44,6 +44,30 @@ return [
         // 'logLevel' => 'error',
 
         /**
+         * Enable activity logs
+         * Default: true
+         */
+        // 'enableActivityLogs' => true,
+
+        /**
+         * Activity logs retention (days, 0 = keep forever)
+         * Default: 30
+         */
+        // 'activityLogsRetention' => 30,
+
+        /**
+         * Activity logs limit (max records)
+         * Default: 10000
+         */
+        // 'activityLogsLimit' => 10000,
+
+        /**
+         * Auto trim activity logs to respect limit
+         * Default: true
+         */
+        // 'activityAutoTrimLogs' => true,
+
+        /**
          * Number of items per page in CP listings
          * Default: 50
          */

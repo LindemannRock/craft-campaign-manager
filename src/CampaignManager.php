@@ -110,6 +110,19 @@ class CampaignManager extends Plugin
             ['campaignManager:viewLogs'],
             ['campaignManager:downloadLogs'],
             [
+                'logMenu' => [
+                    'label' => Craft::t('campaign-manager', 'Logs'),
+                    'items' => [
+                        'system' => [
+                            'label' => Craft::t('campaign-manager', 'System'),
+                            'url' => $this->handle . '/logs/system',
+                        ],
+                        'activity' => [
+                            'label' => Craft::t('campaign-manager', 'Activity'),
+                            'url' => $this->handle . '/logs/activity',
+                        ],
+                    ],
+                ],
                 'colorSets' => [
                     'messageStatus' => [
                         'pending' => ColorHelper::getPaletteColor('amber'),
@@ -203,12 +216,19 @@ class CampaignManager extends Plugin
                 ];
             }
 
-            // System Logs (using logging library)
+            // Logs (system + activity)
             if (Craft::$app->getPlugins()->isPluginInstalled('logging-library') &&
                 Craft::$app->getPlugins()->isPluginEnabled('logging-library')) {
-                $item = LoggingLibrary::addLogsNav($item, $this->handle, [
-                    'campaignManager:viewLogs',
-                ]);
+                $hasSystemLogs = $user->checkPermission('campaignManager:viewLogs');
+                $hasActivityLogs = $user->checkPermission('campaignManager:viewActivityLogs');
+
+                if ($hasSystemLogs || $hasActivityLogs) {
+                    $item['subnav']['logs'] = [
+                        'label' => Craft::t('campaign-manager', 'Logs'),
+                        'url' => 'campaign-manager/logs',
+                        'match' => 'campaign-manager/logs/.*',
+                    ];
+                }
             }
 
             // Settings
@@ -484,6 +504,11 @@ class CampaignManager extends Plugin
             'campaign-manager/analytics/export' => 'campaign-manager/analytics/export',
             'campaign-manager/analytics/export-campaign' => 'campaign-manager/analytics/export-campaign',
 
+            // Logs
+            'campaign-manager/logs' => 'logging-library/logs/index',
+            'campaign-manager/logs/activity' => 'campaign-manager/activity-logs/index',
+            'campaign-manager/logs/activity/clear' => 'campaign-manager/activity-logs/clear',
+
             // Settings
             'campaign-manager/settings' => 'campaign-manager/settings/index',
             'campaign-manager/settings/field-layout' => 'campaign-manager/settings/field-layout',
@@ -545,10 +570,21 @@ class CampaignManager extends Plugin
                 ],
             ],
             'campaignManager:viewLogs' => [
-                'label' => Craft::t('campaign-manager', 'View logs'),
+                'label' => Craft::t('campaign-manager', 'View system logs'),
                 'nested' => [
                     'campaignManager:downloadLogs' => [
-                        'label' => Craft::t('campaign-manager', 'Download logs'),
+                        'label' => Craft::t('campaign-manager', 'Download system logs'),
+                    ],
+                ],
+            ],
+            'campaignManager:viewActivityLogs' => [
+                'label' => Craft::t('campaign-manager', 'View activity logs'),
+                'nested' => [
+                    'campaignManager:downloadActivityLogs' => [
+                        'label' => Craft::t('campaign-manager', 'Download activity logs'),
+                    ],
+                    'campaignManager:clearActivityLogs' => [
+                        'label' => Craft::t('campaign-manager', 'Clear activity logs'),
                     ],
                 ],
             ],

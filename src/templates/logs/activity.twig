@@ -1,0 +1,86 @@
+{% extends 'lindemannrock-base/_layouts/cp-table' %}
+{% set selectedSubnavItem = 'logs' %}
+
+{% set sidebarItems = logMenuItems ?? {
+    system: {label: 'System'|t('campaign-manager'), url: 'campaign-manager/logs/system'},
+    activity: {label: 'Activity'|t('campaign-manager'), url: 'campaign-manager/logs/activity'},
+} %}
+{% set sidebarLabel = logMenuLabel ?? 'Logs'|t('campaign-manager') %}
+
+{% set tableConfig = {
+    plugin: {
+        handle: 'campaign-manager',
+        name: campaignManagerHelper.fullName,
+    },
+    page: {
+        title: 'Activity Logs'|t('campaign-manager'),
+        subnav: 'logs',
+        crumbs: [
+            { label: campaignManagerHelper.fullName|t('campaign-manager'), url: url('campaign-manager') },
+            { label: 'Logs'|t('campaign-manager'), url: url('campaign-manager/logs/system') },
+            { label: 'Activity'|t('campaign-manager'), url: url('campaign-manager/logs/activity') },
+        ],
+    },
+    sidebarMenu: {
+        label: sidebarLabel,
+        items: sidebarItems,
+        selected: 'activity',
+    },
+    table: {
+        columns: [
+            {key: 'date', label: 'Date'|t('campaign-manager')},
+            {key: 'user', label: 'User'|t('campaign-manager')},
+            {key: 'action', label: 'Action'|t('campaign-manager')},
+            {key: 'summary', label: 'Summary'|t('campaign-manager')},
+            {key: 'source', label: 'Source'|t('campaign-manager')},
+        ],
+        items: logs ?? [],
+        emptyMessage: 'No activity logs found yet.'|t('campaign-manager'),
+    },
+    pagination: pagination ? {
+        page: pagination.page,
+        limit: pagination.limit,
+        totalCount: pagination.totalCount,
+        itemLabel: { singular: 'log', plural: 'logs' },
+    } : null,
+    toolbarActions: canClear ? [
+        {
+            type: 'button',
+            label: 'Clear logs'|t('campaign-manager'),
+            class: 'btn',
+            id: 'clear-activity-logs',
+        },
+    ] : [],
+} %}
+
+{% block beforeTable %}
+    {% if activityLogsEnabled is defined and not activityLogsEnabled %}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            type: 'warning',
+            message: 'Activity logs are currently disabled in settings.'|t('campaign-manager')
+        } %}
+    {% endif %}
+{% endblock %}
+
+{% js %}
+    document.getElementById('clear-activity-logs')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (!confirm('{{ "Are you sure you want to clear all activity logs? This action cannot be undone."|t('campaign-manager')|e('js') }}')) {
+            return;
+        }
+
+        const button = this;
+        button.classList.add('loading');
+        button.disabled = true;
+
+        Craft.sendActionRequest('POST', 'campaign-manager/logs/activity/clear')
+            .then(() => {
+                window.location.reload();
+            })
+            .catch(error => {
+                button.classList.remove('loading');
+                button.disabled = false;
+                Craft.cp.displayError(error.response?.data?.error || '{{ "Failed to clear activity logs."|t('campaign-manager')|e('js') }}');
+            });
+    });
+{% endjs %}

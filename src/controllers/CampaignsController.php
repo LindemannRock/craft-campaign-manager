@@ -55,7 +55,7 @@ class CampaignsController extends Controller
                 return $this->redirect('campaign-manager/recipients');
             }
             if ($user->checkPermission('campaignManager:viewLogs')) {
-                return $this->redirect('campaign-manager/logs');
+                return $this->redirect('campaign-manager/logs/system');
             }
             if ($user->checkPermission('campaignManager:manageSettings')) {
                 return $this->redirect('campaign-manager/settings');

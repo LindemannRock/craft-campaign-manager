@@ -36,6 +36,7 @@ class Install extends Migration
         $this->createCampaignsContentTable();
         $this->createRecipientsTable();
         $this->createStatisticsTable();
+        $this->createActivityLogsTable();
     }
 
     /**
@@ -62,6 +63,10 @@ class Install extends Migration
             'campaignTypeOptions' => $this->text(),
             'itemsPerPage' => $this->integer()->defaultValue(50),
             'logLevel' => $this->string()->defaultValue('error'),
+            'enableActivityLogs' => $this->boolean()->notNull()->defaultValue(true),
+            'activityLogsRetention' => $this->integer()->notNull()->defaultValue(30),
+            'activityLogsLimit' => $this->integer()->notNull()->defaultValue(10000),
+            'activityAutoTrimLogs' => $this->boolean()->notNull()->defaultValue(true),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -73,6 +78,10 @@ class Install extends Migration
             'invitationRoute' => 'campaign-manager/invitation',
             'itemsPerPage' => 50,
             'logLevel' => 'error',
+            'enableActivityLogs' => true,
+            'activityLogsRetention' => 30,
+            'activityLogsLimit' => 10000,
+            'activityAutoTrimLogs' => true,
             'dateCreated' => Db::prepareDateForDb(new \DateTime()),
             'dateUpdated' => Db::prepareDateForDb(new \DateTime()),
             'uid' => StringHelper::UUID(),
@@ -297,6 +306,65 @@ class Install extends Migration
     }
 
     /**
+     * Create the activity logs table
+     */
+    private function createActivityLogsTable(): void
+    {
+        $tableName = '{{%campaignmanager_activity_logs}}';
+
+        if ($this->db->tableExists($tableName)) {
+            return;
+        }
+
+        $this->createTable($tableName, [
+            'id' => $this->primaryKey(),
+            'userId' => $this->integer()->null(),
+            'campaignId' => $this->integer()->null(),
+            'recipientId' => $this->integer()->null(),
+            'action' => $this->string(100)->notNull(),
+            'source' => $this->string(50)->notNull()->defaultValue('system'),
+            'summary' => $this->string(255),
+            'details' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->createIndex(null, $tableName, ['userId']);
+        $this->createIndex(null, $tableName, ['campaignId']);
+        $this->createIndex(null, $tableName, ['recipientId']);
+        $this->createIndex(null, $tableName, ['action']);
+        $this->createIndex(null, $tableName, ['dateCreated']);
+
+        $this->addForeignKey(
+            null,
+            $tableName,
+            ['userId'],
+            '{{%users}}',
+            ['id'],
+            'SET NULL'
+        );
+
+        $this->addForeignKey(
+            null,
+            $tableName,
+            ['campaignId'],
+            '{{%campaignmanager_campaigns}}',
+            ['id'],
+            'SET NULL'
+        );
+
+        $this->addForeignKey(
+            null,
+            $tableName,
+            ['recipientId'],
+            '{{%campaignmanager_recipients}}',
+            ['id'],
+            'SET NULL'
+        );
+    }
+
+    /**
      * @inheritdoc
      */
     public function safeDown(): void
@@ -305,6 +373,7 @@ class Install extends Migration
         $this->delete('{{%elements}}', ['type' => Campaign::class]);
 
         // Drop tables in reverse order due to foreign key constraints
+        $this->dropTableIfExists('{{%campaignmanager_activity_logs}}');
         $this->dropTableIfExists('{{%campaignmanager_analytics}}');
         $this->dropTableIfExists('{{%campaignmanager_recipients}}');
         $this->dropTableIfExists('{{%campaignmanager_campaigns_content}}');

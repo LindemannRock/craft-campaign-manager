@@ -245,4 +245,65 @@
             "This is being overridden by the <code>logLevel</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
     }) }}
 
+    <hr>
+
+    <h2>{{ "Activity Logs"|t('campaign-manager') }}</h2>
+
+    {{ forms.lightswitchField({
+        label: "Enable Activity Logs"|t('campaign-manager'),
+        instructions: "Store activity records for auditing and debugging (recipients, imports, campaign runs)."|t('campaign-manager'),
+        id: 'enableActivityLogs',
+        name: 'settings[enableActivityLogs]',
+        on: settings.enableActivityLogs ?? true,
+        toggle: 'activity-logs-settings',
+        disabled: settings.isOverriddenByConfig('enableActivityLogs'),
+        warning: settings.isOverriddenByConfig('enableActivityLogs') ?
+            "This is being overridden by the <code>enableActivityLogs</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
+    }) }}
+
+    <div id="activity-logs-settings" class="{{ not (settings.enableActivityLogs ?? true) ? 'hidden' }}">
+        <div class="field">
+            <p class="light">
+                {{ "Activity logs are stored in the database. IP, device, and user agent capture will be centralized in Base in a future update."|t('campaign-manager') }}
+            </p>
+        </div>
+
+        {{ forms.textField({
+            label: 'Logs Retention (Days)'|t('campaign-manager'),
+            instructions: 'Number of days to retain activity logs (0 = keep forever)'|t('campaign-manager'),
+            id: 'activityLogsRetention',
+            name: 'settings[activityLogsRetention]',
+            type: 'number',
+            value: settings.activityLogsRetention,
+            required: true,
+            disabled: settings.isOverriddenByConfig('activityLogsRetention'),
+            warning: settings.isOverriddenByConfig('activityLogsRetention') ?
+                "This is being overridden by the <code>activityLogsRetention</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Logs Limit'|t('campaign-manager'),
+            instructions: 'Maximum number of activity log records to retain'|t('campaign-manager'),
+            id: 'activityLogsLimit',
+            name: 'settings[activityLogsLimit]',
+            type: 'number',
+            value: settings.activityLogsLimit,
+            required: true,
+            disabled: settings.isOverriddenByConfig('activityLogsLimit'),
+            warning: settings.isOverriddenByConfig('activityLogsLimit') ?
+                "This is being overridden by the <code>activityLogsLimit</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Auto Trim Logs'|t('campaign-manager'),
+            instructions: 'Automatically trim activity logs to respect the limit'|t('campaign-manager'),
+            id: 'activityAutoTrimLogs',
+            name: 'settings[activityAutoTrimLogs]',
+            on: settings.activityAutoTrimLogs,
+            disabled: settings.isOverriddenByConfig('activityAutoTrimLogs'),
+            warning: settings.isOverriddenByConfig('activityAutoTrimLogs') ?
+                "This is being overridden by the <code>activityAutoTrimLogs</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
+        }) }}
+    </div>
+
 {% endblock %}

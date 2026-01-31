@@ -317,16 +317,23 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
   - Create campaigns
   - Edit campaigns
   - Delete campaigns
+  - Run campaigns
 
 ### Recipient Permissions
 - **Manage recipients**
   - View recipients
+  - Add recipients
   - Import recipients
+  - Export recipients
   - Delete recipients
 
 ### Analytics Permissions
-- **View analytics**: Access the analytics dashboard
-- **Export analytics**: Export analytics data
+- **View analytics**
+  - Export analytics
+
+### Logs Permissions
+- **View logs**
+  - Download logs
 
 ### Settings Permissions
 - **Manage settings**

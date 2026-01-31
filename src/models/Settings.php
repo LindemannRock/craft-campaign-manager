@@ -100,6 +100,26 @@ class Settings extends Model
     public string $logLevel = 'error';
 
     /**
+     * @var bool Enable activity logs
+     */
+    public bool $enableActivityLogs = true;
+
+    /**
+     * @var int Activity logs retention (days)
+     */
+    public int $activityLogsRetention = 30;
+
+    /**
+     * @var int Activity logs limit
+     */
+    public int $activityLogsLimit = 10000;
+
+    /**
+     * @var bool Auto trim activity logs
+     */
+    public bool $activityAutoTrimLogs = true;
+
+    /**
      * @inheritdoc
      */
     public function init(): void
@@ -169,6 +189,8 @@ class Settings extends Model
         return [
             'defaultSenderIdId',
             'itemsPerPage',
+            'activityLogsRetention',
+            'activityLogsLimit',
         ];
     }
 
@@ -177,7 +199,10 @@ class Settings extends Model
      */
     protected static function booleanFields(): array
     {
-        return [];
+        return [
+            'enableActivityLogs',
+            'activityAutoTrimLogs',
+        ];
     }
 
     /**
@@ -237,6 +262,14 @@ class Settings extends Model
             ['itemsPerPage', 'required'],
             ['itemsPerPage', 'integer', 'min' => 10, 'max' => 500],
             ['itemsPerPage', 'default', 'value' => 50],
+            ['enableActivityLogs', 'boolean'],
+            ['activityAutoTrimLogs', 'boolean'],
+            ['activityLogsRetention', 'required'],
+            ['activityLogsRetention', 'integer', 'min' => 0],
+            ['activityLogsRetention', 'default', 'value' => 30],
+            ['activityLogsLimit', 'required'],
+            ['activityLogsLimit', 'integer', 'min' => 0],
+            ['activityLogsLimit', 'default', 'value' => 10000],
         ];
     }
 
