@@ -30,6 +30,7 @@ use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\web\View;
 use lindemannrock\base\helpers\ColorHelper;
+use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\behaviors\CampaignBehavior;
 use lindemannrock\campaignmanager\behaviors\CampaignQueryBehavior;
@@ -107,15 +108,15 @@ class CampaignManager extends Plugin
         PluginHelper::bootstrap(
             $this,
             'campaignManagerHelper',
-            ['campaignManager:viewLogs'],
-            ['campaignManager:downloadLogs'],
+            ['campaignManager:viewSystemLogs'],
+            ['campaignManager:downloadSystemLogs'],
             [
                 'logMenu' => [
                     'label' => Craft::t('campaign-manager', 'Logs'),
                     'items' => [
                         'system' => [
                             'label' => Craft::t('campaign-manager', 'System'),
-                            'url' => $this->handle . '/logs/system',
+                            'url' => $this->handle . '/logs',
                         ],
                         'activity' => [
                             'label' => Craft::t('campaign-manager', 'Activity'),
@@ -177,63 +178,104 @@ class CampaignManager extends Plugin
         $item = parent::getCpNavItem();
         $user = Craft::$app->getUser();
 
-        // Check permissions
-        $hasCampaignsAccess = $user->checkPermission('campaignManager:viewCampaigns');
-        $hasSettingsAccess = $user->checkPermission('campaignManager:manageSettings');
-
-        // If no access at all, hide from nav
-        if (!$hasCampaignsAccess && !$hasSettingsAccess) {
-            return null;
-        }
-
         if ($item) {
-            $item['label'] = $this->getSettings()->getFullName();
+            $settings = $this->getSettings();
+
+            $item['label'] = $settings->getFullName();
             $item['icon'] = '@appicons/share.svg';
 
-            $item['subnav'] = [];
-
-            // Campaigns
-            if ($hasCampaignsAccess) {
-                $item['subnav']['campaigns'] = [
-                    'label' => Craft::t('campaign-manager', 'Campaigns'),
-                    'url' => 'campaign-manager',
-                ];
-            }
-
-            // Recipients
-            if ($user->checkPermission('campaignManager:viewRecipients')) {
-                $item['subnav']['recipients'] = [
-                    'label' => Craft::t('campaign-manager', 'Recipients'),
-                    'url' => 'campaign-manager/recipients',
-                ];
-            }
-
-            // Analytics
-            if ($user->checkPermission('campaignManager:viewAnalytics')) {
-                $item['subnav']['analytics'] = [
-                    'label' => Craft::t('campaign-manager', 'Analytics'),
-                    'url' => 'campaign-manager/analytics',
-                ];
-            }
+            $sections = $this->getCpSections($settings);
+            $item['subnav'] = CpNavHelper::buildSubnav($user, $settings, $sections);
 
             // Logs (system + activity) - handled by LoggingLibrary
             if (PluginHelper::isPluginEnabled('logging-library')) {
                 $item = LoggingLibrary::addLogsNav($item, $this->handle, [
-                    'campaignManager:viewLogs',         // system logs
+                    'campaignManager:viewSystemLogs',   // system logs
                     'campaignManager:viewActivityLogs', // activity logs
                 ]);
             }
 
-            // Settings
-            if ($hasSettingsAccess) {
-                $item['subnav']['settings'] = [
-                    'label' => Craft::t('campaign-manager', 'Settings'),
-                    'url' => 'campaign-manager/settings',
-                ];
+            // Hide from nav if no accessible subnav items
+            if (empty($item['subnav'])) {
+                return null;
             }
         }
 
         return $item;
+    }
+
+    /**
+     * Get CP sections for nav + default route resolution
+     *
+     * @param Settings $settings
+     * @param bool $includeCampaigns
+     * @param bool $includeLogs
+     * @return array
+     * @since 5.14.0
+     */
+    public function getCpSections(Settings $settings, bool $includeCampaigns = true, bool $includeLogs = false): array
+    {
+        $sections = [];
+
+        if ($includeCampaigns) {
+            $sections[] = [
+                'key' => 'campaigns',
+                'label' => Craft::t('campaign-manager', 'Campaigns'),
+                'url' => 'campaign-manager',
+                'permissionsAll' => ['campaignManager:viewCampaigns'],
+            ];
+        }
+
+        $sections[] = [
+            'key' => 'recipients',
+            'label' => Craft::t('campaign-manager', 'Recipients'),
+            'url' => 'campaign-manager/recipients',
+            'permissionsAll' => ['campaignManager:viewRecipients'],
+        ];
+
+        $sections[] = [
+            'key' => 'analytics',
+            'label' => Craft::t('campaign-manager', 'Analytics'),
+            'url' => 'campaign-manager/analytics',
+            'permissionsAll' => ['campaignManager:viewAnalytics'],
+        ];
+
+        if ($includeLogs) {
+            $sections[] = [
+                'key' => 'logs',
+                'label' => Craft::t('campaign-manager', 'Logs'),
+                'url' => 'campaign-manager/logs',
+                'permissionsAny' => [
+                    'campaignManager:viewSystemLogs',
+                    'campaignManager:viewActivityLogs',
+                ],
+                'when' => function() {
+                    if (!PluginHelper::isPluginEnabled('logging-library')) {
+                        return false;
+                    }
+                    $config = LoggingLibrary::getConfig('campaign-manager');
+                    if (!$config) {
+                        return false;
+                    }
+                    $logMenuItems = $config['logMenuItems'] ?? [];
+                    $hasOtherLogTypes = !empty(array_filter(
+                        array_keys($logMenuItems),
+                        fn($key) => $key !== 'system'
+                    ));
+
+                    return ($config['enableLogViewer'] ?? false) || $hasOtherLogTypes;
+                },
+            ];
+        }
+
+        $sections[] = [
+            'key' => 'settings',
+            'label' => Craft::t('campaign-manager', 'Settings'),
+            'url' => 'campaign-manager/settings',
+            'permissionsAll' => ['campaignManager:manageSettings'],
+        ];
+
+        return $sections;
     }
 
     /**
@@ -563,21 +605,26 @@ class CampaignManager extends Plugin
                 ],
             ],
             'campaignManager:viewLogs' => [
-                'label' => Craft::t('campaign-manager', 'View system logs'),
+                'label' => Craft::t('campaign-manager', 'View logs'),
                 'nested' => [
-                    'campaignManager:downloadLogs' => [
-                        'label' => Craft::t('campaign-manager', 'Download system logs'),
+                    'campaignManager:viewSystemLogs' => [
+                        'label' => Craft::t('campaign-manager', 'View system logs'),
+                        'nested' => [
+                            'campaignManager:downloadSystemLogs' => [
+                                'label' => Craft::t('campaign-manager', 'Download system logs'),
+                            ],
+                        ],
                     ],
-                ],
-            ],
-            'campaignManager:viewActivityLogs' => [
-                'label' => Craft::t('campaign-manager', 'View activity logs'),
-                'nested' => [
-                    'campaignManager:downloadActivityLogs' => [
-                        'label' => Craft::t('campaign-manager', 'Download activity logs'),
-                    ],
-                    'campaignManager:clearActivityLogs' => [
-                        'label' => Craft::t('campaign-manager', 'Clear activity logs'),
+                    'campaignManager:viewActivityLogs' => [
+                        'label' => Craft::t('campaign-manager', 'View activity logs'),
+                        'nested' => [
+                            'campaignManager:downloadActivityLogs' => [
+                                'label' => Craft::t('campaign-manager', 'Download activity logs'),
+                            ],
+                            'campaignManager:clearActivityLogs' => [
+                                'label' => Craft::t('campaign-manager', 'Clear activity logs'),
+                            ],
+                        ],
                     ],
                 ],
             ],

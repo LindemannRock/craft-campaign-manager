@@ -10,6 +10,7 @@ namespace lindemannrock\campaignmanager\controllers;
 
 use Craft;
 use craft\web\Controller;
+use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
@@ -49,17 +50,14 @@ class CampaignsController extends Controller
     public function actionIndex(): Response
     {
         $user = Craft::$app->getUser();
+        $settings = CampaignManager::$plugin->getSettings();
 
         // If user doesn't have viewCampaigns permission, redirect to first accessible section
         if (!$user->checkPermission('campaignManager:viewCampaigns')) {
-            if ($user->checkPermission('campaignManager:viewRecipients')) {
-                return $this->redirect('campaign-manager/recipients');
-            }
-            if ($user->checkPermission('campaignManager:viewLogs')) {
-                return $this->redirect('campaign-manager/logs/system');
-            }
-            if ($user->checkPermission('campaignManager:manageSettings')) {
-                return $this->redirect('campaign-manager/settings');
+            $sections = CampaignManager::$plugin->getCpSections($settings, false, true);
+            $route = CpNavHelper::firstAccessibleRoute($user, $settings, $sections);
+            if ($route) {
+                return $this->redirect($route);
             }
 
             // No accessible sections - throw forbidden
