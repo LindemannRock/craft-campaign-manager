@@ -211,7 +211,7 @@ class CampaignManager extends Plugin
      * @param bool $includeCampaigns
      * @param bool $includeLogs
      * @return array
-     * @since 5.14.0
+     * @since 5.4.0
      */
     public function getCpSections(Settings $settings, bool $includeCampaigns = true, bool $includeLogs = false): array
     {
