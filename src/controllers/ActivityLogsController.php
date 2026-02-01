@@ -21,7 +21,7 @@ use yii\web\Response;
 /**
  * Activity Logs Controller
  *
- * @since 5.24.0
+ * @since 5.4.0
  */
 class ActivityLogsController extends Controller
 {
@@ -34,7 +34,7 @@ class ActivityLogsController extends Controller
      * Activity logs index page (placeholder)
      *
      * @return Response
-     * @since 5.24.0
+     * @since 5.4.0
      */
     public function actionIndex(): Response
     {
@@ -76,6 +76,11 @@ class ActivityLogsController extends Controller
             $config = LoggingLibrary::getConfig('campaign-manager');
             $logMenuItems = $config['logMenuItems'] ?? null;
             $logMenuLabel = $config['logMenuLabel'] ?? null;
+
+            // Filter out 'system' item if system log viewer is disabled
+            if ($logMenuItems && !($config['enableLogViewer'] ?? false)) {
+                unset($logMenuItems['system']);
+            }
         }
 
         return $this->renderTemplate('campaign-manager/logs/activity', [
@@ -96,7 +101,7 @@ class ActivityLogsController extends Controller
      * Clear activity logs
      *
      * @return Response
-     * @since 5.24.0
+     * @since 5.4.0
      */
     public function actionClear(): Response
     {

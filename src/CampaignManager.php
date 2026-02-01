@@ -44,6 +44,7 @@ use lindemannrock\campaignmanager\services\RecipientsService;
 use lindemannrock\campaignmanager\services\SmsService;
 use lindemannrock\campaignmanager\variables\CampaignManagerVariable;
 use lindemannrock\campaignmanager\web\twig\Extension;
+use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\events\RegisterIntegrationsEvent as SmsManagerRegisterIntegrationsEvent;
 use lindemannrock\smsmanager\services\IntegrationsService as SmsManagerIntegrationsService;
@@ -215,19 +216,12 @@ class CampaignManager extends Plugin
                 ];
             }
 
-            // Logs (system + activity)
-            if (Craft::$app->getPlugins()->isPluginInstalled('logging-library') &&
-                Craft::$app->getPlugins()->isPluginEnabled('logging-library')) {
-                $hasSystemLogs = $user->checkPermission('campaignManager:viewLogs');
-                $hasActivityLogs = $user->checkPermission('campaignManager:viewActivityLogs');
-
-                if ($hasSystemLogs || $hasActivityLogs) {
-                    $item['subnav']['logs'] = [
-                        'label' => Craft::t('campaign-manager', 'Logs'),
-                        'url' => 'campaign-manager/logs',
-                        'match' => 'campaign-manager/logs/.*',
-                    ];
-                }
+            // Logs (system + activity) - handled by LoggingLibrary
+            if (PluginHelper::isPluginEnabled('logging-library')) {
+                $item = LoggingLibrary::addLogsNav($item, $this->handle, [
+                    'campaignManager:viewLogs',         // system logs
+                    'campaignManager:viewActivityLogs', // activity logs
+                ]);
             }
 
             // Settings

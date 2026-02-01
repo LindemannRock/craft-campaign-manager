@@ -10,6 +10,7 @@ namespace lindemannrock\campaignmanager\controllers;
 
 use Craft;
 use craft\web\Controller;
+use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\jobs\ProcessCampaignJob;
@@ -123,7 +124,7 @@ class CampaignsController extends Controller
 
         // Get available forms for dropdown
         $formOptions = [];
-        if (Craft::$app->getPlugins()->isPluginEnabled('formie')) {
+        if (PluginHelper::isPluginEnabled('formie')) {
             $formElements = \verbb\formie\elements\Form::find()->all();
             foreach ($formElements as $form) {
                 $formOptions[] = ['label' => $form->title, 'value' => $form->id];

@@ -27,7 +27,7 @@ use craft\db\ActiveRecord;
  * @property \DateTime|null $dateUpdated
  * @property string|null $uid
  *
- * @since 5.24.0
+ * @since 5.4.0
  */
 class ActivityLogRecord extends ActiveRecord
 {
