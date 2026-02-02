@@ -188,6 +188,19 @@ class RecipientsController extends Controller
 
         $dateColumns = ['emailSendDate', 'smsSendDate', 'emailOpenDate', 'smsOpenDate', 'dateCreated'];
 
+        CampaignManager::$plugin->activityLogs->log('recipients_exported', [
+            'source' => 'manual',
+            'summary' => Craft::t('campaign-manager', 'Recipients exported'),
+            'details' => [
+                'format' => $format,
+                'dateRange' => $dateRange,
+                'campaign' => $campaignFilter,
+                'site' => $siteFilter,
+                'status' => $statusFilter,
+                'count' => count($rows),
+            ],
+        ]);
+
         return match ($format) {
             'csv' => ExportHelper::toCsv($rows, $headers, $filename, $dateColumns),
             'json' => ExportHelper::toJson($rows, $filename, $dateColumns),
@@ -542,6 +555,22 @@ class RecipientsController extends Controller
             return $this->renderAddRecipientFormWithErrors($recipient, Craft::t('campaign-manager', 'Could not save recipient.'));
         }
 
+        CampaignManager::$plugin->activityLogs->log('recipient_added', [
+            'campaignId' => $recipient->campaignId,
+            'recipientId' => $recipient->id,
+            'source' => 'manual',
+            'summary' => Craft::t('campaign-manager', 'Recipient added'),
+            'details' => [
+                'campaignName' => $campaign->title ?? null,
+                'name' => $recipient->name,
+                'email' => $recipient->email,
+                'sms' => $recipient->sms,
+                'siteId' => $recipient->siteId,
+                'siteName' => $site?->name ?? null,
+                'sendInvitation' => (bool)$this->request->getBodyParam('sendInvitation'),
+            ],
+        ]);
+
         // Queue invitation if requested
         $sendInvitation = $this->request->getBodyParam('sendInvitation');
         if ($sendInvitation) {
@@ -553,6 +582,7 @@ class RecipientsController extends Controller
                     'recipientIds' => [$recipient->id],
                     'sendSms' => !empty($recipient->sms),
                     'sendEmail' => !empty($recipient->email),
+                    'triggeredByUserId' => Craft::$app->getUser()->getIdentity()?->id,
                 ]));
             }
         }
@@ -588,8 +618,30 @@ class RecipientsController extends Controller
 
         $recipientId = (int)Craft::$app->request->getRequiredBodyParam('id');
 
+        $recipient = RecipientRecord::findOne($recipientId);
         if (!CampaignManager::$plugin->recipients->deleteRecipientById($recipientId)) {
             return $this->asJson(null);
+        }
+
+        if ($recipient) {
+            $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
+                ->id($recipient->campaignId)
+                ->status(null)
+                ->one();
+            CampaignManager::$plugin->activityLogs->log('recipient_deleted', [
+                'campaignId' => $recipient->campaignId,
+                'recipientId' => $recipient->id,
+                'source' => 'manual',
+                'summary' => Craft::t('campaign-manager', 'Recipient deleted'),
+                'details' => [
+                    'campaignName' => $campaign?->title,
+                    'name' => $recipient->name,
+                    'email' => $recipient->email,
+                    'sms' => $recipient->sms,
+                    'siteId' => $recipient->siteId,
+                    'siteName' => Craft::$app->getSites()->getSiteById($recipient->siteId)?->name,
+                ],
+            ]);
         }
 
         return $this->asJson(['success' => true]);
@@ -609,13 +661,61 @@ class RecipientsController extends Controller
         $recipientIds = Craft::$app->request->getRequiredBodyParam('recipientIds');
         $count = 0;
         $errors = [];
+        $deleted = [];
 
         foreach ($recipientIds as $recipientId) {
+            $recipient = RecipientRecord::findOne((int)$recipientId);
             if (CampaignManager::$plugin->recipients->deleteRecipientById((int)$recipientId)) {
                 $count++;
+                if ($recipient) {
+                    $deleted[] = [
+                        'id' => $recipient->id,
+                        'campaignId' => $recipient->campaignId,
+                        'siteId' => $recipient->siteId,
+                        'siteName' => Craft::$app->getSites()->getSiteById($recipient->siteId)?->name,
+                        'name' => $recipient->name,
+                        'email' => $recipient->email,
+                        'sms' => $recipient->sms,
+                    ];
+                }
             } else {
                 $errors[] = Craft::t('campaign-manager', 'Failed to delete recipient {id}', ['id' => $recipientId]);
             }
+        }
+
+        if ($count > 0) {
+            $campaignIds = array_values(array_unique(array_column($deleted, 'campaignId')));
+            $campaignNames = [];
+            if (!empty($campaignIds)) {
+                $campaigns = \lindemannrock\campaignmanager\elements\Campaign::find()
+                    ->id($campaignIds)
+                    ->status(null)
+                    ->all();
+                foreach ($campaigns as $campaign) {
+                    $campaignNames[$campaign->id] = $campaign->title;
+                }
+            }
+
+            CampaignManager::$plugin->activityLogs->log('recipients_deleted', [
+                'source' => 'manual',
+                'summary' => Craft::t('campaign-manager', 'Recipients deleted ({count})', ['count' => $count]),
+                'details' => [
+                    'count' => $count,
+                    'recipientIds' => array_slice(array_column($deleted, 'id'), 0, 50),
+                    'recipients' => array_slice(array_map(fn($row) => [
+                        'id' => $row['id'],
+                        'name' => $row['name'],
+                        'email' => $row['email'],
+                        'sms' => $row['sms'],
+                        'siteId' => $row['siteId'],
+                        'siteName' => $row['siteName'] ?? null,
+                        'campaignId' => $row['campaignId'],
+                        'campaignName' => $campaignNames[$row['campaignId']] ?? null,
+                    ], $deleted), 0, 10),
+                    'campaignIds' => $campaignIds,
+                    'campaignNames' => $campaignNames,
+                ],
+            ]);
         }
 
         return $this->asJson([
@@ -638,8 +738,30 @@ class RecipientsController extends Controller
 
         $recipientId = (int)Craft::$app->request->getRequiredBodyParam('id');
 
+        $recipient = RecipientRecord::findOne($recipientId);
         if (!CampaignManager::$plugin->recipients->deleteRecipientById($recipientId)) {
             return $this->asJson(null);
+        }
+
+        if ($recipient) {
+            $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
+                ->id($recipient->campaignId)
+                ->status(null)
+                ->one();
+            CampaignManager::$plugin->activityLogs->log('recipient_deleted', [
+                'campaignId' => $recipient->campaignId,
+                'recipientId' => $recipient->id,
+                'source' => 'manual',
+                'summary' => Craft::t('campaign-manager', 'Recipient deleted'),
+                'details' => [
+                    'campaignName' => $campaign?->title,
+                    'name' => $recipient->name,
+                    'email' => $recipient->email,
+                    'sms' => $recipient->sms,
+                    'siteId' => $recipient->siteId,
+                    'siteName' => Craft::$app->getSites()->getSiteById($recipient->siteId)?->name,
+                ],
+            ]);
         }
 
         return $this->asJson(['success' => true]);
@@ -712,6 +834,7 @@ class RecipientsController extends Controller
                 'rowCount' => $parsed['rowCount'],
                 'campaignId' => $campaignId,
                 'queueSending' => $queueSending,
+                'filename' => $file->name,
             ]);
 
             // Redirect to column mapping
@@ -1234,8 +1357,30 @@ class RecipientsController extends Controller
             $message .= ' ' . Craft::t('campaign-manager', '{failed} failed.', ['failed' => $failed]);
         }
 
+        $campaignElement = \lindemannrock\campaignmanager\elements\Campaign::find()
+            ->id($campaignId)
+            ->status(null)
+            ->one();
+        $campaignName = $campaignElement?->title;
+        $fileName = $previewData['filename'] ?? null;
+
+        CampaignManager::$plugin->activityLogs->log('recipients_imported', [
+            'campaignId' => $campaignId,
+            'source' => 'import',
+            'summary' => Craft::t('campaign-manager', 'Recipients imported'),
+            'details' => [
+                'campaignName' => $campaignName,
+                'fileName' => $fileName,
+                'imported' => $imported,
+                'failed' => $failed,
+                'queueSending' => (bool)$queueSending,
+                'errors' => array_slice($errorMessages, 0, 10),
+            ],
+        ]);
+
         // Queue sending if requested and we imported recipients
         if ($queueSending && $imported > 0) {
+            $triggeredByUserId = Craft::$app->getUser()->getIdentity()?->id;
             // Get unique site IDs from imported recipients
             $siteIds = RecipientRecord::find()
                 ->select(['siteId'])
@@ -1244,15 +1389,30 @@ class RecipientsController extends Controller
                 ->andWhere(['emailSendDate' => null])
                 ->distinct()
                 ->column();
+            $siteNames = [];
 
             foreach ($siteIds as $siteId) {
+                $siteNames[(int)$siteId] = Craft::$app->getSites()->getSiteById((int)$siteId)?->name;
                 Craft::$app->getQueue()->push(new \lindemannrock\campaignmanager\jobs\ProcessCampaignJob([
                     'campaignId' => $campaignId,
                     'siteId' => (int)$siteId,
                     'sendSms' => true,
                     'sendEmail' => true,
+                    'triggeredByUserId' => $triggeredByUserId,
                 ]));
             }
+
+            CampaignManager::$plugin->activityLogs->log('campaign_invitations_queued', [
+                'campaignId' => $campaignId,
+                'source' => 'system',
+                'summary' => Craft::t('campaign-manager', 'Invitation sending queued after import'),
+                'userId' => $triggeredByUserId,
+                'details' => [
+                    'siteIds' => $siteIds,
+                    'siteNames' => $siteNames,
+                    'triggeredByUserId' => $triggeredByUserId,
+                ],
+            ]);
 
             $message .= ' ' . Craft::t('campaign-manager', 'Invitation sending has been queued.');
         }
@@ -1352,6 +1512,18 @@ class RecipientsController extends Controller
         $filename = ExportHelper::filename($settings, ['recipients', 'campaign-' . $campaignId, $dateRangeLabel], $extension);
 
         $dateColumns = ['emailSendDate', 'smsSendDate', 'emailOpenDate', 'smsOpenDate', 'dateCreated'];
+
+        CampaignManager::$plugin->activityLogs->log('campaign_recipients_exported', [
+            'campaignId' => $campaignId,
+            'source' => 'manual',
+            'summary' => Craft::t('campaign-manager', 'Campaign recipients exported'),
+            'details' => [
+                'format' => $format,
+                'dateRange' => $dateRange,
+                'siteId' => $site->id,
+                'count' => count($rows),
+            ],
+        ]);
 
         return match ($format) {
             'csv' => ExportHelper::toCsv($rows, $headers, $filename, $dateColumns),

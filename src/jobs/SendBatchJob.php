@@ -56,6 +56,13 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
     public bool $sendEmail = true;
 
     /**
+     * @var int|null User ID who triggered this queue run
+     *
+     * @since 5.4.0
+     */
+    public ?int $triggeredByUserId = null;
+
+    /**
      * @inheritdoc
      */
     public function init(): void
@@ -184,6 +191,22 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             'smsSent' => $smsSent,
             'emailSent' => $emailSent,
             'errors' => $errors,
+        ]);
+
+        CampaignManager::$plugin->activityLogs->log('invitations_sent_batch', [
+            'campaignId' => $this->campaignId,
+            'source' => 'queue',
+            'summary' => Craft::t('campaign-manager', 'Invitation batch sent'),
+            'userId' => $this->triggeredByUserId,
+            'details' => [
+                'siteId' => $this->siteId,
+                'siteName' => Craft::$app->getSites()->getSiteById($this->siteId)?->name,
+                'recipientCount' => $totalRecipients,
+                'smsSent' => $smsSent,
+                'emailSent' => $emailSent,
+                'errors' => $errors,
+                'triggeredByUserId' => $this->triggeredByUserId,
+            ],
         ]);
     }
 

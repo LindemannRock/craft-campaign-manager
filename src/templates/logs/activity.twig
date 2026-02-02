@@ -30,8 +30,10 @@
         columns: [
             {key: 'date', label: 'Date'|t('campaign-manager')},
             {key: 'user', label: 'User'|t('campaign-manager')},
-            {key: 'action', label: 'Action'|t('campaign-manager')},
+            {key: 'actionLabel', label: 'Action'|t('campaign-manager')},
             {key: 'summary', label: 'Summary'|t('campaign-manager')},
+            {key: 'campaignName', label: 'Campaign'|t('campaign-manager')},
+            {key: 'recipientLabel', label: 'Recipient'|t('campaign-manager')},
             {key: 'source', label: 'Source'|t('campaign-manager')},
         ],
         items: logs ?? [],
@@ -60,6 +62,30 @@
             message: 'Activity logs are currently disabled in settings.'|t('campaign-manager')
         } %}
     {% endif %}
+{% endblock %}
+
+{% block tableRow %}
+    <td>{{ item.date }}</td>
+    <td>{{ item.user }}</td>
+    <td>{{ item.actionLabel }}</td>
+    <td>{{ item.summary }}</td>
+    <td>
+        {% if item.campaignUrl %}
+            <a href="{{ item.campaignUrl }}">{{ item.campaignName }}</a>
+        {% elseif item.campaignName %}
+            {{ item.campaignName }}
+        {% else %}
+            <span class="light">—</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if item.recipientLabel %}
+            {{ item.recipientLabel }}
+        {% else %}
+            <span class="light">—</span>
+        {% endif %}
+    </td>
+    <td>{{ item.source|title }}</td>
 {% endblock %}
 
 {% js %}

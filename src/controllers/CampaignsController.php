@@ -171,6 +171,7 @@ class CampaignsController extends Controller
 
         $request = Craft::$app->getRequest();
         $campaignId = $request->getBodyParam('campaignId');
+        $isNew = empty($campaignId);
         $siteId = $request->getBodyParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id;
 
         // Get or create the campaign
@@ -247,6 +248,19 @@ class CampaignsController extends Controller
             ]);
         }
 
+        CampaignManager::$plugin->activityLogs->log($isNew ? 'campaign_created' : 'campaign_updated', [
+            'campaignId' => $campaign->id,
+            'source' => 'manual',
+            'summary' => $isNew
+                ? Craft::t('campaign-manager', 'Campaign created')
+                : Craft::t('campaign-manager', 'Campaign updated'),
+            'details' => [
+                'title' => $campaign->title,
+                'siteId' => (int)$siteId,
+                'enabled' => $campaign->getEnabledForSite(),
+            ],
+        ]);
+
         Craft::$app->getSession()->setNotice(Craft::t('campaign-manager', 'Campaign saved.'));
 
         return $this->redirectToPostedUrl($campaign);
@@ -286,6 +300,15 @@ class CampaignsController extends Controller
             return $this->asJson(['success' => true]);
         }
 
+        CampaignManager::$plugin->activityLogs->log('campaign_deleted', [
+            'campaignId' => $campaign->id,
+            'source' => 'manual',
+            'summary' => Craft::t('campaign-manager', 'Campaign deleted'),
+            'details' => [
+                'title' => $campaign->title,
+            ],
+        ]);
+
         Craft::$app->getSession()->setNotice(Craft::t('campaign-manager', 'Campaign deleted.'));
 
         return $this->redirect('campaign-manager');
@@ -311,6 +334,10 @@ class CampaignsController extends Controller
             : Craft::$app->getSites()->getAllSites();
 
         $jobsQueued = 0;
+        $triggeredByUserId = Craft::$app->getUser()->getIdentity()?->id;
+        $campaignsQueued = [];
+        $campaignNames = [];
+        $siteNames = [];
 
         foreach ($sites as $site) {
             if (!$site) {
@@ -327,8 +354,17 @@ class CampaignsController extends Controller
                     'siteId' => $site->id,
                     'sendSms' => true,
                     'sendEmail' => true,
+                    'triggeredByUserId' => $triggeredByUserId,
                 ]));
                 $jobsQueued++;
+                $campaignsQueued[] = [
+                    'campaignId' => $campaign->id,
+                    'campaignName' => $campaign->title,
+                    'siteId' => $site->id,
+                    'siteName' => $site->name,
+                ];
+                $campaignNames[$campaign->id] = $campaign->title;
+                $siteNames[$site->id] = $site->name;
 
                 $this->logInfo('Campaign job queued', [
                     'campaignId' => $campaign->id,
@@ -338,6 +374,20 @@ class CampaignsController extends Controller
         }
 
         $this->logInfo('Campaign jobs queued', ['count' => $jobsQueued]);
+
+        CampaignManager::$plugin->activityLogs->log('campaigns_queued', [
+            'source' => 'manual',
+            'summary' => Craft::t('campaign-manager', 'Campaign jobs queued'),
+            'details' => [
+                'count' => $jobsQueued,
+                'items' => array_slice($campaignsQueued, 0, 50),
+                'campaignNames' => $campaignNames,
+                'siteNames' => $siteNames,
+                'campaignId' => $campaignId ? (int)$campaignId : null,
+                'siteId' => $siteId ? (int)$siteId : null,
+                'triggeredByUserId' => $triggeredByUserId,
+            ],
+        ]);
 
         if (Craft::$app->getRequest()->getAcceptsJson()) {
             return $this->asJson([

@@ -53,6 +53,13 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
     public bool $sendEmail = true;
 
     /**
+     * @var int|null User ID who triggered this queue run
+     *
+     * @since 5.4.0
+     */
+    public ?int $triggeredByUserId = null;
+
+    /**
      * @inheritdoc
      */
     public function init(): void
@@ -134,6 +141,7 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
                 'recipientIds' => $batchIds,
                 'sendSms' => $this->sendSms,
                 'sendEmail' => $this->sendEmail,
+                'triggeredByUserId' => $this->triggeredByUserId,
             ]));
 
             $this->setProgress($queue, ($index + 1) / $totalBatches);
@@ -143,6 +151,22 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
             'campaignId' => $this->campaignId,
             'totalBatches' => $totalBatches,
             'totalRecipients' => $totalRecipients,
+        ]);
+
+        CampaignManager::$plugin->activityLogs->log('campaign_batches_queued', [
+            'campaignId' => $this->campaignId,
+            'source' => 'queue',
+            'summary' => Craft::t('campaign-manager', 'Campaign batches queued'),
+            'userId' => $this->triggeredByUserId,
+            'details' => [
+                'siteId' => $this->siteId,
+                'siteName' => Craft::$app->getSites()->getSiteById($this->siteId)?->name,
+                'totalBatches' => $totalBatches,
+                'totalRecipients' => $totalRecipients,
+                'sendSms' => $this->sendSms,
+                'sendEmail' => $this->sendEmail,
+                'triggeredByUserId' => $this->triggeredByUserId,
+            ],
         ]);
     }
 

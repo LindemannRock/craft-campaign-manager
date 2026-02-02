@@ -64,6 +64,7 @@ use yii\base\Event;
  * @property-read AnalyticsService $analytics
  * @property-read CampaignsService $campaigns
  * @property-read RecipientsService $recipients
+ * @property-read \lindemannrock\campaignmanager\services\ActivityLogsService $activityLogs
  * @property-read EmailsService $emails
  * @property-read SmsService $sms
  * @property-read Settings $settings
@@ -144,6 +145,7 @@ class CampaignManager extends Plugin
             'recipients' => RecipientsService::class,
             'emails' => EmailsService::class,
             'sms' => SmsService::class,
+            'activityLogs' => \lindemannrock\campaignmanager\services\ActivityLogsService::class,
         ]);
 
         // Set controller namespace based on app type
