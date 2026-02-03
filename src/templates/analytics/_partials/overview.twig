@@ -1,32 +1,31 @@
 {# Overview Tab - Summary stats and daily trend chart #}
 
 {# Summary Stats Grid #}
-<div class="lr-analytics-stats">
-    {% include 'lindemannrock-base/_components/stat-box' with {
+<div class="lr-unified-cards">
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.totalRecipients,
-        label: 'Total Recipients'|t('campaign-manager'),
-        id: 'total-recipients',
+        description: 'Total Recipients'|t('campaign-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.totalSent,
-        label: 'Invitations Sent'|t('campaign-manager'),
-        id: 'total-sent',
-        color: '#3b82f6',
+        description: 'Invitations Sent'|t('campaign-manager'),
+        valueColor: lrPaletteColor('blue').color,
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.submissions,
-        label: 'Form Responses'|t('campaign-manager'),
-        id: 'total-submissions',
-        color: '#10b981',
+        description: 'Form Responses'|t('campaign-manager'),
+        valueColor: lrPaletteColor('emerald').color,
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
-        value: summaryStats.conversionRate,
-        label: 'Conversion Rate'|t('campaign-manager'),
-        id: 'conversion-rate',
-        suffix: '%',
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        value: summaryStats.conversionRate ~ '%',
+        description: 'Conversion Rate'|t('campaign-manager'),
+        align: 'center',
     } only %}
 </div>
 
