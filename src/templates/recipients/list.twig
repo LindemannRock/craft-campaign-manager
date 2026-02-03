@@ -116,7 +116,7 @@
         {# Export dropdown #}
         {% include 'lindemannrock-base/_components/export-menu' with {
             action: 'campaign-manager/recipients/export-recipients',
-            permission: 'campaignManager:viewRecipients',
+            permission: 'campaignManager:exportRecipients',
             extraParams: {campaignId: campaignId, site: site.handle, dateRange: dateRange},
         } only %}
         {% if campaign.getEnabledForSite() %}

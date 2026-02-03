@@ -157,6 +157,7 @@ class CampaignsController extends Controller
             'providerOptions' => $providerOptions,
             'senderIdOptions' => $senderIdOptions,
             'senderIdsByProvider' => $senderIdsByProvider,
+            'pluginHandle' => CampaignManager::$plugin->id,
         ]);
     }
 

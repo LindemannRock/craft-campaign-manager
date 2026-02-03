@@ -12,7 +12,7 @@
 
 {% set analyticsConfig = {
     plugin: {
-        handle: 'campaign-manager',
+        handle: pluginHandle ?? 'campaign-manager',
         name: campaignManagerHelper.fullName,
     },
     page: {
@@ -111,28 +111,28 @@
             if (data && data.labels) {
                 renderDailyChart(data);
             }
-        });
+        }, {campaignId: '{{ campaignId }}'});
 
         // Channel distribution chart
         window.lrLoadChartData('channels', function(data) {
             if (data && data.labels && data.labels.length > 0) {
                 renderChannelChart(data);
             }
-        });
+        }, {campaignId: '{{ campaignId }}'});
 
         // Engagement over time chart
         window.lrLoadChartData('engagement', function(data) {
             if (data && data.labels) {
                 renderEngagementChart(data);
             }
-        });
+        }, {campaignId: '{{ campaignId }}'});
 
         // Conversion funnel chart
         window.lrLoadChartData('funnel', function(data) {
             if (data && data.labels) {
                 renderFunnelChart(data);
             }
-        });
+        }, {campaignId: '{{ campaignId }}'});
     }
 
     // Chart rendering functions

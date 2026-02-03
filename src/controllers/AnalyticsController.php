@@ -95,6 +95,7 @@ class AnalyticsController extends Controller
             'campaignOptions' => $campaignOptions,
             'campaignBreakdown' => $campaignBreakdown,
             'sites' => $sites,
+            'pluginHandle' => CampaignManager::$plugin->id,
         ]);
     }
 
@@ -237,102 +238,34 @@ class AnalyticsController extends Controller
         // Build filename
         $settings = CampaignManager::$plugin->getSettings();
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $extension = $format === 'xlsx' ? 'xlsx' : $format;
-        $filename = ExportHelper::filename($settings, ['analytics', $dateRangeLabel], $extension);
+        $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
+        $filenameParts = ['analytics'];
+
+        if (is_int($campaignId)) {
+            $campaign = CampaignManager::$plugin->campaigns->getCampaignById($campaignId);
+            if ($campaign) {
+                $campaignSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($campaign->title ?? 'campaign'));
+                $filenameParts[] = $campaignSlug;
+            }
+        }
+
+        if (is_int($siteId)) {
+            $site = Craft::$app->getSites()->getSiteById($siteId);
+            if ($site) {
+                $siteHandle = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
+                $filenameParts[] = $siteHandle;
+            }
+        }
+
+        $filenameParts[] = $dateRangeLabel;
+
+        $filename = ExportHelper::filename($settings, $filenameParts, $extension);
 
         return match ($format) {
             'csv' => ExportHelper::toCsv($rows, $headers, $filename),
             'json' => ExportHelper::toJson($rows, $filename),
             'xlsx', 'excel' => ExportHelper::toExcel($rows, $headers, $filename, [], [
                 'sheetTitle' => 'Analytics',
-            ]),
-            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
-        };
-    }
-
-    /**
-     * Export per-campaign analytics data
-     *
-     * @return Response
-     * @throws BadRequestHttpException
-     * @since 5.1.0
-     */
-    public function actionExportCampaign(): Response
-    {
-        $this->requirePermission('campaignManager:viewRecipients');
-
-        $request = Craft::$app->getRequest();
-        $campaignId = $request->getQueryParam('campaignId');
-        // Accept both 'range' and 'dateRange' parameter names
-        $dateRange = $request->getQueryParam('range') ?? $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
-        $format = $request->getQueryParam('format', 'csv');
-
-        if (!$campaignId) {
-            throw new BadRequestHttpException('Campaign ID is required.');
-        }
-
-        // Validate format is enabled
-        if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
-            throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
-        }
-
-        $campaignId = (int)$campaignId;
-        $analyticsService = CampaignManager::$plugin->analytics;
-
-        // Get campaign
-        $campaign = CampaignManager::$plugin->campaigns->getCampaignById($campaignId);
-        if (!$campaign) {
-            throw new BadRequestHttpException('Campaign not found.');
-        }
-
-        // Get recipients with responses for detailed export
-        $recipients = CampaignManager::$plugin->recipients->getWithSubmissions($campaignId, null, $dateRange);
-
-        // Check for empty data
-        if (empty($recipients)) {
-            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No response data to export for this campaign.'));
-            return $this->redirect("campaign-manager/campaigns/{$campaignId}#analytics");
-        }
-
-        // Build export rows
-        $rows = [];
-        foreach ($recipients as $recipient) {
-            $site = Craft::$app->getSites()->getSiteById($recipient->siteId);
-            $rows[] = [
-                'name' => $recipient->name ?? '',
-                'email' => $recipient->email ?? '',
-                'phone' => $recipient->sms ?? '',
-                'site' => $site ? $site->name : '',
-                'sentDate' => $recipient->smsSendDate ?? $recipient->emailSendDate ?? '',
-                'openedDate' => $recipient->smsOpenDate ?? $recipient->emailOpenDate ?? '',
-                'respondedDate' => $recipient->submission?->dateCreated ?? '',
-            ];
-        }
-
-        $headers = [
-            Craft::t('campaign-manager', 'Name'),
-            Craft::t('campaign-manager', 'Email'),
-            Craft::t('campaign-manager', 'Phone'),
-            Craft::t('campaign-manager', 'Site'),
-            Craft::t('campaign-manager', 'Sent Date'),
-            Craft::t('campaign-manager', 'Opened Date'),
-            Craft::t('campaign-manager', 'Responded Date'),
-        ];
-
-        // Build filename
-        $settings = CampaignManager::$plugin->getSettings();
-        $campaignSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($campaign->title ?? 'campaign'));
-        $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $extension = $format === 'xlsx' ? 'xlsx' : $format;
-        $filename = ExportHelper::filename($settings, [$campaignSlug, 'responses', $dateRangeLabel], $extension);
-
-        $dateColumns = ['sentDate', 'openedDate', 'respondedDate'];
-
-        return match ($format) {
-            'csv' => ExportHelper::toCsv($rows, $headers, $filename, $dateColumns),
-            'json' => ExportHelper::toJson($rows, $filename, $dateColumns),
-            'xlsx', 'excel' => ExportHelper::toExcel($rows, $headers, $filename, $dateColumns, [
-                'sheetTitle' => 'Responses',
             ]),
             default => throw new BadRequestHttpException("Unknown export format: {$format}"),
         };

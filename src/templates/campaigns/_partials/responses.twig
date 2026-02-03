@@ -18,14 +18,7 @@
 {% endfor %}
 
 {# Date range options #}
-{% set dateRangeOptions = [
-    {value: 'all', label: 'All Time'|t('campaign-manager')},
-    {value: 'today', label: 'Today'|t('campaign-manager')},
-    {value: 'yesterday', label: 'Yesterday'|t('campaign-manager')},
-    {value: 'last7days', label: 'Last 7 Days'|t('campaign-manager')},
-    {value: 'last30days', label: 'Last 30 Days'|t('campaign-manager')},
-    {value: 'last90days', label: 'Last 90 Days'|t('campaign-manager')},
-] %}
+{% set dateRangeOptions = lrDateRangeOptions() %}
 
 {# Get recipients with submissions #}
 {% set filterSiteId = siteFilter != 'all' ? siteFilter|number : null %}
@@ -193,10 +186,11 @@
             </div>
 
             {# Export #}
-            {% if currentUser.can('campaignManager:viewRecipients') %}
+            {% if currentUser.can('campaignManager:exportRecipients') %}
                 {% include 'lindemannrock-base/_components/export-menu' with {
                     action: 'campaign-manager/recipients/export-responses',
-                    permission: 'campaignManager:viewRecipients',
+                    permission: 'campaignManager:exportRecipients',
+                    pluginHandle: pluginHandle,
                     extraParams: {campaignId: campaign.id, siteFilter: siteFilter, dateRange: dateRange},
                 } only %}
             {% endif %}

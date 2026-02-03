@@ -526,7 +526,7 @@ class CampaignManager extends Plugin
 
             // Recipients (global view)
             'campaign-manager/recipients' => 'campaign-manager/recipients/global-index',
-            'campaign-manager/recipients/export' => 'campaign-manager/recipients/export-global',
+            'campaign-manager/recipients/export' => 'campaign-manager/recipients/export',
 
             // Recipients (campaign-specific)
             'campaign-manager/campaigns/<campaignId:\d+>/recipients' => 'campaign-manager/recipients/index',
@@ -539,7 +539,6 @@ class CampaignManager extends Plugin
             // Analytics
             'campaign-manager/analytics' => 'campaign-manager/analytics/index',
             'campaign-manager/analytics/export' => 'campaign-manager/analytics/export',
-            'campaign-manager/analytics/export-campaign' => 'campaign-manager/analytics/export-campaign',
 
             // Logs
             'campaign-manager/logs' => 'logging-library/logs/index',

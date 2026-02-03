@@ -68,9 +68,13 @@ class RecipientsService extends Component
             ->orderBy(['dateCreated' => SORT_DESC]);
 
         if ($dateRange !== 'all') {
-            $dates = $this->getDateRangeFromParam($dateRange);
-            $query->andWhere(['>=', 'dateCreated', $dates['start']->format('Y-m-d 00:00:00')])
-                ->andWhere(['<=', 'dateCreated', $dates['end']->format('Y-m-d 23:59:59')]);
+            $bounds = DateRangeHelper::getBounds($dateRange);
+            if ($bounds['start']) {
+                $query->andWhere(['>=', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
+            }
+            if ($bounds['end']) {
+                $query->andWhere(['<', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
+            }
         }
 
         /** @var RecipientRecord[] $result */
@@ -367,12 +371,12 @@ class RecipientsService extends Component
 
         // Calculate date range bounds
         $startDate = null;
-        $endDate = new \DateTime();
+        $endDate = null;
 
         if ($dateRange !== 'all') {
-            $dates = $this->getDateRangeFromParam($dateRange);
-            $startDate = $dates['start'];
-            $endDate = $dates['end'];
+            $bounds = DateRangeHelper::getBounds($dateRange);
+            $startDate = $bounds['start'];
+            $endDate = $bounds['end'];
         }
 
         // Eager load submissions and filter by date range
@@ -386,7 +390,11 @@ class RecipientsService extends Component
                 // Filter by date range if applicable
                 if ($startDate !== null && $submission) {
                     $submissionDate = $submission->dateCreated;
-                    if ($submissionDate >= $startDate && $submissionDate <= $endDate) {
+                    if ($endDate !== null) {
+                        if ($submissionDate >= $startDate && $submissionDate < $endDate) {
+                            $filteredRecipients[] = $recipient;
+                        }
+                    } elseif ($submissionDate >= $startDate) {
                         $filteredRecipients[] = $recipient;
                     }
                 } else {

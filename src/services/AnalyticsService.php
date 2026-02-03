@@ -71,7 +71,7 @@ class AnalyticsService extends Component
     public function getOverviewStats(int|string $campaignId, int|string $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dates['start'], $dates['end']);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
         // Total recipients
         $totalRecipients = (clone $query)->count();
@@ -144,7 +144,7 @@ class AnalyticsService extends Component
     public function getDailyTrend(int|string $campaignId, int|string $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dates['start'], $dates['end']);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
         // Get daily counts
         $data = (clone $query)
@@ -199,7 +199,7 @@ class AnalyticsService extends Component
     public function getChannelDistribution(int|string $campaignId, int|string $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dates['start'], $dates['end']);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
         // Email only (email sent, SMS not sent)
         $emailOnly = (clone $query)
@@ -241,7 +241,7 @@ class AnalyticsService extends Component
     public function getEngagementOverTime(int|string $campaignId, int|string $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dates['start'], $dates['end']);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
         // Get daily opens
         $emailOpens = (clone $query)
@@ -296,7 +296,7 @@ class AnalyticsService extends Component
     public function getConversionFunnel(int|string $campaignId, int|string $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dates['start'], $dates['end']);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
         $totalRecipients = (clone $query)->count();
 
@@ -361,7 +361,7 @@ class AnalyticsService extends Component
 
         $result = [];
         foreach ($campaigns as $campaign) {
-            $query = $this->buildRecipientQuery($campaign->id, $siteId, $dates['start'], $dates['end']);
+            $query = $this->buildRecipientQuery($campaign->id, $siteId, $dateRange);
 
             $totalRecipients = (clone $query)->count();
             $submissions = (clone $query)
@@ -438,7 +438,7 @@ class AnalyticsService extends Component
     public function getCampaignDailyTrend(int $campaignId, ?int $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dates['start'], $dates['end']);
+        $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dateRange);
 
         // Get daily sent counts (using send dates, not dateCreated)
         $sentData = [];
@@ -536,16 +536,21 @@ class AnalyticsService extends Component
      *
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string $siteId Site ID or 'all'
-     * @param \DateTime $startDate Start date
-     * @param \DateTime $endDate End date
+     * @param string $dateRange Date range parameter
      * @return Query
      */
-    private function buildRecipientQuery(int|string $campaignId, int|string $siteId, \DateTime $startDate, \DateTime $endDate): Query
+    private function buildRecipientQuery(int|string $campaignId, int|string $siteId, string $dateRange): Query
     {
         $query = (new Query())
-            ->from(RecipientRecord::tableName())
-            ->where(['>=', 'dateCreated', $startDate->format('Y-m-d 00:00:00')])
-            ->andWhere(['<=', 'dateCreated', $endDate->format('Y-m-d 23:59:59')]);
+            ->from(RecipientRecord::tableName());
+
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        if ($bounds['start']) {
+            $query->andWhere(['>=', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
+        }
+        if ($bounds['end']) {
+            $query->andWhere(['<', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
+        }
 
         if ($campaignId !== 'all') {
             $query->andWhere(['campaignId' => $campaignId]);

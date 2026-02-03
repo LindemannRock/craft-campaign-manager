@@ -9,7 +9,7 @@
  #}
 
 {# Get date range from URL #}
-{% set dateRange = craft.app.request.getQueryParam('range') ?? 'last30days' %}
+{% set dateRange = craft.app.request.getQueryParam('dateRange') ?? craft.app.request.getQueryParam('range') ?? 'last30days' %}
 
 {# Get analytics data for this campaign #}
 {% set stats = craft.campaignManager.analytics.getCampaignStats(campaign.id, null, dateRange) %}
@@ -17,16 +17,17 @@
 
 {% embed 'lindemannrock-base/_partials/analytics-panel' with {
     config: {
+        pluginHandle: pluginHandle,
         dateRange: {
             enabled: true,
             current: dateRange,
-            param: 'range',
+            param: 'dateRange',
             hash: 'analytics',
         },
         export: {
-            action: 'campaign-manager/analytics/export-campaign',
-            permission: 'campaignManager:viewRecipients',
-            extraParams: {campaignId: campaign.id},
+            action: 'campaign-manager/analytics/export',
+            permission: 'campaignManager:exportAnalytics',
+            extraParams: {campaign: campaign.id},
         },
     }
 } %}

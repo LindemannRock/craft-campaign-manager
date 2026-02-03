@@ -43,6 +43,21 @@ class RecipientsController extends Controller
         $this->requirePermission('campaignManager:viewRecipients');
 
         $settings = CampaignManager::$plugin->getSettings();
+        $request = Craft::$app->getRequest();
+
+        $search = $request->getParam('search', '');
+        $campaignFilter = $request->getParam('campaign', 'all');
+        $statusFilter = $request->getParam('status', 'all');
+        $siteFilter = $request->getParam('siteFilter', 'all');
+        $dateRange = $request->getParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
+        $sort = $request->getParam('sort', 'sent');
+        $dir = $request->getParam('dir', 'desc');
+        $page = (int)$request->getParam('page', 1);
+        if ($page < 1) {
+            $page = 1;
+        }
+        $limit = 50;
+        $offset = ($page - 1) * $limit;
 
         // Get all campaigns for filter dropdown
         $campaigns = \lindemannrock\campaignmanager\elements\Campaign::find()
@@ -57,15 +72,83 @@ class RecipientsController extends Controller
             ];
         }
 
-        // Get all recipients
-        $recipients = RecipientRecord::find()
-            ->orderBy(['dateCreated' => SORT_DESC])
+        $query = RecipientRecord::find();
+
+        if ($campaignFilter !== 'all') {
+            $query->andWhere(['campaignId' => $campaignFilter]);
+        }
+
+        if ($siteFilter !== 'all') {
+            $query->andWhere(['siteId' => $siteFilter]);
+        }
+
+        if ($statusFilter === 'pending') {
+            $query->andWhere(['smsSendDate' => null])
+                ->andWhere(['emailSendDate' => null]);
+        } elseif ($statusFilter === 'sent') {
+            $query->andWhere(['or',
+                ['not', ['smsSendDate' => null]],
+                ['not', ['emailSendDate' => null]],
+            ]);
+        }
+
+        if ($dateRange !== 'all') {
+            $bounds = DateRangeHelper::getBounds($dateRange);
+            if ($bounds['start']) {
+                $query->andWhere(['>=', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
+            }
+            if ($bounds['end']) {
+                $query->andWhere(['<', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
+            }
+        }
+
+        if ($search !== '') {
+            $query->andWhere(['or',
+                ['like', 'name', $search],
+                ['like', 'email', $search],
+                ['like', 'sms', $search],
+            ]);
+        }
+
+        $direction = strtolower($dir) === 'asc' ? 'ASC' : 'DESC';
+        $sortField = match ($sort) {
+            'name' => 'name',
+            'campaign' => 'campaignId',
+            'sent' => 'sent',
+            'opened' => 'opened',
+            'dateCreated' => 'dateCreated',
+            default => 'sent',
+        };
+
+        if ($sortField === 'sent') {
+            $query->orderBy(new \yii\db\Expression('COALESCE([[smsSendDate]], [[emailSendDate]]) ' . $direction));
+        } elseif ($sortField === 'opened') {
+            $query->orderBy(new \yii\db\Expression('COALESCE([[smsOpenDate]], [[emailOpenDate]]) ' . $direction));
+        } else {
+            $query->orderBy([$sortField => $direction === 'ASC' ? SORT_ASC : SORT_DESC]);
+        }
+
+        $totalCount = (clone $query)->count();
+        $recipients = $query
+            ->offset($offset)
+            ->limit($limit)
             ->all();
 
         return $this->renderTemplate('campaign-manager/recipients/index', [
             'recipients' => $recipients,
+            'totalCount' => $totalCount,
+            'page' => $page,
+            'limit' => $limit,
+            'search' => $search,
+            'campaignFilter' => $campaignFilter,
+            'statusFilter' => $statusFilter,
+            'siteFilterParam' => $siteFilter,
+            'dateRange' => $dateRange,
+            'sort' => $sort,
+            'dir' => strtolower($dir),
             'campaignOptions' => $campaignOptions,
             'settings' => $settings,
+            'pluginHandle' => CampaignManager::$plugin->id,
             'defaultDateRange' => DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id),
         ]);
     }
@@ -76,7 +159,7 @@ class RecipientsController extends Controller
      * @throws BadRequestHttpException
      * @since 5.1.0
      */
-    public function actionExportGlobal(): Response
+    public function actionExport(): Response
     {
         $this->requireLogin();
         $this->requirePermission('campaignManager:exportRecipients');
@@ -120,9 +203,13 @@ class RecipientsController extends Controller
 
         // Date range filter
         if ($dateRange !== 'all') {
-            $dates = $this->getDateRangeFromParam($dateRange);
-            $query->andWhere(['>=', 'dateCreated', $dates['start']->format('Y-m-d 00:00:00')])
-                ->andWhere(['<=', 'dateCreated', $dates['end']->format('Y-m-d 23:59:59')]);
+            $bounds = DateRangeHelper::getBounds($dateRange);
+            if ($bounds['start']) {
+                $query->andWhere(['>=', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
+            }
+            if ($bounds['end']) {
+                $query->andWhere(['<', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
+            }
         }
 
         /** @var RecipientRecord[] $recipients */
@@ -183,8 +270,37 @@ class RecipientsController extends Controller
         // Build filename
         $settings = CampaignManager::$plugin->getSettings();
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $extension = $format === 'xlsx' ? 'xlsx' : $format;
-        $filename = ExportHelper::filename($settings, ['recipients', $dateRangeLabel], $extension);
+        $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
+        $filenameParts = ['recipients'];
+
+        if ($campaignFilter !== 'all') {
+            $campaign = CampaignManager::$plugin->campaigns->getCampaignById((int)$campaignFilter);
+            if ($campaign) {
+                $campaignSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($campaign->title ?? 'campaign'));
+                $filenameParts[] = $campaignSlug;
+            }
+        }
+
+        if ($siteFilter !== 'all') {
+            $site = null;
+            if (is_numeric($siteFilter)) {
+                $site = Craft::$app->getSites()->getSiteById((int)$siteFilter);
+            } else {
+                $site = Craft::$app->getSites()->getSiteByHandle((string)$siteFilter);
+            }
+            if ($site) {
+                $siteHandle = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
+                $filenameParts[] = $siteHandle;
+            }
+        }
+
+        if ($statusFilter !== 'all') {
+            $filenameParts[] = strtolower($statusFilter);
+        }
+
+        $filenameParts[] = $dateRangeLabel;
+
+        $filename = ExportHelper::filename($settings, $filenameParts, $extension);
 
         $dateColumns = ['emailSendDate', 'smsSendDate', 'emailOpenDate', 'smsOpenDate', 'dateCreated'];
 
@@ -319,9 +435,27 @@ class RecipientsController extends Controller
 
         // Build filename
         $settings = CampaignManager::$plugin->getSettings();
-        $extension = $format === 'xlsx' ? 'xlsx' : $format;
+        $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $filename = ExportHelper::filename($settings, ['responses', 'campaign-' . $campaignId, $dateRangeLabel], $extension);
+        $campaignSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($campaign->title ?? 'campaign'));
+        $filenameParts = ['responses', $campaignSlug];
+
+        if ($siteFilter !== 'all') {
+            $site = null;
+            if (is_numeric($siteFilter)) {
+                $site = Craft::$app->getSites()->getSiteById((int)$siteFilter);
+            } else {
+                $site = Craft::$app->getSites()->getSiteByHandle((string)$siteFilter);
+            }
+            if ($site) {
+                $siteHandle = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
+                $filenameParts[] = $siteHandle;
+            }
+        }
+
+        $filenameParts[] = $dateRangeLabel;
+
+        $filename = ExportHelper::filename($settings, $filenameParts, $extension);
 
         $dateColumns = ['submitted'];
 
@@ -1450,10 +1584,6 @@ class RecipientsController extends Controller
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
         }
 
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $startDate = $dates['start'];
-        $endDate = $dates['end'];
-
         $query = RecipientRecord::find()
             ->where([
                 'campaignId' => $campaignId,
@@ -1462,8 +1592,13 @@ class RecipientsController extends Controller
             ->orderBy(['dateCreated' => SORT_DESC]);
 
         if ($dateRange !== 'all') {
-            $query->andWhere(['>=', 'dateCreated', $startDate->format('Y-m-d 00:00:00')])
-                ->andWhere(['<=', 'dateCreated', $endDate->format('Y-m-d 23:59:59')]);
+            $bounds = DateRangeHelper::getBounds($dateRange);
+            if ($bounds['start']) {
+                $query->andWhere(['>=', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
+            }
+            if ($bounds['end']) {
+                $query->andWhere(['<', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
+            }
         }
 
         /** @var RecipientRecord[] $recipients */
@@ -1508,7 +1643,7 @@ class RecipientsController extends Controller
         // Build filename
         $settings = CampaignManager::$plugin->getSettings();
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $extension = $format === 'xlsx' ? 'xlsx' : $format;
+        $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
         $filename = ExportHelper::filename($settings, ['recipients', 'campaign-' . $campaignId, $dateRangeLabel], $extension);
 
         $dateColumns = ['emailSendDate', 'smsSendDate', 'emailOpenDate', 'smsOpenDate', 'dateCreated'];
@@ -1533,24 +1668,6 @@ class RecipientsController extends Controller
             ]),
             default => throw new BadRequestHttpException("Unknown export format: {$format}"),
         };
-    }
-
-    /**
-     * Get date range from parameter
-     *
-     * @param string $dateRange Date range parameter
-     * @return array{start: \DateTime, end: \DateTime}
-     */
-    private function getDateRangeFromParam(string $dateRange): array
-    {
-        // Use centralized DateRangeHelper for full date range support
-        // (today, yesterday, last7days, last30days, last90days, thisMonth, lastMonth, thisYear, lastYear, all)
-        $bounds = DateRangeHelper::getBounds($dateRange);
-
-        return [
-            'start' => $bounds['start'] ?? new \DateTime('-30 days'),
-            'end' => $bounds['end'] ?? new \DateTime(),
-        ];
     }
 
     /**
