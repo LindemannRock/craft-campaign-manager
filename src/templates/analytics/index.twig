@@ -89,9 +89,14 @@
    ============================================================================ #}
 
 {% block scripts %}
-<script>
+<script data-analytics-reinit="true">
 (function() {
     'use strict';
+
+    if (window.lrCampaignManagerAnalyticsBound) {
+        return;
+    }
+    window.lrCampaignManagerAnalyticsBound = true;
 
     // Chart colors
     const chartColors = window.lrChartColors || [
@@ -101,38 +106,62 @@
 
     // Initialize on analytics init event
     document.addEventListener('lr:analyticsInit', function(e) {
-        loadAllChartData();
+        const config = e.detail && e.detail.config ? e.detail.config : (window.lrAnalyticsConfig || {});
+        const campaignId = config.customFilters ? config.customFilters.campaign : null;
+        loadAllChartData(campaignId);
     });
 
     // Load all chart data
-    function loadAllChartData() {
+    function loadAllChartData(campaignId) {
+        const extraParams = {};
+        if (campaignId && campaignId !== 'all') {
+            extraParams.campaignId = campaignId;
+        }
         // Daily trend chart
         window.lrLoadChartData('daily', function(data) {
             if (data && data.labels) {
                 renderDailyChart(data);
             }
-        }, {campaignId: '{{ campaignId }}'});
+        }, extraParams);
 
         // Channel distribution chart
         window.lrLoadChartData('channels', function(data) {
             if (data && data.labels && data.labels.length > 0) {
                 renderChannelChart(data);
             }
-        }, {campaignId: '{{ campaignId }}'});
+        }, extraParams);
 
         // Engagement over time chart
         window.lrLoadChartData('engagement', function(data) {
             if (data && data.labels) {
                 renderEngagementChart(data);
             }
-        }, {campaignId: '{{ campaignId }}'});
+        }, extraParams);
 
         // Conversion funnel chart
         window.lrLoadChartData('funnel', function(data) {
             if (data && data.labels) {
                 renderFunnelChart(data);
             }
-        }, {campaignId: '{{ campaignId }}'});
+        }, extraParams);
+    }
+
+    function destroyChart(canvasId) {
+        const config = window.lrAnalyticsConfig || {};
+        const prefix = config.prefix || 'analytics';
+        const chartKey = canvasId.replace(/-/g, '_');
+        if (window.lrChartInstances && window.lrChartInstances[prefix] && window.lrChartInstances[prefix][chartKey]) {
+            window.lrChartInstances[prefix][chartKey].destroy();
+            delete window.lrChartInstances[prefix][chartKey];
+        }
+    }
+
+    function resetChartState(canvas) {
+        if (!canvas) return;
+        canvas.style.display = '';
+        const parent = canvas.parentNode;
+        if (!parent) return;
+        parent.querySelectorAll('.zilch').forEach(el => el.remove());
     }
 
     // Chart rendering functions
@@ -141,7 +170,9 @@
         const hasRecipients = data.recipients && data.recipients.some(v => v > 0);
         const hasSubmissions = data.submissions && data.submissions.some(v => v > 0);
         const canvas = document.getElementById('daily-trend-chart');
+        resetChartState(canvas);
         if (!hasRecipients && !hasSubmissions && canvas) {
+            destroyChart('daily-trend-chart');
             canvas.style.display = 'none';
             const emptyMsg = document.createElement('div');
             emptyMsg.className = 'zilch';
@@ -181,7 +212,9 @@
         // Check if all values are 0 - show empty state instead
         const hasData = data.values && data.values.some(v => v > 0);
         const canvas = document.getElementById('channel-chart');
+        resetChartState(canvas);
         if (!hasData && canvas) {
+            destroyChart('channel-chart');
             canvas.style.display = 'none';
             const emptyMsg = document.createElement('div');
             emptyMsg.className = 'zilch';
@@ -205,7 +238,9 @@
         const hasEmailOpens = data.emailOpens && data.emailOpens.some(v => v > 0);
         const hasSmsOpens = data.smsOpens && data.smsOpens.some(v => v > 0);
         const canvas = document.getElementById('engagement-chart');
+        resetChartState(canvas);
         if (!hasEmailOpens && !hasSmsOpens && canvas) {
+            destroyChart('engagement-chart');
             canvas.style.display = 'none';
             const emptyMsg = document.createElement('div');
             emptyMsg.className = 'zilch';
@@ -245,7 +280,9 @@
         // Check if all values are 0 - show empty state instead
         const hasData = data.values && data.values.some(v => v > 0);
         const canvas = document.getElementById('funnel-chart');
+        resetChartState(canvas);
         if (!hasData && canvas) {
+            destroyChart('funnel-chart');
             canvas.style.display = 'none';
             const emptyMsg = document.createElement('div');
             emptyMsg.className = 'zilch';
