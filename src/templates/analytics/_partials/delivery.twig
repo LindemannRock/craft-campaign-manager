@@ -1,32 +1,29 @@
 {# Delivery Tab - Delivery metrics and channel breakdown #}
 
 {# Delivery Stats Grid #}
-<div class="lr-analytics-stats">
-    {% include 'lindemannrock-base/_components/stat-box' with {
+<div class="lr-unified-cards">
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.emailsSent,
-        label: 'Emails Sent'|t('campaign-manager'),
-        id: 'emails-sent',
-        color: '#3b82f6',
+        description: 'Emails Sent'|t('campaign-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.smsSent,
-        label: 'SMS Sent'|t('campaign-manager'),
-        id: 'sms-sent',
-        color: '#8b5cf6',
+        description: 'SMS Sent'|t('campaign-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.totalSent,
-        label: 'Total Invitations'|t('campaign-manager'),
-        id: 'total-invitations',
+        description: 'Total Invitations'|t('campaign-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.expired,
-        label: 'Expired'|t('campaign-manager'),
-        id: 'total-expired',
-        color: '#ef4444',
+        description: 'Expired'|t('campaign-manager'),
+        align: 'center',
     } only %}
 </div>
 

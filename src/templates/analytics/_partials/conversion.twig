@@ -1,33 +1,29 @@
 {# Conversion Tab - Response funnel and conversion metrics #}
 
 {# Conversion Stats Grid #}
-<div class="lr-analytics-stats">
-    {% include 'lindemannrock-base/_components/stat-box' with {
+<div class="lr-unified-cards">
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.totalRecipients,
-        label: 'Total Recipients'|t('campaign-manager'),
-        id: 'conv-total-recipients',
+        description: 'Total Recipients'|t('campaign-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.totalOpened,
-        label: 'Opened Invitations'|t('campaign-manager'),
-        id: 'conv-opened',
-        color: '#8b5cf6',
+        description: 'Opened Invitations'|t('campaign-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.submissions,
-        label: 'Form Responses'|t('campaign-manager'),
-        id: 'conv-responses',
-        color: '#10b981',
+        description: 'Form Responses'|t('campaign-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
-        value: summaryStats.conversionRate,
-        label: 'Conversion Rate'|t('campaign-manager'),
-        id: 'conv-rate',
-        suffix: '%',
-        color: '#10b981',
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        value: summaryStats.conversionRate ~ '%',
+        description: 'Conversion Rate'|t('campaign-manager'),
+        align: 'center',
     } only %}
 </div>
 

@@ -11,14 +11,12 @@
     {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.totalSent,
         description: 'Invitations Sent'|t('campaign-manager'),
-        valueColor: lrPaletteColor('blue').color,
         align: 'center',
     } only %}
 
     {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.submissions,
         description: 'Form Responses'|t('campaign-manager'),
-        valueColor: lrPaletteColor('emerald').color,
         align: 'center',
     } only %}
 

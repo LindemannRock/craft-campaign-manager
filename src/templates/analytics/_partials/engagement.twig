@@ -1,33 +1,29 @@
 {# Engagement Tab - Open rates and engagement metrics #}
 
 {# Engagement Stats Grid #}
-<div class="lr-analytics-stats">
-    {% include 'lindemannrock-base/_components/stat-box' with {
+<div class="lr-unified-cards">
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.emailsOpened,
-        label: 'Emails Opened'|t('campaign-manager'),
-        id: 'emails-opened',
-        color: '#3b82f6',
+        description: 'Emails Opened'|t('campaign-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
         value: summaryStats.smsOpened,
-        label: 'SMS Opened'|t('campaign-manager'),
-        id: 'sms-opened',
-        color: '#8b5cf6',
+        description: 'SMS Opened'|t('campaign-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
-        value: summaryStats.emailOpenRate,
-        label: 'Email Open Rate'|t('campaign-manager'),
-        id: 'email-open-rate',
-        suffix: '%',
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        value: summaryStats.emailOpenRate ~ '%',
+        description: 'Email Open Rate'|t('campaign-manager'),
+        align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/stat-box' with {
-        value: summaryStats.smsOpenRate,
-        label: 'SMS Open Rate'|t('campaign-manager'),
-        id: 'sms-open-rate',
-        suffix: '%',
+    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        value: summaryStats.smsOpenRate ~ '%',
+        description: 'SMS Open Rate'|t('campaign-manager'),
+        align: 'center',
     } only %}
 </div>
 

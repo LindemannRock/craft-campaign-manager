@@ -32,36 +32,35 @@
 } %}
     {% block content %}
         {# Summary Stats #}
-        <div class="lr-analytics-stats">
-            {% include 'lindemannrock-base/_components/stat-box' with {
+        <div class="lr-unified-cards">
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
                 value: stats.totalRecipients,
-                label: 'Recipients'|t('campaign-manager'),
+                description: 'Recipients'|t('campaign-manager'),
+                align: 'center',
             } only %}
 
-            {% include 'lindemannrock-base/_components/stat-box' with {
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
                 value: stats.totalSent,
-                label: 'Sent'|t('campaign-manager'),
-                sublabel: stats.totalRecipients > 0 ? ((stats.totalSent / stats.totalRecipients) * 100)|round(1) ~ '% ' ~ 'of recipients'|t('campaign-manager') : null,
+                description: 'Sent'|t('campaign-manager'),
+                align: 'center',
             } only %}
 
-            {% include 'lindemannrock-base/_components/stat-box' with {
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
                 value: stats.totalOpened,
-                label: 'Opened'|t('campaign-manager'),
-                sublabel: stats.totalSent > 0 ? ((stats.totalOpened / stats.totalSent) * 100)|round(1) ~ '% ' ~ 'open rate'|t('campaign-manager') : null,
+                description: 'Opened'|t('campaign-manager'),
+                align: 'center',
             } only %}
 
-            {% include 'lindemannrock-base/_components/stat-box' with {
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
                 value: stats.submissions,
-                label: 'Responses'|t('campaign-manager'),
-                sublabel: stats.totalRecipients > 0 ? ((stats.submissions / stats.totalRecipients) * 100)|round(1) ~ '% ' ~ 'conversion'|t('campaign-manager') : null,
-                color: '#10b981',
+                description: 'Responses'|t('campaign-manager'),
+                align: 'center',
             } only %}
 
-            {% include 'lindemannrock-base/_components/stat-box' with {
-                value: stats.conversionRate,
-                label: 'Conversion Rate'|t('campaign-manager'),
-                suffix: '%',
-                color: '#10b981',
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: stats.conversionRate ~ '%',
+                description: 'Conversion Rate'|t('campaign-manager'),
+                align: 'center',
             } only %}
         </div>
 
