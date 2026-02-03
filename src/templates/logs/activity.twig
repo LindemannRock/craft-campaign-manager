@@ -31,13 +31,12 @@
             {key: 'date', label: 'Date'|t('campaign-manager')},
             {key: 'user', label: 'User'|t('campaign-manager')},
             {key: 'actionLabel', label: 'Action'|t('campaign-manager')},
-            {key: 'summary', label: 'Summary'|t('campaign-manager')},
             {key: 'campaignName', label: 'Campaign'|t('campaign-manager')},
-            {key: 'recipientLabel', label: 'Recipient'|t('campaign-manager')},
             {key: 'source', label: 'Source'|t('campaign-manager')},
         ],
         items: logs ?? [],
         emptyMessage: 'No activity logs found yet.'|t('campaign-manager'),
+        expandable: true,
     },
     pagination: pagination ? {
         page: pagination.page,
@@ -68,7 +67,6 @@
     <td>{{ item.date }}</td>
     <td>{{ item.user }}</td>
     <td>{{ item.actionLabel }}</td>
-    <td>{{ item.summary }}</td>
     <td>
         {% if item.campaignUrl %}
             <a href="{{ item.campaignUrl }}">{{ item.campaignName }}</a>
@@ -78,14 +76,86 @@
             <span class="light">—</span>
         {% endif %}
     </td>
-    <td>
-        {% if item.recipientLabel %}
-            {{ item.recipientLabel }}
-        {% else %}
-            <span class="light">—</span>
-        {% endif %}
-    </td>
     <td>{{ item.source|title }}</td>
+{% endblock %}
+
+{% block expandableRow %}
+    {% set d = item.details %}
+    {% set action = item.action %}
+
+    <div style="font-size: 13px; color: #374151; line-height: 1.6;">
+        {# Recipient added #}
+        {% if action == 'recipient_added' %}
+            {{ 'Added'|t('campaign-manager') }} <strong>{{ d.name ?? 'recipient' }}</strong>
+            {% if d.email %} ({{ d.email }}){% endif %}
+            {% if d.sms %} · {{ d.sms }}{% endif %}
+            {% if d.siteName %} · {{ 'Site'|t('campaign-manager') }}: {{ d.siteName }}{% endif %}
+            {% if d.sendInvitation %}<br><span style="color: #059669;">✓ {{ 'Invitation queued'|t('campaign-manager') }}</span>{% endif %}
+
+        {# Recipient(s) deleted #}
+        {% elseif action in ['recipient_deleted', 'recipients_deleted'] %}
+            {{ 'Deleted'|t('campaign-manager') }}:
+            {% if d.recipients is defined and d.recipients is iterable and d.recipients|length %}
+                {% for r in d.recipients %}
+                    {% if r is iterable %}
+                        <strong>{{ r.name ?? r.email ?? r.sms ?? '?' }}</strong>{% if r.email is defined and r.name is defined and r.email and r.name %} ({{ r.email }}){% endif %}{% if not loop.last %}, {% endif %}
+                    {% else %}
+                        <strong>{{ r }}</strong>{% if not loop.last %}, {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% elseif d.name is defined or d.email is defined %}
+                <strong>{{ d.name ?? d.email ?? d.sms ?? '?' }}</strong>{% if d.email is defined and d.name is defined and d.email and d.name %} ({{ d.email }}){% endif %}
+            {% else %}
+                {{ d.count ?? 1 }} {{ 'recipient(s)'|t('campaign-manager') }}
+            {% endif %}
+
+        {# Recipients imported #}
+        {% elseif action == 'recipients_imported' %}
+            {{ 'Imported'|t('campaign-manager') }} <strong>{{ d.imported ?? '?' }}</strong> {{ 'recipients'|t('campaign-manager') }}
+            {% if d.fileName %} {{ 'from'|t('campaign-manager') }} <code style="background:#f3f4f6;padding:2px 6px;border-radius:3px;">{{ d.fileName }}</code>{% endif %}
+            {% if d.siteName %} · {{ 'Site'|t('campaign-manager') }}: {{ d.siteName }}{% endif %}
+            {% if d.failed and d.failed > 0 %}<br><span style="color: #dc2626;">✗ {{ d.failed }} {{ 'failed'|t('campaign-manager') }}</span>{% endif %}
+
+        {# Invitation batch sent #}
+        {% elseif action == 'invitations_sent_batch' %}
+            {{ 'Sent'|t('campaign-manager') }}
+            {% set parts = [] %}
+            {% if d.smsSent %} {% set parts = parts|merge([d.smsSent ~ ' SMS']) %}{% endif %}
+            {% if d.emailSent %}{% set parts = parts|merge([d.emailSent ~ ' ' ~ 'email'|t('campaign-manager')]) %}{% endif %}
+            <strong>{{ parts|join(' + ') }}</strong>
+            {% if d.siteName %} · {{ 'Site'|t('campaign-manager') }}: {{ d.siteName }}{% endif %}
+            {% if d.errors is defined and d.errors|length %}<br><span style="color: #dc2626;">✗ {{ d.errors|join(', ') }}</span>{% endif %}
+
+        {# Campaign batches queued #}
+        {% elseif action == 'campaign_batches_queued' %}
+            {{ 'Queued'|t('campaign-manager') }} <strong>{{ d.totalBatches ?? '?' }}</strong> {{ 'batches'|t('campaign-manager') }}
+            {% if d.totalRecipients %} ({{ d.totalRecipients }} {{ 'recipients'|t('campaign-manager') }}){% endif %}
+            {% if d.siteName %} · {{ 'Site'|t('campaign-manager') }}: {{ d.siteName }}{% endif %}
+
+        {# Campaigns queued #}
+        {% elseif action == 'campaigns_queued' %}
+            {{ 'Queued'|t('campaign-manager') }} <strong>{{ d.count ?? '?' }}</strong> {{ 'campaign job(s)'|t('campaign-manager') }}
+
+        {# Recipients exported #}
+        {% elseif action in ['recipients_exported', 'campaign_recipients_exported'] %}
+            {{ 'Exported'|t('campaign-manager') }} <strong>{{ d.count ?? '?' }}</strong> {{ 'records'|t('campaign-manager') }}
+            {% if d.format %} {{ 'as'|t('campaign-manager') }} {{ d.format|upper }}{% endif %}
+
+        {# Campaign created/updated #}
+        {% elseif action in ['campaign_created', 'campaign_updated'] %}
+            {% if d.title %}<strong>{{ d.title }}</strong>{% endif %}
+            {% if d.siteName %} · {{ 'Site'|t('campaign-manager') }}: {{ d.siteName }}{% endif %}
+
+        {# Campaign deleted #}
+        {% elseif action == 'campaign_deleted' %}
+            {{ 'Deleted campaign'|t('campaign-manager') }}: <strong>{{ d.title ?? '?' }}</strong>
+
+        {# Fallback - show key details #}
+        {% else %}
+            {% if d.count is defined %}{{ d.count }} {{ 'items'|t('campaign-manager') }}{% endif %}
+            {% if d.siteName %} · {{ d.siteName }}{% endif %}
+        {% endif %}
+    </div>
 {% endblock %}
 
 {% js %}
