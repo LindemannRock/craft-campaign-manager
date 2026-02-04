@@ -71,7 +71,7 @@
                 {# Daily Trend Chart #}
                 <div class="lr-chart-container">
                     <h3>{{ 'Daily Activity'|t('campaign-manager') }}</h3>
-                    <div style="height: 250px;">
+                    <div class="lr-chart-height-250">
                         <canvas id="campaign-daily-chart"></canvas>
                     </div>
                 </div>
@@ -79,7 +79,7 @@
                 {# Channel Breakdown #}
                 <div class="lr-chart-container">
                     <h3>{{ 'Channel Breakdown'|t('campaign-manager') }}</h3>
-                    <div style="height: 250px;">
+                    <div class="lr-chart-height-250">
                         <canvas id="campaign-channel-chart"></canvas>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
             {# Recent Responses #}
             {% set recentResponses = craft.campaignManager.recipients.getWithSubmissions(campaign.id, null, dateRange)|slice(0, 10) %}
             {% if recentResponses|length %}
-                <div class="lr-chart-container" style="margin-top: 24px;">
+                <div class="lr-chart-container lr-mt-24">
                     <h3>{{ 'Recent Responses'|t('campaign-manager') }}</h3>
                     <div class="lr-table-scroll">
                         <table class="data fullwidth">
@@ -97,7 +97,7 @@
                                     <th>{{ 'Recipient'|t('campaign-manager') }}</th>
                                     <th>{{ 'Email'|t('campaign-manager') }}</th>
                                     <th>{{ 'Site'|t('campaign-manager') }}</th>
-                                    <th style="text-align: right;">{{ 'Responded'|t('campaign-manager') }}</th>
+                                    <th class="lr-text-end">{{ 'Responded'|t('campaign-manager') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -109,7 +109,7 @@
                                             {% set recipientSite = craft.app.sites.getSiteById(recipient.siteId) %}
                                             {{ recipientSite ? recipientSite.name : '-' }}
                                         </td>
-                                        <td style="text-align: right;">
+                                        <td class="lr-text-end">
                                             {% if recipient.submission %}
                                                 {{ recipient.submission.dateCreated|lrDatetime('short') }}
                                             {% else %}

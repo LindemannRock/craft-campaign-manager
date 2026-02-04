@@ -31,23 +31,23 @@
 <div class="lr-analytics-charts">
     <div class="lr-chart-container full-width">
         <h3>{{ 'Daily Activity'|t('campaign-manager') }}</h3>
-        <div style="height: 250px;">
+        <div class="lr-chart-height-250">
             <canvas id="daily-trend-chart"></canvas>
         </div>
     </div>
 </div>
 
 {# Campaign Performance Table #}
-<div class="lr-chart-container" style="margin-top: 24px;">
+<div class="lr-chart-container lr-mt-24">
     <h3>{{ 'Campaign Performance'|t('campaign-manager') }}</h3>
     <div class="lr-table-scroll">
         <table class="data fullwidth">
             <thead>
                 <tr>
                     <th>{{ 'Campaign'|t('campaign-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Recipients'|t('campaign-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Responses'|t('campaign-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Conversion Rate'|t('campaign-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Recipients'|t('campaign-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Responses'|t('campaign-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Conversion Rate'|t('campaign-manager') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -55,14 +55,14 @@
                     {% for item in campaignBreakdown %}
                         <tr>
                             <td><strong>{{ item.campaignName }}</strong></td>
-                            <td style="text-align: right;">{{ item.totalRecipients|number_format }}</td>
-                            <td style="text-align: right;">{{ item.submissions|number_format }}</td>
-                            <td style="text-align: right;">{{ item.conversionRate }}%</td>
+                            <td class="lr-text-end">{{ item.totalRecipients|number_format }}</td>
+                            <td class="lr-text-end">{{ item.submissions|number_format }}</td>
+                            <td class="lr-text-end">{{ item.conversionRate }}%</td>
                         </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="4" class="light" style="text-align: center;">{{ 'No data available'|t('campaign-manager') }}</td>
+                        <td colspan="4" class="light lr-text-center">{{ 'No data available'|t('campaign-manager') }}</td>
                     </tr>
                 {% endif %}
             </tbody>

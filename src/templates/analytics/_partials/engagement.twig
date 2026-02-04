@@ -31,43 +31,43 @@
 <div class="lr-analytics-charts">
     <div class="lr-chart-container full-width">
         <h3>{{ 'Opens Over Time'|t('campaign-manager') }}</h3>
-        <div style="height: 250px;">
+        <div class="lr-chart-height-250">
             <canvas id="engagement-chart"></canvas>
         </div>
     </div>
 </div>
 
 {# Channel Comparison Table #}
-<div class="lr-chart-container" style="margin-top: 24px;">
+<div class="lr-chart-container lr-mt-24">
     <h3>{{ 'Channel Comparison'|t('campaign-manager') }}</h3>
     <div class="lr-table-scroll">
         <table class="data fullwidth">
             <thead>
                 <tr>
                     <th>{{ 'Channel'|t('campaign-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Sent'|t('campaign-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Opened'|t('campaign-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Open Rate'|t('campaign-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Sent'|t('campaign-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Opened'|t('campaign-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Open Rate'|t('campaign-manager') }}</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td><strong>{{ 'Email'|t('campaign-manager') }}</strong></td>
-                    <td style="text-align: right;">{{ summaryStats.emailsSent|number_format }}</td>
-                    <td style="text-align: right;">{{ summaryStats.emailsOpened|number_format }}</td>
-                    <td style="text-align: right;">{{ summaryStats.emailOpenRate }}%</td>
+                    <td class="lr-text-end">{{ summaryStats.emailsSent|number_format }}</td>
+                    <td class="lr-text-end">{{ summaryStats.emailsOpened|number_format }}</td>
+                    <td class="lr-text-end">{{ summaryStats.emailOpenRate }}%</td>
                 </tr>
                 <tr>
                     <td><strong>{{ 'SMS'|t('campaign-manager') }}</strong></td>
-                    <td style="text-align: right;">{{ summaryStats.smsSent|number_format }}</td>
-                    <td style="text-align: right;">{{ summaryStats.smsOpened|number_format }}</td>
-                    <td style="text-align: right;">{{ summaryStats.smsOpenRate }}%</td>
+                    <td class="lr-text-end">{{ summaryStats.smsSent|number_format }}</td>
+                    <td class="lr-text-end">{{ summaryStats.smsOpened|number_format }}</td>
+                    <td class="lr-text-end">{{ summaryStats.smsOpenRate }}%</td>
                 </tr>
-                <tr style="border-top: 2px solid #e5e7eb;">
+                <tr class="lr-border-top-muted">
                     <td><strong>{{ 'Total'|t('campaign-manager') }}</strong></td>
-                    <td style="text-align: right;"><strong>{{ summaryStats.totalSent|number_format }}</strong></td>
-                    <td style="text-align: right;"><strong>{{ summaryStats.totalOpened|number_format }}</strong></td>
-                    <td style="text-align: right;"><strong>{{ summaryStats.openRate }}%</strong></td>
+                    <td class="lr-text-end"><strong>{{ summaryStats.totalSent|number_format }}</strong></td>
+                    <td class="lr-text-end"><strong>{{ summaryStats.totalOpened|number_format }}</strong></td>
+                    <td class="lr-text-end"><strong>{{ summaryStats.openRate }}%</strong></td>
                 </tr>
             </tbody>
         </table>

@@ -52,10 +52,26 @@ class AnalyticsService extends Component
         // Use centralized DateRangeHelper for full date range support
         // (today, yesterday, last7days, last30days, last90days, thisMonth, lastMonth, thisYear, lastYear, all)
         $bounds = DateRangeHelper::getBounds($dateRange);
+        $tz = new \DateTimeZone(Craft::$app->getTimeZone());
+
+        $start = $bounds['start'] ? (clone $bounds['start'])->setTimezone($tz) : null;
+        $end = $bounds['end'] ? (clone $bounds['end'])->setTimezone($tz)->modify('-1 day') : null;
+
+        if (!$start && !$end) {
+            $end = new \DateTime('now', $tz);
+            $start = (clone $end)->modify('-30 days');
+        } elseif (!$start) {
+            $start = (clone $end)->modify('-30 days');
+        } elseif (!$end) {
+            $end = new \DateTime('now', $tz);
+        }
+
+        $start->setTime(0, 0, 0);
+        $end->setTime(0, 0, 0);
 
         return [
-            'start' => $bounds['start'] ?? new \DateTime('-30 days'),
-            'end' => $bounds['end'] ?? new \DateTime(),
+            'start' => $start,
+            'end' => $end,
         ];
     }
 
@@ -145,17 +161,18 @@ class AnalyticsService extends Component
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
+        $localDateExpr = $this->getLocalDateExpression('dateCreated');
 
         // Get daily counts
         $data = (clone $query)
             ->select([
-                'DATE(dateCreated) as date',
+                'date' => $localDateExpr,
                 'COUNT(*) as recipients',
                 'SUM(CASE WHEN emailSendDate IS NOT NULL THEN 1 ELSE 0 END) as emailsSent',
                 'SUM(CASE WHEN smsSendDate IS NOT NULL THEN 1 ELSE 0 END) as smsSent',
                 'SUM(CASE WHEN submissionId IS NOT NULL THEN 1 ELSE 0 END) as submissions',
             ])
-            ->groupBy(['DATE(dateCreated)'])
+            ->groupBy($localDateExpr)
             ->orderBy(['date' => SORT_ASC])
             ->all();
 
@@ -242,25 +259,27 @@ class AnalyticsService extends Component
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
+        $emailOpenExpr = $this->getLocalDateExpression('emailOpenDate');
+        $smsOpenExpr = $this->getLocalDateExpression('smsOpenDate');
 
         // Get daily opens
         $emailOpens = (clone $query)
             ->select([
-                'DATE(emailOpenDate) as date',
+                'date' => $emailOpenExpr,
                 'COUNT(*) as count',
             ])
             ->andWhere(['not', ['emailOpenDate' => null]])
-            ->groupBy(['DATE(emailOpenDate)'])
+            ->groupBy($emailOpenExpr)
             ->indexBy('date')
             ->column();
 
         $smsOpens = (clone $query)
             ->select([
-                'DATE(smsOpenDate) as date',
+                'date' => $smsOpenExpr,
                 'COUNT(*) as count',
             ])
             ->andWhere(['not', ['smsOpenDate' => null]])
-            ->groupBy(['DATE(smsOpenDate)'])
+            ->groupBy($smsOpenExpr)
             ->indexBy('date')
             ->column();
 
@@ -439,6 +458,11 @@ class AnalyticsService extends Component
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dateRange);
+        $smsSendExpr = $this->getLocalDateExpression('smsSendDate');
+        $emailSendExpr = $this->getLocalDateExpression('emailSendDate');
+        $smsOpenExpr = $this->getLocalDateExpression('smsOpenDate');
+        $emailOpenExpr = $this->getLocalDateExpression('emailOpenDate');
+        $submissionExpr = $this->getLocalDateExpression('dateUpdated');
 
         // Get daily sent counts (using send dates, not dateCreated)
         $sentData = [];
@@ -459,9 +483,9 @@ class AnalyticsService extends Component
 
         // Get SMS sent by date
         $smsSentByDate = (clone $query)
-            ->select(['DATE(smsSendDate) as date', 'COUNT(*) as count'])
+            ->select(['date' => $smsSendExpr, 'COUNT(*) as count'])
             ->andWhere(['not', ['smsSendDate' => null]])
-            ->groupBy(['DATE(smsSendDate)'])
+            ->groupBy($smsSendExpr)
             ->all();
 
         foreach ($smsSentByDate as $row) {
@@ -472,9 +496,9 @@ class AnalyticsService extends Component
 
         // Get email sent by date
         $emailSentByDate = (clone $query)
-            ->select(['DATE(emailSendDate) as date', 'COUNT(*) as count'])
+            ->select(['date' => $emailSendExpr, 'COUNT(*) as count'])
             ->andWhere(['not', ['emailSendDate' => null]])
-            ->groupBy(['DATE(emailSendDate)'])
+            ->groupBy($emailSendExpr)
             ->all();
 
         foreach ($emailSentByDate as $row) {
@@ -485,9 +509,9 @@ class AnalyticsService extends Component
 
         // Get opened by date (SMS)
         $smsOpenedByDate = (clone $query)
-            ->select(['DATE(smsOpenDate) as date', 'COUNT(*) as count'])
+            ->select(['date' => $smsOpenExpr, 'COUNT(*) as count'])
             ->andWhere(['not', ['smsOpenDate' => null]])
-            ->groupBy(['DATE(smsOpenDate)'])
+            ->groupBy($smsOpenExpr)
             ->all();
 
         foreach ($smsOpenedByDate as $row) {
@@ -498,9 +522,9 @@ class AnalyticsService extends Component
 
         // Get opened by date (Email)
         $emailOpenedByDate = (clone $query)
-            ->select(['DATE(emailOpenDate) as date', 'COUNT(*) as count'])
+            ->select(['date' => $emailOpenExpr, 'COUNT(*) as count'])
             ->andWhere(['not', ['emailOpenDate' => null]])
-            ->groupBy(['DATE(emailOpenDate)'])
+            ->groupBy($emailOpenExpr)
             ->all();
 
         foreach ($emailOpenedByDate as $row) {
@@ -512,9 +536,9 @@ class AnalyticsService extends Component
         // Get submissions - we need to join with formie submissions to get the actual submission date
         // For now, use dateUpdated as a proxy when submissionId is set
         $submissionsByDate = (clone $query)
-            ->select(['DATE(dateUpdated) as date', 'COUNT(*) as count'])
+            ->select(['date' => $submissionExpr, 'COUNT(*) as count'])
             ->andWhere(['not', ['submissionId' => null]])
-            ->groupBy(['DATE(dateUpdated)'])
+            ->groupBy($submissionExpr)
             ->all();
 
         foreach ($submissionsByDate as $row) {
@@ -561,6 +585,24 @@ class AnalyticsService extends Component
         }
 
         return $query;
+    }
+
+    /**
+     * Build a local-date SQL expression for the given column.
+     *
+     * @param string $column
+     * @return \yii\db\Expression
+     */
+    private function getLocalDateExpression(string $column): \yii\db\Expression
+    {
+        $timezone = Craft::$app->getTimeZone();
+        $dateTime = new \DateTime('now', new \DateTimeZone($timezone));
+        $offset = $dateTime->format('P');
+
+        return new \yii\db\Expression(
+            "DATE(CONVERT_TZ([[{$column}]], '+00:00', :offset))",
+            [':offset' => $offset]
+        );
     }
 
     /**

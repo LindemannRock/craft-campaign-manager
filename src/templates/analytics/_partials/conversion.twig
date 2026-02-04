@@ -31,23 +31,23 @@
 <div class="lr-analytics-charts">
     <div class="lr-chart-container full-width">
         <h3>{{ 'Conversion Funnel'|t('campaign-manager') }}</h3>
-        <div style="height: 250px;">
+        <div class="lr-chart-height-250">
             <canvas id="funnel-chart"></canvas>
         </div>
     </div>
 </div>
 
 {# Funnel Breakdown Table #}
-<div class="lr-chart-container" style="margin-top: 24px;">
+<div class="lr-chart-container lr-mt-24">
     <h3>{{ 'Funnel Breakdown'|t('campaign-manager') }}</h3>
     <div class="lr-table-scroll">
         <table class="data fullwidth">
             <thead>
                 <tr>
                     <th>{{ 'Stage'|t('campaign-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Count'|t('campaign-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Percentage'|t('campaign-manager') }}</th>
-                    <th style="text-align: right;">{{ 'Drop-off'|t('campaign-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Count'|t('campaign-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Percentage'|t('campaign-manager') }}</th>
+                    <th class="lr-text-end">{{ 'Drop-off'|t('campaign-manager') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -64,10 +64,12 @@
                     {% set dropoff = prevCount > 0 ? ((prevCount - stage.count) / prevCount * 100)|round(1) : 0 %}
                     <tr>
                         <td><strong>{{ stage.name }}</strong></td>
-                        <td style="text-align: right;">{{ stage.count|number_format }}</td>
-                        <td style="text-align: right;">{{ pct }}%</td>
-                        <td style="text-align: right; color: {{ loop.first ? '#6b7280' : '#ef4444' }};">
-                            {{ loop.first ? '-' : dropoff ~ '%' }}
+                        <td class="lr-text-end">{{ stage.count|number_format }}</td>
+                        <td class="lr-text-end">{{ pct }}%</td>
+                        <td class="lr-text-end">
+                            <span class="{{ loop.first ? 'lr-text-muted' : 'lr-text-red' }}">
+                                {{ loop.first ? '-' : dropoff ~ '%' }}
+                            </span>
                         </td>
                     </tr>
                 {% endfor %}
