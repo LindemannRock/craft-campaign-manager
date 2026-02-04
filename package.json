@@ -1,12 +1,23 @@
 {
-	"name": "campaign-manager",
-	"version": "1.0.0",
-	"description": "Campaign Manager plugin for Craft CMS",
-	"scripts": {
-		"minify": "npm run minify:analytics",
-		"minify:analytics": "terser src/web/assets/analytics/analytics.js -o src/web/assets/analytics/analytics.min.js -c -m"
-	},
-	"devDependencies": {
-		"terser": "^5.31.6"
-	}
+  "name": "@lindemannrock/campaign-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Campaign Manager plugin for Craft CMS",
+  "scripts": {
+    "minify": "npm run minify:analytics",
+    "minify:analytics": "terser src/web/assets/analytics/analytics.js -o src/web/assets/analytics/analytics.min.js -c -m"
+  },
+  "devDependencies": {
+    "terser": "^5.31.6"
+  },
+  "author": {
+    "name": "Bilal Harry Lindemann",
+    "email": "hello@lindemannrock.com",
+    "url": "https://lindemannrock.com"
+  },
+  "company": {
+    "name": "LindemannRock",
+    "url": "https://lindemannrock.com"
+  },
+  "license": "Proprietary"
 }
