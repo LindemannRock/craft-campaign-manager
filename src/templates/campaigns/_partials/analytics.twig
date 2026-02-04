@@ -111,7 +111,7 @@
                                         </td>
                                         <td style="text-align: right;">
                                             {% if recipient.submission %}
-                                                {{ recipient.submission.dateCreated|datetime('short') }}
+                                                {{ recipient.submission.dateCreated|lrDatetime('short') }}
                                             {% else %}
                                                 -
                                             {% endif %}

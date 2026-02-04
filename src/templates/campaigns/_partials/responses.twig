@@ -234,7 +234,7 @@
                             </td>
                             <td style="text-align: right;">
                                 {% if submission %}
-                                    {{ submission.dateCreated|datetime('short') }}
+                                    {{ submission.dateCreated|lrDatetime('short') }}
                                 {% else %}
                                     -
                                 {% endif %}
