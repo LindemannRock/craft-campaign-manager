@@ -24,8 +24,6 @@ yarn-error.log*
 
 # Build outputs (but keep plugin assets)
 build/
-*.min.js
-*.min.css
 
 # Exclude dist/ except for plugin assets
 dist/

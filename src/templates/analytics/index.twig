@@ -89,222 +89,34 @@
    ============================================================================ #}
 
 {% block scripts %}
-<script data-analytics-reinit="true">
-(function() {
-    'use strict';
+{% do view.registerAssetBundle('lindemannrock\\campaignmanager\\web\\assets\\analytics\\AnalyticsAsset') %}
 
-    if (window.lrCampaignManagerAnalyticsBound) {
-        return;
-    }
-    window.lrCampaignManagerAnalyticsBound = true;
+{% set campaignStrings = {
+    noActivity: 'No activity data available for the selected filters.'|t('campaign-manager'),
+    noChannel: 'No channel data available for the selected filters.'|t('campaign-manager'),
+    noEngagement: 'No engagement data available for the selected filters.'|t('campaign-manager'),
+    noFunnel: 'No funnel data available for the selected filters.'|t('campaign-manager'),
+    recipientsLabel: 'Recipients Added'|t('campaign-manager'),
+    responsesLabel: 'Responses'|t('campaign-manager'),
+    emailOpensLabel: 'Email Opens'|t('campaign-manager'),
+    smsOpensLabel: 'SMS Opens'|t('campaign-manager'),
+    countLabel: 'Count'|t('campaign-manager'),
+} %}
 
-    // Chart colors
-    const chartColors = window.lrChartColors || [
-        '#0d78f2', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4',
-        '#ec4899', '#84cc16', '#f97316', '#6366f1'
-    ];
+{% set campaignAnalyticsConfig = {
+    prefix: analyticsConfig.charts.prefix,
+    dateRange: dateRange,
+    siteId: siteId ?? '',
+    csrfName: craft.app.config.general.csrfTokenName,
+    csrfToken: craft.app.request.csrfToken,
+    dataEndpoint: analyticsConfig.charts.dataEndpoint,
+    customFilters: {
+        campaign: campaignId,
+    },
+    strings: campaignStrings,
+} %}
 
-    // Initialize on analytics init event
-    document.addEventListener('lr:analyticsInit', function(e) {
-        const config = e.detail && e.detail.config ? e.detail.config : (window.lrAnalyticsConfig || {});
-        const campaignId = config.customFilters ? config.customFilters.campaign : null;
-        loadAllChartData(campaignId);
-    });
-
-    // Load all chart data
-    function loadAllChartData(campaignId) {
-        const extraParams = {};
-        if (campaignId && campaignId !== 'all') {
-            extraParams.campaignId = campaignId;
-        }
-        // Daily trend chart
-        window.lrLoadChartData('daily', function(data) {
-            if (data && data.labels) {
-                renderDailyChart(data);
-            }
-        }, extraParams);
-
-        // Channel distribution chart
-        window.lrLoadChartData('channels', function(data) {
-            if (data && data.labels && data.labels.length > 0) {
-                renderChannelChart(data);
-            }
-        }, extraParams);
-
-        // Engagement over time chart
-        window.lrLoadChartData('engagement', function(data) {
-            if (data && data.labels) {
-                renderEngagementChart(data);
-            }
-        }, extraParams);
-
-        // Conversion funnel chart
-        window.lrLoadChartData('funnel', function(data) {
-            if (data && data.labels) {
-                renderFunnelChart(data);
-            }
-        }, extraParams);
-    }
-
-    function destroyChart(canvasId) {
-        const config = window.lrAnalyticsConfig || {};
-        const prefix = config.prefix || 'analytics';
-        const chartKey = canvasId.replace(/-/g, '_');
-        if (window.lrChartInstances && window.lrChartInstances[prefix] && window.lrChartInstances[prefix][chartKey]) {
-            window.lrChartInstances[prefix][chartKey].destroy();
-            delete window.lrChartInstances[prefix][chartKey];
-        }
-    }
-
-    function resetChartState(canvas) {
-        if (!canvas) return;
-        canvas.style.display = '';
-        const parent = canvas.parentNode;
-        if (!parent) return;
-        parent.querySelectorAll('.zilch').forEach(el => el.remove());
-    }
-
-    // Chart rendering functions
-    function renderDailyChart(data) {
-        // Check if all values are 0 - show empty state instead
-        const hasRecipients = data.recipients && data.recipients.some(v => v > 0);
-        const hasSubmissions = data.submissions && data.submissions.some(v => v > 0);
-        const canvas = document.getElementById('daily-trend-chart');
-        resetChartState(canvas);
-        if (!hasRecipients && !hasSubmissions && canvas) {
-            destroyChart('daily-trend-chart');
-            canvas.style.display = 'none';
-            const emptyMsg = document.createElement('div');
-            emptyMsg.className = 'zilch';
-            emptyMsg.style.padding = '48px 24px';
-            emptyMsg.innerHTML = '<p>{{ "No activity data available for the selected filters."|t('campaign-manager')|e('js') }}</p>';
-            canvas.parentNode.appendChild(emptyMsg);
-            return;
-        }
-
-        window.lrCreateChart('daily-trend-chart', 'line', {
-            labels: data.labels,
-            datasets: [
-                {
-                    label: '{{ "Recipients Added"|t('campaign-manager')|e('js') }}',
-                    data: data.recipients,
-                    borderColor: '#0d78f2',
-                    backgroundColor: 'rgba(13, 120, 242, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                },
-                {
-                    label: '{{ "Responses"|t('campaign-manager')|e('js') }}',
-                    data: data.submissions,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                }
-            ]
-        }, {
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'top' } }
-        });
-    }
-
-    function renderChannelChart(data) {
-        // Check if all values are 0 - show empty state instead
-        const hasData = data.values && data.values.some(v => v > 0);
-        const canvas = document.getElementById('channel-chart');
-        resetChartState(canvas);
-        if (!hasData && canvas) {
-            destroyChart('channel-chart');
-            canvas.style.display = 'none';
-            const emptyMsg = document.createElement('div');
-            emptyMsg.className = 'zilch';
-            emptyMsg.style.padding = '48px 24px';
-            emptyMsg.innerHTML = '<p>{{ "No channel data available for the selected filters."|t('campaign-manager')|e('js') }}</p>';
-            canvas.parentNode.appendChild(emptyMsg);
-            return;
-        }
-
-        window.lrCreateChart('channel-chart', 'doughnut', {
-            labels: data.labels,
-            datasets: [{
-                data: data.values,
-                backgroundColor: ['#3b82f6', '#8b5cf6', '#10b981']
-            }]
-        });
-    }
-
-    function renderEngagementChart(data) {
-        // Check if all values are 0 - show empty state instead
-        const hasEmailOpens = data.emailOpens && data.emailOpens.some(v => v > 0);
-        const hasSmsOpens = data.smsOpens && data.smsOpens.some(v => v > 0);
-        const canvas = document.getElementById('engagement-chart');
-        resetChartState(canvas);
-        if (!hasEmailOpens && !hasSmsOpens && canvas) {
-            destroyChart('engagement-chart');
-            canvas.style.display = 'none';
-            const emptyMsg = document.createElement('div');
-            emptyMsg.className = 'zilch';
-            emptyMsg.style.padding = '48px 24px';
-            emptyMsg.innerHTML = '<p>{{ "No engagement data available for the selected filters."|t('campaign-manager')|e('js') }}</p>';
-            canvas.parentNode.appendChild(emptyMsg);
-            return;
-        }
-
-        window.lrCreateChart('engagement-chart', 'line', {
-            labels: data.labels,
-            datasets: [
-                {
-                    label: '{{ "Email Opens"|t('campaign-manager')|e('js') }}',
-                    data: data.emailOpens,
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                },
-                {
-                    label: '{{ "SMS Opens"|t('campaign-manager')|e('js') }}',
-                    data: data.smsOpens,
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                }
-            ]
-        }, {
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'top' } }
-        });
-    }
-
-    function renderFunnelChart(data) {
-        // Check if all values are 0 - show empty state instead
-        const hasData = data.values && data.values.some(v => v > 0);
-        const canvas = document.getElementById('funnel-chart');
-        resetChartState(canvas);
-        if (!hasData && canvas) {
-            destroyChart('funnel-chart');
-            canvas.style.display = 'none';
-            const emptyMsg = document.createElement('div');
-            emptyMsg.className = 'zilch';
-            emptyMsg.style.padding = '48px 24px';
-            emptyMsg.innerHTML = '<p>{{ "No funnel data available for the selected filters."|t('campaign-manager')|e('js') }}</p>';
-            canvas.parentNode.appendChild(emptyMsg);
-            return;
-        }
-
-        window.lrCreateChart('funnel-chart', 'bar', {
-            labels: data.labels,
-            datasets: [{
-                label: '{{ "Count"|t('campaign-manager')|e('js') }}',
-                data: data.values,
-                backgroundColor: ['#0d78f2', '#3b82f6', '#8b5cf6', '#10b981']
-            }]
-        }, {
-            indexAxis: 'y',
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } }
-        });
-    }
-})();
-</script>
+{% js %}
+window.lrCampaignManagerAnalyticsInit({{ campaignAnalyticsConfig|json_encode|raw }});
+{% endjs %}
 {% endblock %}

@@ -1,0 +1,12 @@
+{
+	"name": "campaign-manager",
+	"version": "1.0.0",
+	"description": "Campaign Manager plugin for Craft CMS",
+	"scripts": {
+		"minify": "npm run minify:analytics",
+		"minify:analytics": "terser src/web/assets/analytics/analytics.js -o src/web/assets/analytics/analytics.min.js -c -m"
+	},
+	"devDependencies": {
+		"terser": "^5.31.6"
+	}
+}
