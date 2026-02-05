@@ -29,6 +29,8 @@ abstract class BaseRecord extends ActiveRecord
 
     /**
      * Get the full column name with table prefix
+     *
+     * @since 5.0.0
      */
     public static function columnName(string $column): string
     {

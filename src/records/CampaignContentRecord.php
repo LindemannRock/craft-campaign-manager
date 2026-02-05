@@ -40,6 +40,8 @@ class CampaignContentRecord extends ActiveRecord
 
     /**
      * Returns the campaign.
+     *
+     * @since 5.0.0
      */
     public function getCampaign(): ActiveQueryInterface
     {
@@ -48,6 +50,8 @@ class CampaignContentRecord extends ActiveRecord
 
     /**
      * Returns the site.
+     *
+     * @since 5.0.0
      */
     public function getSite(): ActiveQueryInterface
     {

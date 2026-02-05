@@ -35,16 +35,19 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
 
     /**
      * @var int|null Campaign ID to process (null = all campaigns)
+     * @since 5.0.0
      */
     public ?int $campaignId = null;
 
     /**
      * @var string|null Provider handle to use for SMS (uses campaign's providerHandle if null)
+     * @since 5.0.0
      */
     public ?string $providerHandle = null;
 
     /**
      * @var string|null Sender ID handle to use for SMS (uses campaign's senderId if null)
+     * @since 5.0.0
      */
     public ?string $senderIdHandle = null;
 

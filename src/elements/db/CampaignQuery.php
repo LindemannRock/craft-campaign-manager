@@ -24,11 +24,13 @@ class CampaignQuery extends ElementQuery
 {
     /**
      * @var mixed|null Campaign type filter
+     * @since 5.0.0
      */
     public mixed $campaignType = null;
 
     /**
      * @var mixed|null Form ID filter
+     * @since 5.0.0
      */
     public mixed $formId = null;
 

@@ -83,6 +83,8 @@ class CampaignBehavior extends Behavior
 
     /**
      * Get the Campaign record
+     *
+     * @since 5.0.0
      */
     public function getCampaignManagerRecord(): ?CampaignRecord
     {
@@ -100,6 +102,8 @@ class CampaignBehavior extends Behavior
 
     /**
      * Get the Campaign content record for current site
+     *
+     * @since 5.0.0
      */
     public function getCampaignContentRecord(): ?CampaignContentRecord
     {
@@ -117,6 +121,8 @@ class CampaignBehavior extends Behavior
 
     /**
      * Load the Campaign record
+     *
+     * @since 5.0.0
      */
     public function loadCampaignRecord(?CampaignRecord $record = null): void
     {
@@ -139,6 +145,7 @@ class CampaignBehavior extends Behavior
      *
      * @param array<string, mixed>|null $attributes
      * @throws Exception
+     * @since 5.0.0
      */
     public function saveCampaignRecord(?array $attributes = null): void
     {
@@ -220,6 +227,7 @@ class CampaignBehavior extends Behavior
      * Set Campaign record attributes
      *
      * @param array<string, mixed> $attributes
+     * @since 5.0.0
      */
     public function setCampaignRecordAttributes(array $attributes): void
     {
@@ -256,11 +264,17 @@ class CampaignBehavior extends Behavior
 
     // Getters and setters
 
+    /**
+     * @since 5.0.0
+     */
     public function getCampaignType(): ?string
     {
         return $this->getCampaignManagerRecord()?->campaignType;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function setCampaignType(?string $value): void
     {
         $this->getOrMakeRecord()->campaignType = $value ?: null;
@@ -268,6 +282,7 @@ class CampaignBehavior extends Behavior
 
     /**
      * @return RecipientRecord[]
+     * @since 5.0.0
      */
     public function getRecipients(): array
     {
@@ -280,6 +295,7 @@ class CampaignBehavior extends Behavior
 
     /**
      * @return RecipientRecord[]
+     * @since 5.0.0
      */
     public function getRecipientsBySiteId(int $siteId): array
     {
@@ -290,6 +306,9 @@ class CampaignBehavior extends Behavior
         return $this->_recipients;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getRecipientCount(): int
     {
         if (!isset($this->_recipientCount)) {
@@ -299,6 +318,9 @@ class CampaignBehavior extends Behavior
         return $this->_recipientCount;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getRecipientCountBySiteId(int $siteId): int
     {
         if (!isset($this->_recipientCount)) {
@@ -308,67 +330,106 @@ class CampaignBehavior extends Behavior
         return $this->_recipientCount;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getFormId(): ?int
     {
         return $this->getCampaignManagerRecord()?->formId;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function setFormId(?int $value): void
     {
         $this->getOrMakeRecord()->formId = $value ?: null;
         $this->getOrMakeRecord()->resetForm();
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getInvitationDelayPeriod(): ?string
     {
         return $this->getCampaignManagerRecord()?->invitationDelayPeriod;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function setInvitationDelayPeriod(?string $value): void
     {
         $this->getOrMakeRecord()->invitationDelayPeriod = $value ?: null;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getInvitationExpiryPeriod(): ?string
     {
         return $this->getCampaignManagerRecord()?->invitationExpiryPeriod;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function setInvitationExpiryPeriod(?string $value): void
     {
         $this->getOrMakeRecord()->invitationExpiryPeriod = $value ?: null;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getSenderId(): ?string
     {
         return $this->getCampaignManagerRecord()?->senderId;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getEmailInvitationSubject(): ?string
     {
         return $this->getCampaignContentRecord()?->emailInvitationSubject;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getEmailInvitationMessage(): ?string
     {
         return $this->getCampaignContentRecord()?->emailInvitationMessage;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function setEmailInvitationMessage(?string $value): void
     {
         $this->getOrMakeContentRecord()->emailInvitationMessage = $value ?: null;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getSmsInvitationMessage(): ?string
     {
         return $this->getCampaignContentRecord()?->smsInvitationMessage;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function setSmsInvitationMessage(?string $value): void
     {
         $this->getOrMakeContentRecord()->smsInvitationMessage = $value ?: null;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getSubmissionCount(): int
     {
         if (!isset($this->_submissionCount)) {
@@ -382,6 +443,9 @@ class CampaignBehavior extends Behavior
         return $this->_submissionCount;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getSentCount(): int
     {
         if (!isset($this->_sentCount)) {
@@ -395,6 +459,9 @@ class CampaignBehavior extends Behavior
         return $this->_sentCount;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getSentCountBySiteId(int $siteId): int
     {
         $recipientsWithSent = array_filter(
@@ -405,6 +472,9 @@ class CampaignBehavior extends Behavior
         return count($recipientsWithSent);
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getSmsOpenedCount(): int
     {
         if (!isset($this->_smsOpenedCount)) {
@@ -418,6 +488,9 @@ class CampaignBehavior extends Behavior
         return $this->_smsOpenedCount;
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getSmsOpenedCountBySiteId(int $siteId): int
     {
         $recipientsWithSmsOpened = array_filter(
@@ -428,6 +501,9 @@ class CampaignBehavior extends Behavior
         return count($recipientsWithSmsOpened);
     }
 
+    /**
+     * @since 5.0.0
+     */
     public function getForm(): ?Form
     {
         return $this->getCampaignManagerRecord()?->getForm();

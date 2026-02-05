@@ -35,16 +35,19 @@ class ImportRecipientsJob extends BaseJob implements RetryableJobInterface
 
     /**
      * @var int Campaign ID
+     * @since 5.0.0
      */
     public int $campaignId;
 
     /**
      * @var string Path to the CSV file
+     * @since 5.0.0
      */
     public string $csvPath;
 
     /**
      * @var bool Whether to queue sending jobs after import
+     * @since 5.0.0
      */
     public bool $queueSending = true;
 

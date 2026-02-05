@@ -35,6 +35,8 @@ class FormBehavior extends Behavior
 
     /**
      * Get the recipient
+     *
+     * @since 5.0.0
      */
     public function getRecipient(): ?RecipientRecord
     {
@@ -43,6 +45,8 @@ class FormBehavior extends Behavior
 
     /**
      * Set the recipient
+     *
+     * @since 5.0.0
      */
     public function setRecipient(RecipientRecord $recipient): void
     {

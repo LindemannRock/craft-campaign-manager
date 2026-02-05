@@ -42,46 +42,55 @@ class Campaign extends Element
 
     /**
      * @var string|null Campaign type (non-translatable)
+     * @since 5.0.0
      */
     public ?string $campaignType = null;
 
     /**
      * @var int|null Formie form ID (non-translatable)
+     * @since 5.0.0
      */
     public ?int $formId = null;
 
     /**
      * @var string|null Invitation delay period (non-translatable)
+     * @since 5.0.0
      */
     public ?string $invitationDelayPeriod = null;
 
     /**
      * @var string|null Invitation expiry period (non-translatable)
+     * @since 5.0.0
      */
     public ?string $invitationExpiryPeriod = null;
 
     /**
      * @var string|null Provider handle for SMS (non-translatable)
+     * @since 5.0.0
      */
     public ?string $providerHandle = null;
 
     /**
      * @var string|null Sender ID handle for SMS (non-translatable)
+     * @since 5.0.0
      */
     public ?string $senderId = null;
 
     /**
      * @var string|null Email invitation message (translatable)
+     * @since 5.0.0
      */
     public ?string $emailInvitationMessage = null;
 
     /**
      * @var string|null Email invitation subject (translatable)
+     * @since 5.0.0
      */
     public ?string $emailInvitationSubject = null;
 
     /**
      * @var string|null SMS invitation message (translatable)
+     * @since 5.0.0
      */
     public ?string $smsInvitationMessage = null;
 

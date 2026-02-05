@@ -37,47 +37,56 @@ class Settings extends Model
 
     /**
      * @var string The public-facing name of the plugin
+     * @since 5.0.0
      */
     public string $pluginName = 'Campaign Manager';
 
     /**
      * @var array<int|string, string>|null Campaign type options for dropdown
+     * @since 5.0.0
      */
     public ?array $campaignTypeOptions = null;
 
     /**
      * @var string Element type to use for campaigns
+     * @since 5.0.0
      */
     public string $campaignElementType = Entry::class;
 
     /**
      * @var string|null Section handle to filter campaigns (e.g., 'surveys')
+     * @since 5.0.0
      */
     public ?string $campaignSectionHandle = null;
 
     /**
      * @var string Route for invitation links
+     * @since 5.0.0
      */
     public string $invitationRoute = 'cm/invite';
 
     /**
      * @var string|null Template to use for invitation pages
+     * @since 5.0.0
      */
     public ?string $invitationTemplate = null;
 
     /**
      * @var int|null Default SMS Manager sender ID to use for campaigns
+     * @since 5.0.0
      * @deprecated Use defaultSenderIdHandle instead
      */
     public ?int $defaultSenderIdId = null;
 
     /**
      * @var string|null Default SMS Manager provider handle
+     * @since 5.0.0
      */
     public ?string $defaultProviderHandle = null;
 
     /**
      * @var string|null Default SMS Manager sender ID handle
+     * @since 5.0.0
      */
     public ?string $defaultSenderIdHandle = null;
 
@@ -87,6 +96,7 @@ class Settings extends Model
 
     /**
      * @var int Number of items to display per page in lists
+     * @since 5.0.0
      */
     public int $itemsPerPage = 50;
 
@@ -96,26 +106,31 @@ class Settings extends Model
 
     /**
      * @var string Log level for the logging library
+     * @since 5.0.0
      */
     public string $logLevel = 'error';
 
     /**
      * @var bool Enable activity logs
+     * @since 5.4.0
      */
     public bool $enableActivityLogs = true;
 
     /**
      * @var int Activity logs retention (days)
+     * @since 5.4.0
      */
     public int $activityLogsRetention = 30;
 
     /**
      * @var int Activity logs limit
+     * @since 5.4.0
      */
     public int $activityLogsLimit = 10000;
 
     /**
      * @var bool Auto trim activity logs
+     * @since 5.4.0
      */
     public bool $activityAutoTrimLogs = true;
 

@@ -34,21 +34,25 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
 
     /**
      * @var int Campaign ID
+     * @since 5.0.0
      */
     public int $campaignId;
 
     /**
      * @var int Site ID
+     * @since 5.0.0
      */
     public int $siteId;
 
     /**
      * @var bool Whether to send SMS
+     * @since 5.0.0
      */
     public bool $sendSms = true;
 
     /**
      * @var bool Whether to send email
+     * @since 5.0.0
      */
     public bool $sendEmail = true;
 

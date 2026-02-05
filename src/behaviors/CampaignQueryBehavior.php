@@ -70,6 +70,8 @@ class CampaignQueryBehavior extends Behavior
 
     /**
      * Filter by campaign type
+     *
+     * @since 5.0.0
      */
     public function campaignType(?string $value): ElementQueryInterface
     {
@@ -79,6 +81,8 @@ class CampaignQueryBehavior extends Behavior
 
     /**
      * Filter by having a campaign
+     *
+     * @since 5.0.0
      */
     public function hasCampaign(?bool $value = true): ElementQueryInterface
     {
