@@ -156,15 +156,6 @@ class CampaignManager extends Plugin
             $this->controllerNamespace = 'lindemannrock\\campaignmanager\\controllers';
         }
 
-        // Register translations
-        Craft::$app->i18n->translations['campaign-manager'] = [
-            'class' => \craft\i18n\PhpMessageSource::class,
-            'sourceLanguage' => 'en',
-            'basePath' => __DIR__ . '/translations',
-            'forceTranslation' => true,
-            'allowOverrides' => true,
-        ];
-
         // Register project config handlers
         $this->registerProjectConfigEventHandlers();
 
