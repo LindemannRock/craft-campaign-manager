@@ -359,7 +359,7 @@ class Campaign extends Element
             'submissionCount' => ['label' => Craft::t('campaign-manager', 'Submissions')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
-            'actions' => ['label' => ''],
+            'actions' => ['label' => Craft::t('app', 'Actions')],
         ];
     }
 

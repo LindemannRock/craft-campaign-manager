@@ -12,7 +12,7 @@ namespace lindemannrock\campaignmanager\controllers;
 
 use Craft;
 use craft\web\Controller;
-use lindemannrock\base\helpers\DateTimeHelper;
+use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
@@ -95,7 +95,7 @@ class ActivityLogsController extends Controller
             }
 
             $items[] = [
-                'date' => DateTimeHelper::formatDatetime($record->dateCreated),
+                'date' => DateFormatHelper::formatDatetime($record->dateCreated),
                 'user' => $userName ?? Craft::t('campaign-manager', 'System'),
                 'action' => $record->action,
                 'actionLabel' => $this->formatActionLabel($record->action),

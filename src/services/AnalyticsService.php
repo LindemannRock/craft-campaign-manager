@@ -11,6 +11,7 @@ namespace lindemannrock\campaignmanager\services;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
+use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
@@ -161,7 +162,7 @@ class AnalyticsService extends Component
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
-        $localDateExpr = $this->getLocalDateExpression('dateCreated');
+        $localDateExpr = DateFormatHelper::localDateExpression('dateCreated');
 
         // Get daily counts
         $data = (clone $query)
@@ -259,8 +260,8 @@ class AnalyticsService extends Component
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
-        $emailOpenExpr = $this->getLocalDateExpression('emailOpenDate');
-        $smsOpenExpr = $this->getLocalDateExpression('smsOpenDate');
+        $emailOpenExpr = DateFormatHelper::localDateExpression('emailOpenDate');
+        $smsOpenExpr = DateFormatHelper::localDateExpression('smsOpenDate');
 
         // Get daily opens
         $emailOpens = (clone $query)
@@ -458,11 +459,11 @@ class AnalyticsService extends Component
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dateRange);
-        $smsSendExpr = $this->getLocalDateExpression('smsSendDate');
-        $emailSendExpr = $this->getLocalDateExpression('emailSendDate');
-        $smsOpenExpr = $this->getLocalDateExpression('smsOpenDate');
-        $emailOpenExpr = $this->getLocalDateExpression('emailOpenDate');
-        $submissionExpr = $this->getLocalDateExpression('dateUpdated');
+        $smsSendExpr = DateFormatHelper::localDateExpression('smsSendDate');
+        $emailSendExpr = DateFormatHelper::localDateExpression('emailSendDate');
+        $smsOpenExpr = DateFormatHelper::localDateExpression('smsOpenDate');
+        $emailOpenExpr = DateFormatHelper::localDateExpression('emailOpenDate');
+        $submissionExpr = DateFormatHelper::localDateExpression('dateUpdated');
 
         // Get daily sent counts (using send dates, not dateCreated)
         $sentData = [];
@@ -593,18 +594,6 @@ class AnalyticsService extends Component
      * @param string $column
      * @return \yii\db\Expression
      */
-    private function getLocalDateExpression(string $column): \yii\db\Expression
-    {
-        $timezone = Craft::$app->getTimeZone();
-        $dateTime = new \DateTime('now', new \DateTimeZone($timezone));
-        $offset = $dateTime->format('P');
-
-        return new \yii\db\Expression(
-            "DATE(CONVERT_TZ([[{$column}]], '+00:00', :offset))",
-            [':offset' => $offset]
-        );
-    }
-
     /**
      * Refresh statistics for a campaign
      *
