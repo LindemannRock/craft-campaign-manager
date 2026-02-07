@@ -2,7 +2,7 @@
     "name": "lindemannrock/craft-campaign-manager",
     "description": "Campaign management with SMS, email, and WhatsApp invitations",
     "type": "craft-plugin",
-    "version": "5.4.0",
+    "version": "5.4.1",
     "keywords": [
         "craft",
         "cms",
