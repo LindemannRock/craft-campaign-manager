@@ -59,9 +59,11 @@ class RecipientsController extends Controller
         $limit = 50;
         $offset = ($page - 1) * $limit;
 
-        // Get all campaigns for filter dropdown
+        // Get campaigns for filter dropdown (scoped to editable sites)
         $campaigns = \lindemannrock\campaignmanager\elements\Campaign::find()
+            ->siteId(Craft::$app->getSites()->getEditableSiteIds())
             ->status(null)
+            ->unique()
             ->all();
 
         $campaignOptions = [];
@@ -78,8 +80,16 @@ class RecipientsController extends Controller
             $query->andWhere(['campaignId' => $campaignFilter]);
         }
 
+        // Scope to editable sites
+        $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
         if ($siteFilter !== 'all') {
-            $query->andWhere(['siteId' => $siteFilter]);
+            $siteId = (int)$siteFilter;
+            if (!in_array($siteId, $editableSiteIds, true)) {
+                throw new \yii\web\ForbiddenHttpException('You do not have permission to view recipients for this site.');
+            }
+            $query->andWhere(['siteId' => $siteId]);
+        } else {
+            $query->andWhere(['siteId' => $editableSiteIds]);
         }
 
         if ($statusFilter === 'pending') {
@@ -185,9 +195,16 @@ class RecipientsController extends Controller
             $query->andWhere(['campaignId' => $campaignFilter]);
         }
 
-        // Site filter
+        // Scope to editable sites
+        $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
         if ($siteFilter !== 'all') {
-            $query->andWhere(['siteId' => $siteFilter]);
+            $siteId = (int)$siteFilter;
+            if (!in_array($siteId, $editableSiteIds, true)) {
+                throw new \yii\web\ForbiddenHttpException('You do not have permission to export recipients for this site.');
+            }
+            $query->andWhere(['siteId' => $siteId]);
+        } else {
+            $query->andWhere(['siteId' => $editableSiteIds]);
         }
 
         // Status filter
@@ -354,9 +371,19 @@ class RecipientsController extends Controller
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
         }
 
+        // Scope to editable sites
+        $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
+        if ($siteFilter !== 'all') {
+            $filterSiteId = (int)$siteFilter;
+            if (!in_array($filterSiteId, $editableSiteIds, true)) {
+                throw new \yii\web\ForbiddenHttpException('You do not have permission to export responses for this site.');
+            }
+        } else {
+            $filterSiteId = null;
+        }
+
         // Get recipients with submissions (filtered by site if specified)
-        $filterSiteId = $siteFilter !== 'all' ? (int)$siteFilter : null;
-        $recipients = CampaignManager::$plugin->recipients->getWithSubmissions($campaignId, $filterSiteId, $dateRange);
+        $recipients = CampaignManager::$plugin->recipients->getWithSubmissions($campaignId, $filterSiteId, $dateRange, $editableSiteIds);
 
         // Check for empty data
         if (empty($recipients)) {
@@ -915,9 +942,9 @@ class RecipientsController extends Controller
         $file = UploadedFile::getInstanceByName('csvFile');
         $campaignId = (int)$this->request->getRequiredParam('campaignId');
 
-        // Check if campaign is enabled for at least one site
+        // Check if campaign is enabled for at least one editable site
         $campaignEnabledForAnySite = false;
-        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+        foreach (Craft::$app->getSites()->getEditableSites() as $site) {
             $campaignForSite = \lindemannrock\campaignmanager\elements\Campaign::find()
                 ->id($campaignId)
                 ->siteId($site->id)
@@ -1418,9 +1445,9 @@ class RecipientsController extends Controller
 
         $campaignId = (int)$this->request->getRequiredParam('campaignId');
 
-        // Check if campaign is enabled for at least one site
+        // Check if campaign is enabled for at least one editable site
         $campaignEnabledForAnySite = false;
-        foreach (Craft::$app->getSites()->getAllSites() as $site) {
+        foreach (Craft::$app->getSites()->getEditableSites() as $site) {
             $campaignForSite = \lindemannrock\campaignmanager\elements\Campaign::find()
                 ->id($campaignId)
                 ->siteId($site->id)
@@ -1578,6 +1605,12 @@ class RecipientsController extends Controller
         $site = $siteHandle ? Craft::$app->getSites()->getSiteByHandle($siteHandle) : Craft::$app->getSites()->getPrimarySite();
         $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $format = $request->getQueryParam('format', 'csv');
+
+        // Validate site is editable
+        $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
+        if (!in_array($site->id, $editableSiteIds, true)) {
+            throw new \yii\web\ForbiddenHttpException('You do not have permission to export recipients for this site.');
+        }
 
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {

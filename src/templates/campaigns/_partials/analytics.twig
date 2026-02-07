@@ -86,7 +86,7 @@
             </div>
 
             {# Recent Responses #}
-            {% set recentResponses = craft.campaignManager.recipients.getWithSubmissions(campaign.id, null, dateRange)|slice(0, 10) %}
+            {% set recentResponses = craft.campaignManager.recipients.getWithSubmissions(campaign.id, null, dateRange, craft.app.sites.getEditableSiteIds())|slice(0, 10) %}
             {% if recentResponses|length %}
                 <div class="lr-chart-container lr-mt-24">
                     <h3>{{ 'Recent Responses'|t('campaign-manager') }}</h3>

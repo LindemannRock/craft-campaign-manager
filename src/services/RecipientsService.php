@@ -351,19 +351,22 @@ class RecipientsService extends Component
      * @param int $campaignId Campaign ID
      * @param int|null $siteId Site ID (null for all sites)
      * @param string $dateRange Date range filter (all, today, yesterday, last7days, last30days, last90days)
+     * @param array<int>|null $editableSiteIds Restrict to these site IDs when siteId is null
      * @return array<RecipientRecord> Recipients with submissions attached
      * @since 5.1.0
      */
-    public function getWithSubmissions(int $campaignId, ?int $siteId = null, string $dateRange = 'all'): array
+    public function getWithSubmissions(int $campaignId, ?int $siteId = null, string $dateRange = 'all', ?array $editableSiteIds = null): array
     {
         $query = RecipientRecord::find()
             ->where(['campaignId' => $campaignId])
             ->andWhere(['not', ['submissionId' => null]])
             ->orderBy(['dateUpdated' => SORT_DESC]);
 
-        // Filter by site if specified
+        // Filter by site if specified, otherwise scope to editable sites
         if ($siteId !== null) {
             $query->andWhere(['siteId' => $siteId]);
+        } elseif ($editableSiteIds !== null) {
+            $query->andWhere(['siteId' => $editableSiteIds]);
         }
 
         /** @var RecipientRecord[] $recipients */

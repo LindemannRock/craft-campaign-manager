@@ -17,7 +17,7 @@
 
 {# Get enabled sites for this campaign #}
 {% set enabledSites = [] %}
-{% for s in craft.app.sites.getAllSites() %}
+{% for s in craft.app.sites.getEditableSites() %}
     {% set campaignForSite = craft.campaignManager.campaigns.find().id(campaignId).siteId(s.id).status(null).one() %}
     {% if campaignForSite and campaignForSite.getEnabledForSite() %}
         {% set enabledSites = enabledSites|merge([s]) %}

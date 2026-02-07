@@ -80,12 +80,12 @@ class AnalyticsService extends Component
      * Get overview statistics
      *
      * @param int|string $campaignId Campaign ID or 'all'
-     * @param int|string $siteId Site ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<string, int|float>
      * @since 5.1.0
      */
-    public function getOverviewStats(int|string $campaignId, int|string $siteId, string $dateRange): array
+    public function getOverviewStats(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
@@ -153,12 +153,12 @@ class AnalyticsService extends Component
      * Get daily trend data
      *
      * @param int|string $campaignId Campaign ID or 'all'
-     * @param int|string $siteId Site ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<string, mixed>
      * @since 5.1.0
      */
-    public function getDailyTrend(int|string $campaignId, int|string $siteId, string $dateRange): array
+    public function getDailyTrend(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
@@ -209,12 +209,12 @@ class AnalyticsService extends Component
      * Get channel distribution data
      *
      * @param int|string $campaignId Campaign ID or 'all'
-     * @param int|string $siteId Site ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<string, mixed>
      * @since 5.1.0
      */
-    public function getChannelDistribution(int|string $campaignId, int|string $siteId, string $dateRange): array
+    public function getChannelDistribution(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
@@ -251,12 +251,12 @@ class AnalyticsService extends Component
      * Get engagement over time data
      *
      * @param int|string $campaignId Campaign ID or 'all'
-     * @param int|string $siteId Site ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<string, mixed>
      * @since 5.1.0
      */
-    public function getEngagementOverTime(int|string $campaignId, int|string $siteId, string $dateRange): array
+    public function getEngagementOverTime(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
@@ -308,12 +308,12 @@ class AnalyticsService extends Component
      * Get conversion funnel data
      *
      * @param int|string $campaignId Campaign ID or 'all'
-     * @param int|string $siteId Site ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<string, mixed>
      * @since 5.1.0
      */
-    public function getConversionFunnel(int|string $campaignId, int|string $siteId, string $dateRange): array
+    public function getConversionFunnel(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
@@ -360,12 +360,12 @@ class AnalyticsService extends Component
      * Get campaign breakdown data
      *
      * @param int|string $campaignId Campaign ID or 'all'
-     * @param int|string $siteId Site ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<int, array<string, mixed>>
      * @since 5.1.0
      */
-    public function getCampaignBreakdown(int|string $campaignId, int|string $siteId, string $dateRange): array
+    public function getCampaignBreakdown(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
 
@@ -406,11 +406,11 @@ class AnalyticsService extends Component
     /**
      * Get all campaigns for filter dropdown
      *
-     * @param int|string $siteId Site ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @return array<int, array{value: int|string, label: string}>
      * @since 5.1.0
      */
-    public function getCampaignOptions(int|string $siteId): array
+    public function getCampaignOptions(int|string|array $siteId): array
     {
         $campaignQuery = Campaign::find()->status(null);
         if ($siteId !== 'all') {
@@ -560,11 +560,11 @@ class AnalyticsService extends Component
      * Build a recipient query with common filters
      *
      * @param int|string $campaignId Campaign ID or 'all'
-     * @param int|string $siteId Site ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return Query
      */
-    private function buildRecipientQuery(int|string $campaignId, int|string $siteId, string $dateRange): Query
+    private function buildRecipientQuery(int|string $campaignId, int|string|array $siteId, string $dateRange): Query
     {
         $query = (new Query())
             ->from(RecipientRecord::tableName());

@@ -54,7 +54,7 @@
 {% set crumbs = [] %}
 {% if craft.app.getIsMultiSite() %}
     {% set siteMenuItems = [] %}
-    {% for s in craft.app.sites.getAllSites() %}
+    {% for s in craft.app.sites.getEditableSites() %}
         {% set siteMenuItems = siteMenuItems|merge([{
             label: s.name,
             url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: s.handle}),

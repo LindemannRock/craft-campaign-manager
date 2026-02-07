@@ -50,15 +50,15 @@
     'fields': { label: 'General'|t('campaign-manager'), url: '#fields' },
 } %}
 
-{# Add Analytics tab for existing campaigns #}
-{% if campaign.id %}
+{# Add Analytics tab for existing campaigns (requires permission and enabled setting) #}
+{% if campaign.id and currentUser.can('campaignManager:viewAnalytics') %}
     {% set tabs = tabs|merge({
         'analytics': { label: 'Analytics'|t('campaign-manager'), url: '#analytics' },
     }) %}
 {% endif %}
 
-{# Add Responses tab for existing campaigns with a form #}
-{% if campaign.id and campaign.formId %}
+{# Add Responses tab for existing campaigns with a form (requires permission) #}
+{% if campaign.id and campaign.formId and currentUser.can('campaignManager:viewRecipients') %}
     {% set tabs = tabs|merge({
         'responses': { label: 'Responses'|t('campaign-manager'), url: '#responses' },
     }) %}
@@ -483,14 +483,14 @@
     </div>
 
     {# ==================== ANALYTICS TAB ==================== #}
-    {% if campaign.id %}
+    {% if campaign.id and currentUser.can('campaignManager:viewAnalytics') %}
         <div id="analytics" class="hidden">
             {% include 'campaign-manager/campaigns/_partials/analytics' %}
         </div>
     {% endif %}
 
     {# ==================== RESPONSES TAB ==================== #}
-    {% if campaign.id and campaign.formId %}
+    {% if campaign.id and campaign.formId and currentUser.can('campaignManager:viewRecipients') %}
         <div id="responses" class="hidden">
             {% include 'campaign-manager/campaigns/_partials/responses' %}
         </div>
@@ -507,7 +507,10 @@
             on: campaign.getEnabledForSite(),
         }) }}
 
-        {% if campaign.id %}
+        {% set canViewRecipients = currentUser.can('campaignManager:viewRecipients') %}
+        {% set canAddRecipients = currentUser.can('campaignManager:addRecipients') %}
+        {% set canImportRecipients = currentUser.can('campaignManager:importRecipients') %}
+        {% if campaign.id and (canViewRecipients or canAddRecipients or canImportRecipients) %}
             <div class="field" style="margin-top: 15px;">
                 <div class="heading">
                     <label>{{ 'Actions'|t('app') }}</label>
@@ -517,10 +520,16 @@
                         <button type="button" class="btn menubtn" data-icon="settings" style="width: 100%;">{{ 'Campaign Actions'|t('campaign-manager') }}</button>
                         <div class="menu">
                             <ul>
-                                <li><a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/recipients?site=' ~ currentSite.handle) }}">{{ 'View Recipients'|t('campaign-manager') }}</a></li>
+                                {% if currentUser.can('campaignManager:viewRecipients') %}
+                                    <li><a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/recipients?site=' ~ currentSite.handle) }}">{{ 'View Recipients'|t('campaign-manager') }}</a></li>
+                                {% endif %}
                                 {% if campaign.getEnabledForSite() %}
-                                    <li><a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/add-recipient?site=' ~ currentSite.handle) }}">{{ 'Add Recipient'|t('campaign-manager') }}</a></li>
-                                    <li><a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/import-recipients?site=' ~ currentSite.handle) }}">{{ 'Import Recipients'|t('campaign-manager') }}</a></li>
+                                    {% if currentUser.can('campaignManager:addRecipients') %}
+                                        <li><a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/add-recipient?site=' ~ currentSite.handle) }}">{{ 'Add Recipient'|t('campaign-manager') }}</a></li>
+                                    {% endif %}
+                                    {% if currentUser.can('campaignManager:importRecipients') %}
+                                        <li><a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/import-recipients?site=' ~ currentSite.handle) }}">{{ 'Import Recipients'|t('campaign-manager') }}</a></li>
+                                    {% endif %}
                                 {% endif %}
                             </ul>
                         </div>
@@ -543,9 +552,13 @@
             <div class="data">
                 <h5 class="heading">{{ 'Recipients'|t('campaign-manager') }}</h5>
                 <div class="value">
-                    <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/recipients?site=' ~ currentSite.handle) }}">
+                    {% if currentUser.can('campaignManager:viewRecipients') %}
+                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/recipients?site=' ~ currentSite.handle) }}">
+                            {{ campaign.recipientCount }}
+                        </a>
+                    {% else %}
                         {{ campaign.recipientCount }}
-                    </a>
+                    {% endif %}
                 </div>
             </div>
         </div>

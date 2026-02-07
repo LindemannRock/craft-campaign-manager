@@ -13,16 +13,17 @@
 
 {# Build site filter options #}
 {% set siteFilterOptions = [{value: 'all', label: 'All Sites'|t('campaign-manager')}] %}
-{% for site in craft.app.sites.getAllSites() %}
+{% for site in craft.app.sites.getEditableSites() %}
     {% set siteFilterOptions = siteFilterOptions|merge([{value: site.id, label: site.name}]) %}
 {% endfor %}
 
 {# Date range options #}
 {% set dateRangeOptions = lrDateRangeOptions() %}
 
-{# Get recipients with submissions #}
+{# Get recipients with submissions (scoped to editable sites) #}
 {% set filterSiteId = siteFilter != 'all' ? siteFilter|number : null %}
-{% set recipients = craft.campaignManager.recipients.getWithSubmissions(campaign.id, filterSiteId, dateRange) %}
+{% set editableSiteIds = craft.app.sites.getEditableSiteIds() %}
+{% set recipients = craft.campaignManager.recipients.getWithSubmissions(campaign.id, filterSiteId, dateRange, editableSiteIds) %}
 
 {# Get the Formie form and its fields #}
 {% set form = craft.formie.forms.id(campaign.formId).one() %}

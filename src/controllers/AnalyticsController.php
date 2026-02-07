@@ -15,6 +15,7 @@ use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -54,43 +55,36 @@ class AnalyticsController extends Controller
         // Get filter parameters
         $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $campaignId = $request->getQueryParam('campaign', 'all');
-        $siteId = $request->getQueryParam('siteId', 'all');
+        $rawSiteId = $request->getQueryParam('siteId', 'all');
 
         // Normalize campaign ID
         if ($campaignId !== 'all' && is_numeric($campaignId)) {
             $campaignId = (int)$campaignId;
         }
 
-        // Normalize site ID - handle both ID and handle
-        if ($siteId !== 'all' && $siteId !== '') {
-            if (is_numeric($siteId)) {
-                $siteId = (int)$siteId;
-            } else {
-                // It's a site handle, convert to ID
-                $site = Craft::$app->getSites()->getSiteByHandle($siteId);
-                $siteId = $site ? $site->id : 'all';
-            }
-        } else {
-            $siteId = 'all';
-        }
+        // Resolve and validate site ID against editable sites
+        $effectiveSiteId = $this->_resolveSiteId($rawSiteId);
 
         // Get overview stats
-        $summaryStats = $analyticsService->getOverviewStats($campaignId, $siteId, $dateRange);
+        $summaryStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange);
 
         // Get campaign options for filter
-        $campaignOptions = $analyticsService->getCampaignOptions($siteId);
+        $campaignOptions = $analyticsService->getCampaignOptions($effectiveSiteId);
 
-        // Get sites for filter
-        $sites = Craft::$app->getSites()->getAllSites();
+        // Get sites for filter (only editable)
+        $sites = Craft::$app->getSites()->getEditableSites();
 
         // Get campaign breakdown (filtered by selected campaign)
-        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $siteId, $dateRange);
+        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange);
+
+        // Pass display-friendly siteId (string/int) for template filters/JS, not the array
+        $displaySiteId = is_array($effectiveSiteId) ? 'all' : $effectiveSiteId;
 
         return $this->renderTemplate('campaign-manager/analytics/index', [
             'settings' => $settings,
             'dateRange' => $dateRange,
             'campaignId' => $campaignId,
-            'siteId' => $siteId,
+            'siteId' => $displaySiteId,
             'summaryStats' => $summaryStats,
             'campaignOptions' => $campaignOptions,
             'campaignBreakdown' => $campaignBreakdown,
@@ -114,32 +108,23 @@ class AnalyticsController extends Controller
         $type = $request->getBodyParam('type', 'daily');
         $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $campaignId = $request->getBodyParam('campaignId', 'all');
-        $siteId = $request->getBodyParam('siteId', 'all');
+        $rawSiteId = $request->getBodyParam('siteId', 'all');
 
         // Normalize campaign ID
         if ($campaignId !== 'all' && is_numeric($campaignId)) {
             $campaignId = (int)$campaignId;
         }
 
-        // Normalize site ID - handle both ID and handle
-        if ($siteId !== 'all' && $siteId !== '') {
-            if (is_numeric($siteId)) {
-                $siteId = (int)$siteId;
-            } else {
-                $site = Craft::$app->getSites()->getSiteByHandle($siteId);
-                $siteId = $site ? $site->id : 'all';
-            }
-        } else {
-            $siteId = 'all';
-        }
+        // Resolve and validate site ID against editable sites
+        $effectiveSiteId = $this->_resolveSiteId($rawSiteId);
 
         $analyticsService = CampaignManager::$plugin->analytics;
 
         $data = match ($type) {
-            'daily' => $analyticsService->getDailyTrend($campaignId, $siteId, $dateRange),
-            'channels' => $analyticsService->getChannelDistribution($campaignId, $siteId, $dateRange),
-            'engagement' => $analyticsService->getEngagementOverTime($campaignId, $siteId, $dateRange),
-            'funnel' => $analyticsService->getConversionFunnel($campaignId, $siteId, $dateRange),
+            'daily' => $analyticsService->getDailyTrend($campaignId, $effectiveSiteId, $dateRange),
+            'channels' => $analyticsService->getChannelDistribution($campaignId, $effectiveSiteId, $dateRange),
+            'engagement' => $analyticsService->getEngagementOverTime($campaignId, $effectiveSiteId, $dateRange),
+            'funnel' => $analyticsService->getConversionFunnel($campaignId, $effectiveSiteId, $dateRange),
             default => [],
         };
 
@@ -164,7 +149,7 @@ class AnalyticsController extends Controller
         $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $format = $request->getQueryParam('format', 'csv');
         $campaignId = $request->getQueryParam('campaign', 'all');
-        $siteId = $request->getQueryParam('siteId', 'all');
+        $rawSiteId = $request->getQueryParam('siteId', 'all');
 
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
@@ -176,23 +161,14 @@ class AnalyticsController extends Controller
             $campaignId = (int)$campaignId;
         }
 
-        // Normalize site ID - handle both ID and handle
-        if ($siteId !== 'all' && $siteId !== '') {
-            if (is_numeric($siteId)) {
-                $siteId = (int)$siteId;
-            } else {
-                $site = Craft::$app->getSites()->getSiteByHandle($siteId);
-                $siteId = $site ? $site->id : 'all';
-            }
-        } else {
-            $siteId = 'all';
-        }
+        // Resolve and validate site ID against editable sites
+        $effectiveSiteId = $this->_resolveSiteId($rawSiteId);
 
         $analyticsService = CampaignManager::$plugin->analytics;
 
         // Get comprehensive stats for export
-        $overviewStats = $analyticsService->getOverviewStats($campaignId, $siteId, $dateRange);
-        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $siteId, $dateRange);
+        $overviewStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange);
+        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange);
 
         // Check for empty data
         if (empty($campaignBreakdown) && $overviewStats['totalRecipients'] === 0) {
@@ -204,7 +180,7 @@ class AnalyticsController extends Controller
         $rows = [];
         foreach ($campaignBreakdown as $data) {
             // Get detailed stats for this specific campaign
-            $campaignStats = $analyticsService->getOverviewStats($data['campaignId'], $siteId, $dateRange);
+            $campaignStats = $analyticsService->getOverviewStats($data['campaignId'], $effectiveSiteId, $dateRange);
 
             $rows[] = [
                 'campaign' => $data['campaignName'],
@@ -249,8 +225,8 @@ class AnalyticsController extends Controller
             }
         }
 
-        if (is_int($siteId)) {
-            $site = Craft::$app->getSites()->getSiteById($siteId);
+        if (is_int($effectiveSiteId)) {
+            $site = Craft::$app->getSites()->getSiteById($effectiveSiteId);
             if ($site) {
                 $siteHandle = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
                 $filenameParts[] = $siteHandle;
@@ -269,5 +245,35 @@ class AnalyticsController extends Controller
             ]),
             default => throw new BadRequestHttpException("Unknown export format: {$format}"),
         };
+    }
+
+    /**
+     * Resolve and validate the site ID parameter against editable sites.
+     *
+     * @param string|null $rawSiteId Raw site ID from request ('all', numeric ID, site handle, or null)
+     * @return int|array<int> Validated site ID or array of editable site IDs
+     * @throws ForbiddenHttpException if specific site is not editable
+     */
+    private function _resolveSiteId(?string $rawSiteId): int|array
+    {
+        $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
+
+        if ($rawSiteId === null || $rawSiteId === '' || $rawSiteId === 'all') {
+            return $editableSiteIds;
+        }
+
+        // Convert handle to ID if needed
+        if (is_numeric($rawSiteId)) {
+            $siteId = (int)$rawSiteId;
+        } else {
+            $site = Craft::$app->getSites()->getSiteByHandle($rawSiteId);
+            $siteId = $site ? $site->id : null;
+        }
+
+        if ($siteId === null || !in_array($siteId, $editableSiteIds, true)) {
+            throw new ForbiddenHttpException('You do not have permission to view analytics for this site.');
+        }
+
+        return $siteId;
     }
 }

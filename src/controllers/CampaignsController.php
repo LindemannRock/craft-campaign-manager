@@ -329,10 +329,10 @@ class CampaignsController extends Controller
         $campaignId = Craft::$app->getRequest()->getBodyParam('campaignId');
         $siteId = Craft::$app->getRequest()->getBodyParam('siteId');
 
-        // Get all sites if no specific site is provided
+        // Get editable sites if no specific site is provided
         $sites = $siteId
             ? [Craft::$app->getSites()->getSiteById((int) $siteId)]
-            : Craft::$app->getSites()->getAllSites();
+            : Craft::$app->getSites()->getEditableSites();
 
         $jobsQueued = 0;
         $triggeredByUserId = Craft::$app->getUser()->getIdentity()?->id;

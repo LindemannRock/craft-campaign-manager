@@ -279,15 +279,22 @@ class Campaign extends Element
     protected static function defineActions(string $source): array
     {
         $actions = [];
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
         // View Recipients (single selection)
-        $actions[] = actions\ViewRecipientsAction::class;
+        if ($currentUser?->can('campaignManager:viewRecipients')) {
+            $actions[] = actions\ViewRecipientsAction::class;
+        }
 
         // Add Recipient (single selection)
-        $actions[] = actions\AddRecipientAction::class;
+        if ($currentUser?->can('campaignManager:addRecipients')) {
+            $actions[] = actions\AddRecipientAction::class;
+        }
 
         // Import Recipients (single selection)
-        $actions[] = actions\ImportRecipientsAction::class;
+        if ($currentUser?->can('campaignManager:importRecipients')) {
+            $actions[] = actions\ImportRecipientsAction::class;
+        }
 
         // Set Status
         $actions[] = SetStatus::class;
@@ -718,14 +725,15 @@ class Campaign extends Element
 
             case 'recipientCount':
                 $count = $this->getRecipientCount();
-                if ($count > 0) {
+                $currentUser = Craft::$app->getUser()->getIdentity();
+                if ($count > 0 && $currentUser?->can('campaignManager:viewRecipients')) {
                     return sprintf(
                         '<a href="%s">%s</a>',
                         UrlHelper::cpUrl("campaign-manager/campaigns/{$this->id}/recipients"),
                         number_format($count)
                     );
                 }
-                return '0';
+                return number_format($count);
 
             case 'submissionCount':
                 $count = $this->getSubmissionCount();
@@ -738,29 +746,35 @@ class Campaign extends Element
                 $site = Craft::$app->getSites()->getSiteById($this->siteId);
                 $siteHandle = $site?->handle ?? 'en';
                 $campaignId = $this->getCanonicalId();
+                $currentUser = Craft::$app->getUser()->getIdentity();
 
-                $viewUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/recipients", ['site' => $siteHandle]);
-                $addUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/add-recipient", ['site' => $siteHandle]);
-                $importUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/import-recipients", ['site' => $siteHandle]);
+                $menuItems = [];
+                if ($currentUser?->can('campaignManager:viewRecipients')) {
+                    $viewUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/recipients", ['site' => $siteHandle]);
+                    $menuItems[] = sprintf('<li><a href="%s">%s</a></li>', $viewUrl, Craft::t('campaign-manager', 'View Recipients'));
+                }
+                if ($currentUser?->can('campaignManager:addRecipients')) {
+                    $addUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/add-recipient", ['site' => $siteHandle]);
+                    $menuItems[] = sprintf('<li><a href="%s">%s</a></li>', $addUrl, Craft::t('campaign-manager', 'Add Recipient'));
+                }
+                if ($currentUser?->can('campaignManager:importRecipients')) {
+                    $importUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/import-recipients", ['site' => $siteHandle]);
+                    $menuItems[] = sprintf('<li><a href="%s">%s</a></li>', $importUrl, Craft::t('campaign-manager', 'Import Recipients'));
+                }
+
+                if (empty($menuItems)) {
+                    return '';
+                }
 
                 return sprintf(
                     '<div class="campaign-actions-menu">
                         <button type="button" class="btn menubtn" data-icon="settings" aria-label="%s"></button>
                         <div class="menu">
-                            <ul>
-                                <li><a href="%s">%s</a></li>
-                                <li><a href="%s">%s</a></li>
-                                <li><a href="%s">%s</a></li>
-                            </ul>
+                            <ul>%s</ul>
                         </div>
                     </div>',
                     Craft::t('app', 'Actions'),
-                    $viewUrl,
-                    Craft::t('campaign-manager', 'View Recipients'),
-                    $addUrl,
-                    Craft::t('campaign-manager', 'Add Recipient'),
-                    $importUrl,
-                    Craft::t('campaign-manager', 'Import Recipients')
+                    implode('', $menuItems)
                 );
         }
 

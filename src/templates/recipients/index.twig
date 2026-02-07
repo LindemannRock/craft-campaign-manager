@@ -45,7 +45,7 @@
 
 {# Site options #}
 {% set siteFilterOptions = [{value: 'all', label: 'All Sites'|t('campaign-manager'), status: 'all'}] %}
-{% for site in craft.app.sites.getAllSites() %}
+{% for site in craft.app.sites.getEditableSites() %}
     {% set siteFilterOptions = siteFilterOptions|merge([{
         value: site.id,
         label: site.name,
