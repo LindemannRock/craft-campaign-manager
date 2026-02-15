@@ -8,11 +8,13 @@
 
 Campaign management for surveys with SMS and email invitations for Craft CMS 5.x.
 
-## Beta Notice
+## License
 
-This plugin is currently in active development and provided under the MIT License for testing purposes.
+This is a commercial plugin licensed under the [Craft License](https://craftcms.github.io/license/). It will be available on the [Craft Plugin Store](https://plugins.craftcms.com) soon. See [LICENSE.md](LICENSE.md) for details.
 
-**Licensing is subject to change.** We are finalizing our licensing structure and some or all features may require a paid license when officially released on the Craft Plugin Store.
+## ⚠️ Pre-Release
+
+This plugin is in active development and not yet available on the Craft Plugin Store. Features and APIs may change before the initial public release.
 
 ## Features
 
@@ -415,7 +417,7 @@ Campaign Manager uses the [LindemannRock Logging Library](https://github.com/Lin
 
 ## License
 
-This plugin is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+This plugin is licensed under the [Craft License](https://craftcms.github.io/license/). See [LICENSE.md](LICENSE.md) for details.
 
 ---
 
