@@ -219,7 +219,7 @@ class CampaignManager extends Plugin
                 'key' => 'campaigns',
                 'label' => Craft::t('campaign-manager', 'Campaigns'),
                 'url' => 'campaign-manager',
-                'permissionsAll' => ['campaignManager:viewCampaigns'],
+                'permissionsAll' => ['campaignManager:manageCampaigns'],
             ];
         }
 
@@ -227,7 +227,7 @@ class CampaignManager extends Plugin
             'key' => 'recipients',
             'label' => Craft::t('campaign-manager', 'Recipients'),
             'url' => 'campaign-manager/recipients',
-            'permissionsAll' => ['campaignManager:viewRecipients'],
+            'permissionsAll' => ['campaignManager:manageRecipients'],
         ];
 
         $sections[] = [
@@ -555,9 +555,6 @@ class CampaignManager extends Plugin
             'campaignManager:manageCampaigns' => [
                 'label' => Craft::t('campaign-manager', 'Manage campaigns'),
                 'nested' => [
-                    'campaignManager:viewCampaigns' => [
-                        'label' => Craft::t('campaign-manager', 'View campaigns'),
-                    ],
                     'campaignManager:createCampaigns' => [
                         'label' => Craft::t('campaign-manager', 'Create campaigns'),
                     ],
@@ -575,9 +572,6 @@ class CampaignManager extends Plugin
             'campaignManager:manageRecipients' => [
                 'label' => Craft::t('campaign-manager', 'Manage recipients'),
                 'nested' => [
-                    'campaignManager:viewRecipients' => [
-                        'label' => Craft::t('campaign-manager', 'View recipients'),
-                    ],
                     'campaignManager:addRecipients' => [
                         'label' => Craft::t('campaign-manager', 'Add recipients'),
                     ],

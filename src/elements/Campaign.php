@@ -282,7 +282,7 @@ class Campaign extends Element
         $currentUser = Craft::$app->getUser()->getIdentity();
 
         // View Recipients (single selection)
-        if ($currentUser?->can('campaignManager:viewRecipients')) {
+        if ($currentUser?->can('campaignManager:manageRecipients')) {
             $actions[] = actions\ViewRecipientsAction::class;
         }
 
@@ -632,7 +632,7 @@ class Campaign extends Element
      */
     public function canView(User $user): bool
     {
-        return $user->can('campaignManager:viewCampaigns');
+        return $user->can('campaignManager:manageCampaigns');
     }
 
     /**
@@ -726,7 +726,7 @@ class Campaign extends Element
             case 'recipientCount':
                 $count = $this->getRecipientCount();
                 $currentUser = Craft::$app->getUser()->getIdentity();
-                if ($count > 0 && $currentUser?->can('campaignManager:viewRecipients')) {
+                if ($count > 0 && $currentUser?->can('campaignManager:manageRecipients')) {
                     return sprintf(
                         '<a href="%s">%s</a>',
                         UrlHelper::cpUrl("campaign-manager/campaigns/{$this->id}/recipients"),
@@ -749,7 +749,7 @@ class Campaign extends Element
                 $currentUser = Craft::$app->getUser()->getIdentity();
 
                 $menuItems = [];
-                if ($currentUser?->can('campaignManager:viewRecipients')) {
+                if ($currentUser?->can('campaignManager:manageRecipients')) {
                     $viewUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/recipients", ['site' => $siteHandle]);
                     $menuItems[] = sprintf('<li><a href="%s">%s</a></li>', $viewUrl, Craft::t('campaign-manager', 'View Recipients'));
                 }

@@ -83,7 +83,7 @@
         {% set formattedCountries = [] %}
         {% for code in currentCountries %}
             {% if code != '*' %}
-                {% set formattedCountries = formattedCountries|merge([lrCountryName(code) ~ ' (' ~ code ~ ')']) %}
+                {% set formattedCountries = formattedCountries|merge([lrCountryWithDialCode(code)]) %}
             {% endif %}
         {% endfor %}
         {% set countryMessage = currentCountries == ['*'] ? 'Allowed countries for <strong>' ~ (currentProvider.name ?? '') ~ '</strong>: All countries.' : 'Allowed countries for <strong>' ~ (currentProvider.name ?? '') ~ '</strong>: ' ~ formattedCountries|join(', ') ~ '.' %}

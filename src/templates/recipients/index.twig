@@ -11,7 +11,7 @@
    PERMISSION CHECKS
    ============================================================================ #}
 
-{% set canView = currentUser.can('campaignManager:viewRecipients') %}
+{% set canView = currentUser.can('campaignManager:manageRecipients') %}
 {% set canDelete = currentUser.can('campaignManager:deleteRecipients') %}
 
 {# ============================================================================

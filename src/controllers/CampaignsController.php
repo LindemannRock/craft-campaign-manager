@@ -52,8 +52,8 @@ class CampaignsController extends Controller
         $user = Craft::$app->getUser();
         $settings = CampaignManager::$plugin->getSettings();
 
-        // If user doesn't have viewCampaigns permission, redirect to first accessible section
-        if (!$user->checkPermission('campaignManager:viewCampaigns')) {
+        // If user doesn't have manageCampaigns permission, redirect to first accessible section
+        if (!$user->checkPermission('campaignManager:manageCampaigns')) {
             $sections = CampaignManager::$plugin->getCpSections($settings, false, true);
             $route = CpNavHelper::firstAccessibleRoute($user, $settings, $sections);
             if ($route) {
@@ -116,7 +116,7 @@ class CampaignsController extends Controller
         }
 
         // Check if the user can view/edit this campaign
-        if ($campaign->id && !Craft::$app->getUser()->checkPermission('campaignManager:viewCampaigns')) {
+        if ($campaign->id && !Craft::$app->getUser()->checkPermission('campaignManager:manageCampaigns')) {
             throw new ForbiddenHttpException('You don\'t have permission to view this campaign.');
         }
 

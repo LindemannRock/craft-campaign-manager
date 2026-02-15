@@ -106,6 +106,12 @@ class AnalyticsController extends Controller
 
         $request = Craft::$app->getRequest();
         $type = $request->getBodyParam('type', 'daily');
+
+        $validTypes = ['daily', 'channels', 'engagement', 'funnel'];
+        if (!in_array($type, $validTypes, true)) {
+            throw new BadRequestHttpException('Invalid data type.');
+        }
+
         $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $campaignId = $request->getBodyParam('campaignId', 'all');
         $rawSiteId = $request->getBodyParam('siteId', 'all');
@@ -125,7 +131,6 @@ class AnalyticsController extends Controller
             'channels' => $analyticsService->getChannelDistribution($campaignId, $effectiveSiteId, $dateRange),
             'engagement' => $analyticsService->getEngagementOverTime($campaignId, $effectiveSiteId, $dateRange),
             'funnel' => $analyticsService->getConversionFunnel($campaignId, $effectiveSiteId, $dateRange),
-            default => [],
         };
 
         return $this->asJson([

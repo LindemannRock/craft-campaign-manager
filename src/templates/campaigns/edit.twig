@@ -58,7 +58,7 @@
 {% endif %}
 
 {# Add Responses tab for existing campaigns with a form (requires permission) #}
-{% if campaign.id and campaign.formId and currentUser.can('campaignManager:viewRecipients') %}
+{% if campaign.id and campaign.formId and currentUser.can('campaignManager:manageRecipients') %}
     {% set tabs = tabs|merge({
         'responses': { label: 'Responses'|t('campaign-manager'), url: '#responses' },
     }) %}
@@ -490,7 +490,7 @@
     {% endif %}
 
     {# ==================== RESPONSES TAB ==================== #}
-    {% if campaign.id and campaign.formId and currentUser.can('campaignManager:viewRecipients') %}
+    {% if campaign.id and campaign.formId and currentUser.can('campaignManager:manageRecipients') %}
         <div id="responses" class="hidden">
             {% include 'campaign-manager/campaigns/_partials/responses' %}
         </div>
@@ -507,7 +507,7 @@
             on: campaign.getEnabledForSite(),
         }) }}
 
-        {% set canViewRecipients = currentUser.can('campaignManager:viewRecipients') %}
+        {% set canViewRecipients = currentUser.can('campaignManager:manageRecipients') %}
         {% set canAddRecipients = currentUser.can('campaignManager:addRecipients') %}
         {% set canImportRecipients = currentUser.can('campaignManager:importRecipients') %}
         {% if campaign.id and (canViewRecipients or canAddRecipients or canImportRecipients) %}
@@ -520,7 +520,7 @@
                         <button type="button" class="btn menubtn" data-icon="settings" style="width: 100%;">{{ 'Campaign Actions'|t('campaign-manager') }}</button>
                         <div class="menu">
                             <ul>
-                                {% if currentUser.can('campaignManager:viewRecipients') %}
+                                {% if currentUser.can('campaignManager:manageRecipients') %}
                                     <li><a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/recipients?site=' ~ currentSite.handle) }}">{{ 'View Recipients'|t('campaign-manager') }}</a></li>
                                 {% endif %}
                                 {% if campaign.getEnabledForSite() %}
@@ -552,7 +552,7 @@
             <div class="data">
                 <h5 class="heading">{{ 'Recipients'|t('campaign-manager') }}</h5>
                 <div class="value">
-                    {% if currentUser.can('campaignManager:viewRecipients') %}
+                    {% if currentUser.can('campaignManager:manageRecipients') %}
                         <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/recipients?site=' ~ currentSite.handle) }}">
                             {{ campaign.recipientCount }}
                         </a>

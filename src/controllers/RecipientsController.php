@@ -40,7 +40,7 @@ class RecipientsController extends Controller
     public function actionGlobalIndex(): Response
     {
         $this->requireLogin();
-        $this->requirePermission('campaignManager:viewRecipients');
+        $this->requirePermission('campaignManager:manageRecipients');
 
         $settings = CampaignManager::$plugin->getSettings();
         $request = Craft::$app->getRequest();
@@ -173,7 +173,7 @@ class RecipientsController extends Controller
     {
         $this->requireLogin();
         $this->requirePermission('campaignManager:exportRecipients');
-        $this->requirePermission('campaignManager:viewRecipients');
+        $this->requirePermission('campaignManager:manageRecipients');
 
         $request = Craft::$app->getRequest();
         $format = $request->getQueryParam('format', 'csv');
@@ -354,7 +354,7 @@ class RecipientsController extends Controller
     {
         $this->requireLogin();
         $this->requirePermission('campaignManager:exportRecipients');
-        $this->requirePermission('campaignManager:viewRecipients');
+        $this->requirePermission('campaignManager:manageRecipients');
 
         $request = Craft::$app->getRequest();
         $format = $request->getQueryParam('format', 'csv');
@@ -504,7 +504,7 @@ class RecipientsController extends Controller
     public function actionIndex(int $campaignId): Response
     {
         $this->requireLogin();
-        $this->requirePermission('campaignManager:viewRecipients');
+        $this->requirePermission('campaignManager:manageRecipients');
 
         $siteHandle = Craft::$app->getRequest()->getQueryParam('site');
         if ($siteHandle) {
@@ -1598,7 +1598,7 @@ class RecipientsController extends Controller
     {
         $this->requireLogin();
         $this->requirePermission('campaignManager:exportRecipients');
-        $this->requirePermission('campaignManager:viewRecipients');
+        $this->requirePermission('campaignManager:manageRecipients');
 
         $request = Craft::$app->getRequest();
         $siteHandle = $request->getQueryParam('site');

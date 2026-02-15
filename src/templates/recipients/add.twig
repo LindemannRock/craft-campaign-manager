@@ -111,31 +111,15 @@
         {# Build country options and dial code mapping for the dropdown #}
         {% set countryOptions = [] %}
         {% set dialCodeList = [] %}
-        {% if isAllCountries %}
-            {# All countries allowed - build from base plugin #}
-            {% for option in lrDialCodes() %}
-                {% set dc = lrDialCode(option.value) %}
-                {% if dc %}
-                    {% set countryOptions = countryOptions|merge([{
-                        label: option.value ~ ' +' ~ dc,
-                        value: option.value
-                    }]) %}
-                    {% set dialCodeList = dialCodeList|merge([{code: dc, country: option.value}]) %}
-                {% endif %}
-            {% endfor %}
-        {% else %}
-            {# Limited to specific countries #}
-            {% for code in allowedCountries %}
-                {% set dialCode = lrDialCode(code) %}
-                {% if dialCode %}
-                    {% set countryOptions = countryOptions|merge([{
-                        label: code ~ ' +' ~ dialCode,
-                        value: code
-                    }]) %}
-                    {% set dialCodeList = dialCodeList|merge([{code: dialCode, country: code}]) %}
-                {% endif %}
-            {% endfor %}
-        {% endif %}
+        {% for item in lrCountryDialCodeData() %}
+            {% if isAllCountries or item.countryCode in allowedCountries %}
+                {% set countryOptions = countryOptions|merge([{
+                    label: item.countryCode ~ ' +' ~ item.dialCode,
+                    value: item.countryCode
+                }]) %}
+                {% set dialCodeList = dialCodeList|merge([{code: item.dialCode, country: item.countryCode}]) %}
+            {% endif %}
+        {% endfor %}
 
         {% if countryOptions|length > 0 %}
             <div class="field">

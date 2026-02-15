@@ -170,27 +170,14 @@
 
             {# Build country options #}
             {% set countryOptions = [] %}
-            {% if isAllCountries %}
-                {% for option in lrDialCodes() %}
-                    {% set dc = lrDialCode(option.value) %}
-                    {% if dc %}
-                        {% set countryOptions = countryOptions|merge([{
-                            label: option.value ~ ' +' ~ dc ~ ' - ' ~ lrCountryName(option.value),
-                            value: option.value
-                        }]) %}
-                    {% endif %}
-                {% endfor %}
-            {% else %}
-                {% for code in allowedCountries %}
-                    {% set dialCode = lrDialCode(code) %}
-                    {% if dialCode %}
-                        {% set countryOptions = countryOptions|merge([{
-                            label: code ~ ' +' ~ dialCode ~ ' - ' ~ lrCountryName(code),
-                            value: code
-                        }]) %}
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
+            {% for item in lrCountryDialCodeData() %}
+                {% if isAllCountries or item.countryCode in allowedCountries %}
+                    {% set countryOptions = countryOptions|merge([{
+                        label: item.countryCode ~ ' +' ~ item.dialCode ~ ' - ' ~ item.countryName,
+                        value: item.countryCode
+                    }]) %}
+                {% endif %}
+            {% endfor %}
 
             <div class="field" style="margin-top: 10px;">
                 <div class="heading">
