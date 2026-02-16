@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.5.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.4.1...v5.5.0) (2026-02-16)
+
+
+### Features
+
+* add Run Campaign action to index and edit page, replace recipient count with sent/pending columns ([129ca25](https://github.com/LindemannRock/craft-campaign-manager/commit/129ca25284f483055a17491542605430bd17ec18))
+* fix nested permission pattern — remove viewCampaigns and viewRecipients ([7f10f6c](https://github.com/LindemannRock/craft-campaign-manager/commit/7f10f6cce60131d3cf11e379225a8aadf4b0b9b6))
+
+
+### Bug Fixes
+
+* permissions heading, export security, campaign filter duplicates, and pluginName config override ([87f1ef1](https://github.com/LindemannRock/craft-campaign-manager/commit/87f1ef165e1daeb02580be1a26169867d0ccb5e6))
+
+
+### Miscellaneous Chores
+
+* add .gitattributes with export-ignore for Packagist distribution ([16ae6d8](https://github.com/LindemannRock/craft-campaign-manager/commit/16ae6d8f2546f610bffaa190f10b34477af2bedc))
+* switch to Craft License for commercial release ([9c591c2](https://github.com/LindemannRock/craft-campaign-manager/commit/9c591c274d5a62b80274d2cee3a935bf74c6b4d7))
+
 ## [5.4.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.4.0...v5.4.1) (2026-02-07)
 
 
