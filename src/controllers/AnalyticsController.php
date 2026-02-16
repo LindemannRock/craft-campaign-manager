@@ -148,13 +148,14 @@ class AnalyticsController extends Controller
      */
     public function actionExport(): Response
     {
+        $this->requirePostRequest();
         $this->requirePermission('campaignManager:exportAnalytics');
 
         $request = Craft::$app->getRequest();
-        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
-        $format = $request->getQueryParam('format', 'csv');
-        $campaignId = $request->getQueryParam('campaign', 'all');
-        $rawSiteId = $request->getQueryParam('siteId', 'all');
+        $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
+        $format = $request->getBodyParam('format', 'csv');
+        $campaignId = $request->getBodyParam('campaign', 'all');
+        $rawSiteId = $request->getBodyParam('siteId', 'all');
 
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {

@@ -496,7 +496,7 @@ class CampaignManager extends Plugin
             function(RegisterUserPermissionsEvent $event) {
                 $settings = $this->getSettings();
                 $event->permissions[] = [
-                    'heading' => $settings->getDisplayName(),
+                    'heading' => $settings->getFullName(),
                     'permissions' => $this->getPluginPermissions(),
                 ];
             }

@@ -19,6 +19,9 @@
         name: 'settings[pluginName]',
         value: settings.pluginName,
         errors: settings.getErrors('pluginName'),
+        disabled: settings.isOverriddenByConfig('pluginName'),
+        warning: settings.isOverriddenByConfig('pluginName') ?
+            "This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
     }) }}
 
     <hr>

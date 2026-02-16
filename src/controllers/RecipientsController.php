@@ -171,16 +171,17 @@ class RecipientsController extends Controller
      */
     public function actionExport(): Response
     {
+        $this->requirePostRequest();
         $this->requireLogin();
         $this->requirePermission('campaignManager:exportRecipients');
         $this->requirePermission('campaignManager:manageRecipients');
 
         $request = Craft::$app->getRequest();
-        $format = $request->getQueryParam('format', 'csv');
-        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
-        $campaignFilter = $request->getQueryParam('campaign', 'all');
-        $siteFilter = $request->getQueryParam('siteFilter', 'all');
-        $statusFilter = $request->getQueryParam('status', 'all');
+        $format = $request->getBodyParam('format', 'csv');
+        $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
+        $campaignFilter = $request->getBodyParam('campaign', 'all');
+        $siteFilter = $request->getBodyParam('siteFilter', 'all');
+        $statusFilter = $request->getBodyParam('status', 'all');
 
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
@@ -352,15 +353,16 @@ class RecipientsController extends Controller
      */
     public function actionExportResponses(): Response
     {
+        $this->requirePostRequest();
         $this->requireLogin();
         $this->requirePermission('campaignManager:exportRecipients');
         $this->requirePermission('campaignManager:manageRecipients');
 
         $request = Craft::$app->getRequest();
-        $format = $request->getQueryParam('format', 'csv');
-        $campaignId = (int)$request->getQueryParam('campaignId');
-        $siteFilter = $request->getQueryParam('siteFilter', 'all');
-        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
+        $format = $request->getBodyParam('format', 'csv');
+        $campaignId = (int)$request->getBodyParam('campaignId');
+        $siteFilter = $request->getBodyParam('siteFilter', 'all');
+        $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
 
         if (!$campaignId) {
             throw new BadRequestHttpException('Campaign ID is required.');
@@ -1596,15 +1598,16 @@ class RecipientsController extends Controller
      */
     public function actionExportRecipients(int $campaignId): Response
     {
+        $this->requirePostRequest();
         $this->requireLogin();
         $this->requirePermission('campaignManager:exportRecipients');
         $this->requirePermission('campaignManager:manageRecipients');
 
         $request = Craft::$app->getRequest();
-        $siteHandle = $request->getQueryParam('site');
+        $siteHandle = $request->getBodyParam('site');
         $site = $siteHandle ? Craft::$app->getSites()->getSiteByHandle($siteHandle) : Craft::$app->getSites()->getPrimarySite();
-        $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
-        $format = $request->getQueryParam('format', 'csv');
+        $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
+        $format = $request->getBodyParam('format', 'csv');
 
         // Validate site is editable
         $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();

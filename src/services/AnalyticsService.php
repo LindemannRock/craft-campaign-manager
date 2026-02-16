@@ -412,7 +412,7 @@ class AnalyticsService extends Component
      */
     public function getCampaignOptions(int|string|array $siteId): array
     {
-        $campaignQuery = Campaign::find()->status(null);
+        $campaignQuery = Campaign::find()->status(null)->unique();
         if ($siteId !== 'all') {
             $campaignQuery->siteId($siteId);
         }
