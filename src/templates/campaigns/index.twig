@@ -38,26 +38,24 @@ function initCampaignMenus() {
             new Garnish.MenuBtn(btn);
         }
     });
-
-    // Handle Run Campaign action
-    document.querySelectorAll('.campaign-run-action').forEach(function(link) {
-        if (link.hasListener) return;
-        link.hasListener = true;
-
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            var campaignId = this.dataset.campaignId;
-
-            Craft.sendActionRequest('POST', 'campaign-manager/campaigns/run-all', {
-                data: { campaignId: campaignId }
-            }).then(function(response) {
-                if (response.data.success) {
-                    Craft.cp.displayNotice('{{ "Campaign started"|t("campaign-manager") }}');
-                }
-            }).catch(function(error) {
-                Craft.cp.displayError('{{ "Failed to run campaign"|t("campaign-manager") }}');
-            });
-        });
-    });
 }
+
+// Run Campaign action (event delegation — registered once, works after MenuBtn moves menu DOM)
+document.addEventListener('click', function(e) {
+    var link = e.target.closest('[data-action="run-campaign"]');
+    if (!link) return;
+    e.preventDefault();
+
+    var campaignId = link.dataset.id;
+
+    Craft.sendActionRequest('POST', 'campaign-manager/campaigns/run-all', {
+        data: { campaignId: campaignId }
+    }).then(function(response) {
+        if (response.data.success) {
+            Craft.cp.displayNotice('{{ "Campaign job queued. Check the queue for progress."|t("campaign-manager")|e("js") }}');
+        }
+    }).catch(function(error) {
+        Craft.cp.displayError('{{ "Failed to run campaign"|t("campaign-manager")|e("js") }}');
+    });
+});
 {% endjs %}

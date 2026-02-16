@@ -531,6 +531,10 @@
                                         <li><a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/import-recipients?site=' ~ currentSite.handle) }}">{{ 'Import Recipients'|t('campaign-manager') }}</a></li>
                                     {% endif %}
                                 {% endif %}
+                                {% if currentUser.can('campaignManager:runCampaigns') %}
+                                    <li><hr class="padded"></li>
+                                    <li><a href="#" class="run-campaign-action" data-campaign-id="{{ campaign.id }}" data-site-id="{{ currentSite.id }}">{{ 'Run Campaign'|t('campaign-manager') }}</a></li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
@@ -561,6 +565,14 @@
                     {% endif %}
                 </div>
             </div>
+            <div class="data">
+                <h5 class="heading">{{ 'Sent'|t('campaign-manager') }}</h5>
+                <div class="value">{{ campaign.sentCount }}</div>
+            </div>
+            <div class="data">
+                <h5 class="heading">{{ 'Pending'|t('campaign-manager') }}</h5>
+                <div class="value">{{ campaign.pendingCount }}</div>
+            </div>
         </div>
     {% endif %}
 {% endblock %}
@@ -572,4 +584,23 @@
     if (saveShortcut) {
         saveShortcut.textContent = isMac ? '⌘S' : 'Ctrl+S';
     }
+
+    // Run Campaign action
+    document.querySelectorAll('.run-campaign-action').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            var campaignId = this.dataset.campaignId;
+            var siteId = this.dataset.siteId;
+
+            Craft.sendActionRequest('POST', 'campaign-manager/campaigns/run-all', {
+                data: { campaignId: campaignId, siteId: siteId }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice({{ 'Campaign job queued. Check the queue for progress.'|t('campaign-manager')|json_encode|raw }});
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError({{ 'Failed to run campaign'|t('campaign-manager')|json_encode|raw }});
+            });
+        });
+    });
 {% endjs %}

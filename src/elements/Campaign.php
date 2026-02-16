@@ -362,7 +362,8 @@ class Campaign extends Element
             'status' => ['label' => Craft::t('app', 'Status')],
             'campaignType' => ['label' => Craft::t('campaign-manager', 'Type')],
             'form' => ['label' => Craft::t('campaign-manager', 'Form')],
-            'recipientCount' => ['label' => Craft::t('campaign-manager', 'Recipients')],
+            'sentCount' => ['label' => Craft::t('campaign-manager', 'Sent')],
+            'pendingCount' => ['label' => Craft::t('campaign-manager', 'Pending')],
             'submissionCount' => ['label' => Craft::t('campaign-manager', 'Submissions')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
@@ -379,7 +380,8 @@ class Campaign extends Element
             'status',
             'campaignType',
             'form',
-            'recipientCount',
+            'sentCount',
+            'pendingCount',
             'submissionCount',
             'dateCreated',
             'actions',
@@ -497,22 +499,31 @@ class Campaign extends Element
     }
 
     /**
-     * Get recipient count
+     * Get sent recipient count
      *
-     * @since 5.0.0
+     * @since 5.5.0
      */
-    public function getRecipientCount(): int
+    public function getSentCount(): int
     {
-        if (!$this->id) {
-            return 0;
-        }
+        return $this->_countRecipients([
+            'or',
+            ['and', ['not', ['email' => null]], ['not', ['email' => '']], ['not', ['emailSendDate' => null]]],
+            ['and', ['not', ['sms' => null]], ['not', ['sms' => '']], ['not', ['smsSendDate' => null]]],
+        ]);
+    }
 
-        return RecipientRecord::find()
-            ->where([
-                'campaignId' => $this->id,
-                'siteId' => $this->siteId,
-            ])
-            ->count();
+    /**
+     * Get pending recipient count
+     *
+     * @since 5.5.0
+     */
+    public function getPendingCount(): int
+    {
+        return $this->_countRecipients([
+            'or',
+            ['and', ['not', ['email' => null]], ['not', ['email' => '']], ['emailSendDate' => null]],
+            ['and', ['not', ['sms' => null]], ['not', ['sms' => '']], ['smsSendDate' => null]],
+        ]);
     }
 
     /**
@@ -522,17 +533,17 @@ class Campaign extends Element
      */
     public function getSubmissionCount(): int
     {
-        if (!$this->id) {
-            return 0;
-        }
+        return $this->_countRecipients(['not', ['submissionId' => null]]);
+    }
 
-        return RecipientRecord::find()
-            ->where([
-                'campaignId' => $this->id,
-                'siteId' => $this->siteId,
-            ])
-            ->andWhere(['not', ['submissionId' => null]])
-            ->count();
+    /**
+     * Get total recipient count
+     *
+     * @since 5.0.0
+     */
+    public function getRecipientCount(): int
+    {
+        return $this->_countRecipients([]);
     }
 
     /**
@@ -723,8 +734,8 @@ class Campaign extends Element
                 }
                 return '—';
 
-            case 'recipientCount':
-                $count = $this->getRecipientCount();
+            case 'sentCount':
+                $count = $this->getSentCount();
                 $currentUser = Craft::$app->getUser()->getIdentity();
                 if ($count > 0 && $currentUser?->can('campaignManager:manageRecipients')) {
                     return sprintf(
@@ -734,6 +745,9 @@ class Campaign extends Element
                     );
                 }
                 return number_format($count);
+
+            case 'pendingCount':
+                return number_format($this->getPendingCount());
 
             case 'submissionCount':
                 $count = $this->getSubmissionCount();
@@ -760,6 +774,17 @@ class Campaign extends Element
                 if ($currentUser?->can('campaignManager:importRecipients')) {
                     $importUrl = UrlHelper::cpUrl("campaign-manager/campaigns/{$campaignId}/import-recipients", ['site' => $siteHandle]);
                     $menuItems[] = sprintf('<li><a href="%s">%s</a></li>', $importUrl, Craft::t('campaign-manager', 'Import Recipients'));
+                }
+
+                if ($currentUser?->can('campaignManager:runCampaigns')) {
+                    if (!empty($menuItems)) {
+                        $menuItems[] = '<li><hr class="padded"></li>';
+                    }
+                    $menuItems[] = sprintf(
+                        '<li><a href="#" data-action="run-campaign" data-id="%s">%s</a></li>',
+                        $campaignId,
+                        Craft::t('campaign-manager', 'Run Campaign')
+                    );
                 }
 
                 if (empty($menuItems)) {
@@ -857,5 +882,25 @@ class Campaign extends Element
         ]);
 
         return true;
+    }
+
+    /**
+     * Count recipients matching a condition for this campaign/site.
+     *
+     * @param array<mixed> $condition
+     */
+    private function _countRecipients(array $condition): int
+    {
+        if (!$this->id) {
+            return 0;
+        }
+
+        return RecipientRecord::find()
+            ->where([
+                'campaignId' => $this->id,
+                'siteId' => $this->siteId,
+            ])
+            ->andWhere($condition)
+            ->count();
     }
 }
