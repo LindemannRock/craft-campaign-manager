@@ -173,15 +173,26 @@ class RecipientsService extends Component
         $invitationUrl = rtrim($baseUrl, '/') . '/' . ltrim($invitationRoute, '/') . '?code=' . $recipientRecord->smsInvitationCode;
         $shortenedUrl = $this->getBitlyUrl($invitationUrl);
 
-        return Craft::$app->view->renderObjectTemplate(
-            $message,
-            $recipientRecord,
-            [
-                'invitationUrl' => $shortenedUrl,
-                'survey_link' => $shortenedUrl, // backwards compatibility
-                'recipient_name' => $recipientRecord->name,
-            ]
-        );
+        try {
+            return Craft::$app->view->renderObjectTemplate(
+                $message,
+                $recipientRecord,
+                [
+                    'invitationUrl' => $shortenedUrl,
+                    'link' => $shortenedUrl,
+                    'recipient_name' => $recipientRecord->name,
+                    'name' => $recipientRecord->name,
+                ]
+            );
+        } catch (\Throwable $e) {
+            $this->logError('Failed to render invitation message template', [
+                'campaignId' => $recipientRecord->campaignId,
+                'recipientId' => $recipientRecord->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $message;
+        }
     }
 
     /**
