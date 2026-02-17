@@ -180,7 +180,7 @@ class RecipientsService extends Component
                 [
                     'invitationUrl' => $shortenedUrl,
                     'link' => $shortenedUrl,
-                    'recipient_name' => $recipientRecord->name,
+                    'recipientName' => $recipientRecord->name,
                     'name' => $recipientRecord->name,
                 ]
             );
