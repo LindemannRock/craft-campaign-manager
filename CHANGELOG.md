@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.5.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.1...v5.5.2) (2026-02-17)
+
+
+### Bug Fixes
+
+* **RecipientsService:** update key name for invitation data ([55cc08b](https://github.com/LindemannRock/craft-campaign-manager/commit/55cc08b33c51a6fb6ce3696c259d0d7d63516f49))
+
 ## [5.5.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.0...v5.5.1) (2026-02-17)
 
 
