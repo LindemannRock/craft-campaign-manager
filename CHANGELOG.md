@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.5.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.0...v5.5.1) (2026-02-17)
+
+
+### Bug Fixes
+
+* **RecipientsService:** handle errors when rendering invitation message ([fa222dd](https://github.com/LindemannRock/craft-campaign-manager/commit/fa222ddae5a664116fac057e6357b25d2888aaf9))
+
+
+### Miscellaneous Chores
+
+* update .gitignore for improved file management ([3500cd2](https://github.com/LindemannRock/craft-campaign-manager/commit/3500cd2d5182d397cefb28a2d57e049edd6383cc))
+
 ## [5.5.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.4.1...v5.5.0) (2026-02-16)
 
 
