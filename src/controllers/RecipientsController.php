@@ -1219,7 +1219,7 @@ class RecipientsController extends Controller
 
             foreach ($columnMap as $colIndex => $fieldName) {
                 if (isset($row[$colIndex])) {
-                    $value = trim($row[$colIndex]);
+                    $value = CsvImportHelper::stripFormulaEscapePrefix(trim($row[$colIndex]));
                     if ($value !== '') {
                         $recipientData[$fieldName] = $value;
                     }
