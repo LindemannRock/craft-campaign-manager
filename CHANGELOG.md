@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.5.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.2...v5.5.3) (2026-02-23)
+
+
+### Bug Fixes
+
+* **CampaignManager:** add no-op setSettings method for clarity ([06df6b7](https://github.com/LindemannRock/craft-campaign-manager/commit/06df6b7cbcf2d276c75e6ab1c08e2d303052287a))
+* **RecipientsController:** strip formula escape prefix from CSV import values ([81fb33a](https://github.com/LindemannRock/craft-campaign-manager/commit/81fb33ae1665107ac6695b95304eb1f736b817d8))
+
 ## [5.5.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.1...v5.5.2) (2026-02-17)
 
 
