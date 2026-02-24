@@ -44,8 +44,6 @@ class RecipientsService extends Component
 
     /**
      * Get a recipient query
-     *
-     * @since 5.0.0
      */
     public function find(): ActiveQuery
     {
@@ -56,7 +54,6 @@ class RecipientsService extends Component
      * Find recipients by campaign and site
      *
      * @return RecipientRecord[]
-     * @since 5.0.0
      */
     public function findByCampaignAndSite(int $campaignId, int $siteId, string $dateRange = 'all'): array
     {
@@ -88,7 +85,6 @@ class RecipientsService extends Component
      *
      * @param string $dateRange Date range parameter
      * @return array{start: \DateTime, end: \DateTime}
-     * @since 5.0.0
      */
     public function getDateRangeFromParam(string $dateRange): array
     {
@@ -104,8 +100,6 @@ class RecipientsService extends Component
 
     /**
      * Get a recipient by invitation code
-     *
-     * @since 5.0.0
      */
     public function getRecipientByInvitationCode(string $code): ?RecipientRecord
     {
@@ -123,8 +117,6 @@ class RecipientsService extends Component
 
     /**
      * Generate a unique invitation code
-     *
-     * @since 5.0.0
      */
     public function getUniqueInvitationCode(): string
     {
@@ -144,8 +136,6 @@ class RecipientsService extends Component
 
     /**
      * Delete a recipient by ID
-     *
-     * @since 5.0.0
      */
     public function deleteRecipientById(int $id): bool
     {
@@ -154,8 +144,6 @@ class RecipientsService extends Component
 
     /**
      * Parse an invitation message with recipient data
-     *
-     * @since 5.0.0
      */
     public function parseInvitationMessageForRecipient(string $message, RecipientRecord $recipientRecord): string
     {
@@ -197,8 +185,6 @@ class RecipientsService extends Component
 
     /**
      * Shorten a URL using Bitly API
-     *
-     * @since 5.0.0
      */
     public function getBitlyUrl(string $surveyUrl): string
     {
@@ -249,8 +235,6 @@ class RecipientsService extends Component
 
     /**
      * Process and send an SMS invitation
-     *
-     * @since 5.0.0
      */
     public function processSmsInvitation(
         CampaignRecord $campaign,
@@ -277,8 +261,6 @@ class RecipientsService extends Component
 
     /**
      * Mark a recipient as having opened their invitation
-     *
-     * @since 5.0.0
      */
     public function markAsOpened(RecipientRecord $recipient): void
     {
@@ -289,8 +271,6 @@ class RecipientsService extends Component
 
     /**
      * Process a form submission for a campaign
-     *
-     * @since 5.0.0
      */
     public function processCampaignSubmission(Submission $submission, string $invitationCode): void
     {
@@ -319,8 +299,6 @@ class RecipientsService extends Component
 
     /**
      * Send an SMS invitation
-     *
-     * @since 5.0.0
      */
     public function sendSmsInvitation(
         string $message,
@@ -344,7 +322,6 @@ class RecipientsService extends Component
      * Get the CP URL for surveys
      *
      * @param array<string, mixed> $params
-     * @since 5.0.0
      */
     public function getCpUrl(string $path, array $params = []): string
     {

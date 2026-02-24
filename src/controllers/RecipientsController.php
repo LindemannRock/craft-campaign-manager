@@ -500,8 +500,6 @@ class RecipientsController extends Controller
 
     /**
      * Recipient index for a campaign
-     *
-     * @since 5.0.0
      */
     public function actionIndex(int $campaignId): Response
     {
@@ -535,8 +533,6 @@ class RecipientsController extends Controller
 
     /**
      * Add recipient form
-     *
-     * @since 5.0.0
      */
     public function actionAddForm(int $campaignId): Response
     {
@@ -569,8 +565,6 @@ class RecipientsController extends Controller
 
     /**
      * Import recipients form
-     *
-     * @since 5.0.0
      */
     public function actionImportForm(int $campaignId): Response
     {
@@ -607,8 +601,6 @@ class RecipientsController extends Controller
 
     /**
      * Add a recipient
-     *
-     * @since 5.0.0
      */
     public function actionAdd(): ?Response
     {
@@ -755,8 +747,6 @@ class RecipientsController extends Controller
 
     /**
      * Download sample CSV
-     *
-     * @since 5.0.0
      */
     public function actionDownloadSample(): Response
     {
@@ -770,8 +760,6 @@ class RecipientsController extends Controller
 
     /**
      * Delete a recipient from the CP
-     *
-     * @since 5.0.0
      */
     public function actionDeleteFromCp(): Response
     {
@@ -890,8 +878,6 @@ class RecipientsController extends Controller
 
     /**
      * Delete a recipient
-     *
-     * @since 5.0.0
      */
     public function actionDelete(): Response
     {
@@ -1594,7 +1580,6 @@ class RecipientsController extends Controller
      * Export recipients
      *
      * @throws BadRequestHttpException
-     * @since 5.0.0
      */
     public function actionExportRecipients(int $campaignId): Response
     {

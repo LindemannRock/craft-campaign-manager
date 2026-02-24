@@ -35,8 +35,6 @@ class CampaignManagerVariable extends Behavior
 {
     /**
      * Get the campaigns service
-     *
-     * @since 5.0.0
      */
     public function getCampaigns(): CampaignsService
     {
@@ -45,8 +43,6 @@ class CampaignManagerVariable extends Behavior
 
     /**
      * Get the recipients service
-     *
-     * @since 5.0.0
      */
     public function getRecipients(): RecipientsService
     {
@@ -55,8 +51,6 @@ class CampaignManagerVariable extends Behavior
 
     /**
      * Get the SMS service
-     *
-     * @since 5.0.0
      */
     public function getSms(): SmsService
     {
@@ -75,8 +69,6 @@ class CampaignManagerVariable extends Behavior
 
     /**
      * Render CKEditor HTML for message editing
-     *
-     * @since 5.0.0
      */
     public function ckeEditorHtml(mixed $value, string $name, string $handle, ?ElementInterface $element = null): string
     {
@@ -240,7 +232,6 @@ JS,
      * Get text part language options
      *
      * @return array<int, array<string, mixed>>
-     * @since 5.0.0
      */
     public static function textPartLanguage(): array
     {

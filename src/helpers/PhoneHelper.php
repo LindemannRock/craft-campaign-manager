@@ -31,7 +31,6 @@ class PhoneHelper
      * @param string|null $phone Raw phone number
      * @param string|null $defaultRegion Default country code (e.g., 'KW' for Kuwait). If null, uses plugin settings.
      * @return array{valid: bool, e164: string|null, error: string|null, country: string|null}
-     * @since 5.0.0
      */
     public static function validate(?string $phone, ?string $defaultRegion = null): array
     {
@@ -116,7 +115,6 @@ class PhoneHelper
      *
      * @param string|null $phone Phone number to validate
      * @param string|null $defaultRegion Default country code
-     * @since 5.0.0
      */
     public static function isValid(?string $phone, ?string $defaultRegion = null): bool
     {
@@ -128,7 +126,6 @@ class PhoneHelper
      *
      * @param string|null $phone Phone number to format
      * @param string|null $defaultRegion Default country code
-     * @since 5.0.0
      */
     public static function toE164(?string $phone, ?string $defaultRegion = null): ?string
     {
@@ -140,7 +137,6 @@ class PhoneHelper
      *
      * @param string|null $phone Phone number to format
      * @param string|null $defaultRegion Default country code
-     * @since 5.0.0
      */
     public static function formatForDisplay(?string $phone, ?string $defaultRegion = null): ?string
     {
@@ -175,7 +171,6 @@ class PhoneHelper
      * when you have an explicit country code selection from the user.
      *
      * @param string|null $phone Phone number to sanitize
-     * @since 5.0.0
      */
     public static function sanitize(?string $phone): ?string
     {
@@ -229,7 +224,6 @@ class PhoneHelper
      *
      * @param string|null $phone Phone number
      * @param string|null $defaultRegion Default country code
-     * @since 5.0.0
      */
     public static function getCountry(?string $phone, ?string $defaultRegion = null): ?string
     {
@@ -240,7 +234,6 @@ class PhoneHelper
      * Get the default region from plugin settings
      *
      * @param string|null $providerHandle Optional provider handle to get country from
-     * @since 5.0.0
      */
     public static function getDefaultRegion(?string $providerHandle = null): string
     {
@@ -260,7 +253,6 @@ class PhoneHelper
      * @param string|null $phone Raw phone number
      * @param string|null $providerHandle Provider handle for country lookup
      * @return array{valid: bool, e164: string|null, error: string|null, country: string|null}
-     * @since 5.0.0
      */
     public static function validateWithProvider(?string $phone, ?string $providerHandle = null): array
     {

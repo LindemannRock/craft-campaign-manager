@@ -76,25 +76,21 @@ class CampaignManager extends Plugin
 
     /**
      * @var CampaignManager|null Singleton plugin instance
-     * @since 5.0.0
      */
     public static ?CampaignManager $plugin = null;
 
     /**
      * @var string Plugin schema version for migrations
-     * @since 5.0.0
      */
     public string $schemaVersion = '1.0.0';
 
     /**
      * @var bool Whether the plugin exposes a control panel settings page
-     * @since 5.0.0
      */
     public bool $hasCpSettings = true;
 
     /**
      * @var bool Whether the plugin registers a control panel section
-     * @since 5.0.0
      */
     public bool $hasCpSection = true;
 
@@ -326,8 +322,6 @@ class CampaignManager extends Plugin
 
     /**
      * Translation helper
-     *
-     * @since 5.0.0
      */
     public static function t(string $message, array $params = [], ?string $language = null): string
     {
@@ -347,8 +341,6 @@ class CampaignManager extends Plugin
 
     /**
      * Handle field layout changes from project config
-     *
-     * @since 5.0.0
      */
     public function handleChangedFieldLayout(ConfigEvent $event): void
     {
@@ -366,8 +358,6 @@ class CampaignManager extends Plugin
 
     /**
      * Handle field layout deletion from project config
-     *
-     * @since 5.0.0
      */
     public function handleDeletedFieldLayout(ConfigEvent $event): void
     {

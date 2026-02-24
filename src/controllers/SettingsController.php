@@ -65,8 +65,6 @@ class SettingsController extends Controller
 
     /**
      * Settings index
-     *
-     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
@@ -80,8 +78,6 @@ class SettingsController extends Controller
 
     /**
      * Save settings
-     *
-     * @since 5.0.0
      */
     public function actionSave(): ?Response
     {
@@ -139,8 +135,6 @@ class SettingsController extends Controller
 
     /**
      * Interface settings page
-     *
-     * @since 5.0.0
      */
     public function actionInterface(): Response
     {
@@ -154,8 +148,6 @@ class SettingsController extends Controller
 
     /**
      * Field layout settings page
-     *
-     * @since 5.0.0
      */
     public function actionFieldLayout(): Response
     {
@@ -204,8 +196,6 @@ class SettingsController extends Controller
 
     /**
      * Save field layout
-     *
-     * @since 5.0.0
      */
     public function actionSaveFieldLayout(): ?Response
     {

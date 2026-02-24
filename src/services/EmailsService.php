@@ -42,8 +42,6 @@ class EmailsService extends Component
 
     /**
      * Send a notification email to a recipient
-     *
-     * @since 5.0.0
      */
     public function sendNotificationEmail(RecipientRecord $recipient, CampaignRecord $campaign): bool
     {

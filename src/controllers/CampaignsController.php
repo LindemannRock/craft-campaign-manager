@@ -44,8 +44,6 @@ class CampaignsController extends Controller
      * Campaign index page (element index)
      *
      * If user doesn't have permission for campaigns, redirect to first accessible section
-     *
-     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
@@ -71,8 +69,6 @@ class CampaignsController extends Controller
 
     /**
      * Edit a campaign
-     *
-     * @since 5.0.0
      */
     public function actionEdit(?int $campaignId = null, ?Campaign $campaign = null): Response
     {
@@ -163,8 +159,6 @@ class CampaignsController extends Controller
 
     /**
      * Save a campaign
-     *
-     * @since 5.0.0
      */
     public function actionSave(): ?Response
     {
@@ -269,8 +263,6 @@ class CampaignsController extends Controller
 
     /**
      * Delete a campaign
-     *
-     * @since 5.0.0
      */
     public function actionDelete(): Response
     {
@@ -317,8 +309,6 @@ class CampaignsController extends Controller
 
     /**
      * Run all campaigns or a specific campaign (queued)
-     *
-     * @since 5.0.0
      */
     public function actionRunAll(): Response
     {

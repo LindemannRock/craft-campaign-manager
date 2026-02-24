@@ -46,7 +46,6 @@ class AnalyticsService extends Component
      *
      * @param string $dateRange Date range parameter
      * @return array{start: \DateTime, end: \DateTime}
-     * @since 5.1.0
      */
     public function getDateRangeFromParam(string $dateRange): array
     {
@@ -83,7 +82,6 @@ class AnalyticsService extends Component
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<string, int|float>
-     * @since 5.1.0
      */
     public function getOverviewStats(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
@@ -156,7 +154,6 @@ class AnalyticsService extends Component
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<string, mixed>
-     * @since 5.1.0
      */
     public function getDailyTrend(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
@@ -212,7 +209,6 @@ class AnalyticsService extends Component
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<string, mixed>
-     * @since 5.1.0
      */
     public function getChannelDistribution(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
@@ -254,7 +250,6 @@ class AnalyticsService extends Component
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<string, mixed>
-     * @since 5.1.0
      */
     public function getEngagementOverTime(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
@@ -311,7 +306,6 @@ class AnalyticsService extends Component
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<string, mixed>
-     * @since 5.1.0
      */
     public function getConversionFunnel(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
@@ -363,7 +357,6 @@ class AnalyticsService extends Component
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @return array<int, array<string, mixed>>
-     * @since 5.1.0
      */
     public function getCampaignBreakdown(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
@@ -408,7 +401,6 @@ class AnalyticsService extends Component
      *
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @return array<int, array{value: int|string, label: string}>
-     * @since 5.1.0
      */
     public function getCampaignOptions(int|string|array $siteId): array
     {
@@ -439,7 +431,6 @@ class AnalyticsService extends Component
      * @param int|null $siteId Site ID or null for all sites
      * @param string $dateRange Date range parameter
      * @return array<string, int|float>
-     * @since 5.1.0
      */
     public function getCampaignStats(int $campaignId, ?int $siteId, string $dateRange): array
     {
@@ -453,7 +444,6 @@ class AnalyticsService extends Component
      * @param int|null $siteId Site ID or null for all sites
      * @param string $dateRange Date range parameter
      * @return array<string, mixed>
-     * @since 5.1.0
      */
     public function getCampaignDailyTrend(int $campaignId, ?int $siteId, string $dateRange): array
     {
@@ -602,7 +592,6 @@ class AnalyticsService extends Component
      * @param int $campaignId Campaign ID
      * @param int $siteId Site ID
      * @param \DateTime|null $date Specific date to refresh, or null for today
-     * @since 5.1.0
      */
     public function refreshStatistics(int $campaignId, int $siteId, ?\DateTime $date = null): void
     {

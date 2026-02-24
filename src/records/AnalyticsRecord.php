@@ -40,7 +40,6 @@ class AnalyticsRecord extends BaseRecord
      * Get the campaign for this analytics record
      *
      * @return \yii\db\ActiveQuery
-     * @since 5.1.0
      */
     public function getCampaign(): \yii\db\ActiveQuery
     {
@@ -51,7 +50,6 @@ class AnalyticsRecord extends BaseRecord
      * Get total invitations sent (email + SMS)
      *
      * @return int
-     * @since 5.1.0
      */
     public function getTotalSent(): int
     {
@@ -62,7 +60,6 @@ class AnalyticsRecord extends BaseRecord
      * Get total opens (email + SMS)
      *
      * @return int
-     * @since 5.1.0
      */
     public function getTotalOpened(): int
     {
@@ -73,7 +70,6 @@ class AnalyticsRecord extends BaseRecord
      * Get open rate as percentage
      *
      * @return float
-     * @since 5.1.0
      */
     public function getOpenRate(): float
     {
@@ -89,7 +85,6 @@ class AnalyticsRecord extends BaseRecord
      * Get conversion rate as percentage (submissions / total recipients)
      *
      * @return float
-     * @since 5.1.0
      */
     public function getConversionRate(): float
     {

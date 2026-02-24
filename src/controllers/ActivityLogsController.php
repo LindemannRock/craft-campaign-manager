@@ -36,7 +36,6 @@ class ActivityLogsController extends Controller
      * Activity logs index page (placeholder)
      *
      * @return Response
-     * @since 5.4.0
      */
     public function actionIndex(): Response
     {
@@ -140,7 +139,6 @@ class ActivityLogsController extends Controller
      * Clear activity logs
      *
      * @return Response
-     * @since 5.4.0
      */
     public function actionClear(): Response
     {
@@ -163,8 +161,6 @@ class ActivityLogsController extends Controller
 
     /**
      * Format action key into human-friendly label
-     *
-     * @since 5.4.0
      */
     private function formatActionLabel(string $action): string
     {
@@ -191,7 +187,6 @@ class ActivityLogsController extends Controller
      *
      * @param array<string, mixed> $details
      * @return array<string, mixed>
-     * @since 5.4.0
      */
     private function enrichDetails(array $details): array
     {

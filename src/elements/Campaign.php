@@ -42,55 +42,46 @@ class Campaign extends Element
 
     /**
      * @var string|null Campaign type (non-translatable)
-     * @since 5.0.0
      */
     public ?string $campaignType = null;
 
     /**
      * @var int|null Formie form ID (non-translatable)
-     * @since 5.0.0
      */
     public ?int $formId = null;
 
     /**
      * @var string|null Invitation delay period (non-translatable)
-     * @since 5.0.0
      */
     public ?string $invitationDelayPeriod = null;
 
     /**
      * @var string|null Invitation expiry period (non-translatable)
-     * @since 5.0.0
      */
     public ?string $invitationExpiryPeriod = null;
 
     /**
      * @var string|null Provider handle for SMS (non-translatable)
-     * @since 5.0.0
      */
     public ?string $providerHandle = null;
 
     /**
      * @var string|null Sender ID handle for SMS (non-translatable)
-     * @since 5.0.0
      */
     public ?string $senderId = null;
 
     /**
      * @var string|null Email invitation message (translatable)
-     * @since 5.0.0
      */
     public ?string $emailInvitationMessage = null;
 
     /**
      * @var string|null Email invitation subject (translatable)
-     * @since 5.0.0
      */
     public ?string $emailInvitationSubject = null;
 
     /**
      * @var string|null SMS invitation message (translatable)
-     * @since 5.0.0
      */
     public ?string $smsInvitationMessage = null;
 
@@ -415,8 +406,6 @@ class Campaign extends Element
 
     /**
      * Load translatable content for the current site
-     *
-     * @since 5.0.0
      */
     public function loadContent(): void
     {
@@ -457,8 +446,6 @@ class Campaign extends Element
 
     /**
      * Get the associated Formie form
-     *
-     * @since 5.0.0
      */
     public function getForm(): ?Form
     {
@@ -471,8 +458,6 @@ class Campaign extends Element
 
     /**
      * Set the form
-     *
-     * @since 5.0.0
      */
     public function setForm(?Form $form): void
     {
@@ -484,7 +469,6 @@ class Campaign extends Element
      * Get all recipients for this campaign
      *
      * @return RecipientRecord[]
-     * @since 5.0.0
      */
     public function getRecipients(): array
     {
@@ -528,8 +512,6 @@ class Campaign extends Element
 
     /**
      * Get submission count (recipients who have submitted the form)
-     *
-     * @since 5.0.0
      */
     public function getSubmissionCount(): int
     {
@@ -538,8 +520,6 @@ class Campaign extends Element
 
     /**
      * Get total recipient count
-     *
-     * @since 5.0.0
      */
     public function getRecipientCount(): int
     {
@@ -570,7 +550,6 @@ class Campaign extends Element
      * Get recipients with pending SMS invitations
      *
      * @return RecipientRecord[]
-     * @since 5.0.0
      */
     public function getPendingSmsRecipients(): array
     {
@@ -596,7 +575,6 @@ class Campaign extends Element
      * Get recipients with pending email invitations
      *
      * @return RecipientRecord[]
-     * @since 5.0.0
      */
     public function getPendingEmailRecipients(): array
     {

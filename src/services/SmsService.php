@@ -46,7 +46,6 @@ class SmsService extends Component
      * @param string|null $providerHandle Optional provider handle (uses default from settings if null)
      * @param string|null $senderIdHandle Optional sender ID handle (uses default from settings if null)
      * @return bool
-     * @since 5.0.0
      */
     public function sendSms(
         string $to,
@@ -104,8 +103,6 @@ class SmsService extends Component
 
     /**
      * Check if SMS Manager is installed and enabled
-     *
-     * @since 5.0.0
      */
     public function isSmsManagerAvailable(): bool
     {
@@ -118,7 +115,6 @@ class SmsService extends Component
      *
      * @param bool $enabledOnly Only return enabled providers
      * @return array Array of providers
-     * @since 5.0.0
      */
     public function getAvailableProviders(bool $enabledOnly = true): array
     {
@@ -134,7 +130,6 @@ class SmsService extends Component
      *
      * @param bool $enabledOnly Only return enabled providers
      * @return array Options array suitable for Craft select fields
-     * @since 5.0.0
      */
     public function getProviderOptions(bool $enabledOnly = true): array
     {
@@ -158,7 +153,6 @@ class SmsService extends Component
      * @param string|null $providerHandle Optional provider handle to filter by
      * @param bool $enabledOnly Only return enabled sender IDs
      * @return array Array of sender IDs
-     * @since 5.0.0
      */
     public function getAvailableSenderIds(?string $providerHandle = null, bool $enabledOnly = true): array
     {
@@ -179,7 +173,6 @@ class SmsService extends Component
      * @param string|null $providerHandle Optional provider handle to filter by
      * @param bool $enabledOnly Only return enabled sender IDs
      * @return array Options array suitable for Craft select fields
-     * @since 5.0.0
      */
     public function getSenderIdOptions(?string $providerHandle = null, bool $enabledOnly = true): array
     {
@@ -203,7 +196,6 @@ class SmsService extends Component
      * Returns all sender IDs grouped by provider handle for client-side filtering.
      *
      * @return array Associative array: providerHandle => [senderIdOptions]
-     * @since 5.0.0
      */
     public function getSenderIdOptionsByProvider(): array
     {
@@ -236,7 +228,6 @@ class SmsService extends Component
      *
      * @param string|null $providerHandle Provider handle
      * @return array Array of country codes (e.g., ['KW', 'SA']) or ['*'] for all
-     * @since 5.0.0
      */
     public function getAllowedCountries(?string $providerHandle = null): array
     {
@@ -254,7 +245,6 @@ class SmsService extends Component
      *
      * @param string|null $providerHandle Provider handle
      * @return string Country code (e.g., 'KW')
-     * @since 5.0.0
      */
     public function getDefaultCountryForProvider(?string $providerHandle = null): string
     {
@@ -275,7 +265,6 @@ class SmsService extends Component
      * @param string|null $providerHandle Provider handle
      * @param string $countryCode Country code to check
      * @return bool
-     * @since 5.0.0
      */
     public function isCountryAllowed(?string $providerHandle, string $countryCode): bool
     {

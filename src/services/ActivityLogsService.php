@@ -35,7 +35,6 @@ class ActivityLogsService extends Component
      *   userId?: int|null,
      *   source?: string,
      * } $context
-     * @since 5.4.0
      */
     public function log(string $action, array $context = []): void
     {
@@ -65,8 +64,6 @@ class ActivityLogsService extends Component
 
     /**
      * Trim activity logs based on retention and limit
-     *
-     * @since 5.4.0
      */
     public function trimLogs(): void
     {
@@ -100,8 +97,6 @@ class ActivityLogsService extends Component
 
     /**
      * Encode details to JSON
-     *
-     * @since 5.4.0
      */
     private function encodeDetails(?array $details): ?string
     {

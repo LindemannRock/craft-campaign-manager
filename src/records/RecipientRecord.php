@@ -82,8 +82,6 @@ class RecipientRecord extends BaseRecord
 
     /**
      * Validate the phone number using libphonenumber
-     *
-     * @since 5.0.0
      */
     public function validatePhone(string $attribute): void
     {
@@ -136,8 +134,6 @@ class RecipientRecord extends BaseRecord
 
     /**
      * Get the campaign element
-     *
-     * @since 5.0.0
      */
     public function getCampaign(): ?ElementInterface
     {
@@ -150,8 +146,6 @@ class RecipientRecord extends BaseRecord
 
     /**
      * Get the site
-     *
-     * @since 5.0.0
      */
     public function getSite(): ?Site
     {
@@ -160,8 +154,6 @@ class RecipientRecord extends BaseRecord
 
     /**
      * Check if this recipient has a submission
-     *
-     * @since 5.0.0
      */
     public function hasSubmission(): bool
     {
@@ -170,8 +162,6 @@ class RecipientRecord extends BaseRecord
 
     /**
      * Check if the invitation has expired
-     *
-     * @since 5.0.0
      */
     public function invitationIsExpired(): bool
     {
@@ -186,7 +176,6 @@ class RecipientRecord extends BaseRecord
      * Find all recipients with outstanding email invitations
      *
      * @return array<static>
-     * @since 5.0.0
      */
     public static function findAllWithOutstandingEmailInvitation(): array
     {
@@ -202,7 +191,6 @@ class RecipientRecord extends BaseRecord
      * Find all recipients with outstanding SMS invitations
      *
      * @return array<static>
-     * @since 5.0.0
      */
     public static function findAllWithOutstandingSmsInvitation(): array
     {

@@ -47,8 +47,6 @@ class CampaignRecord extends ActiveRecord
 
     /**
      * Returns the campaign's element.
-     *
-     * @since 5.0.0
      */
     public function getElement(): ActiveQueryInterface
     {
@@ -57,8 +55,6 @@ class CampaignRecord extends ActiveRecord
 
     /**
      * Get the associated Formie form
-     *
-     * @since 5.0.0
      */
     public function getForm(): ?Form
     {
@@ -71,8 +67,6 @@ class CampaignRecord extends ActiveRecord
 
     /**
      * Load the form
-     *
-     * @since 5.0.0
      */
     public function loadForm(?Form $form = null): void
     {
@@ -84,8 +78,6 @@ class CampaignRecord extends ActiveRecord
 
     /**
      * Reset the form cache
-     *
-     * @since 5.0.0
      */
     public function resetForm(): void
     {
@@ -96,7 +88,6 @@ class CampaignRecord extends ActiveRecord
      * Get all recipients for this campaign
      *
      * @return RecipientRecord[]
-     * @since 5.0.0
      */
     public function getRecipients(): array
     {
@@ -109,7 +100,6 @@ class CampaignRecord extends ActiveRecord
      * Get recipients by site ID
      *
      * @return RecipientRecord[]
-     * @since 5.0.0
      */
     public function getRecipientsBySiteId(int $siteId): array
     {
@@ -123,7 +113,6 @@ class CampaignRecord extends ActiveRecord
      * Get recipients with pending SMS invitations
      *
      * @return array<RecipientRecord>
-     * @since 5.0.0
      */
     public function getPendingSmsRecipients(int $siteId): array
     {
@@ -145,7 +134,6 @@ class CampaignRecord extends ActiveRecord
      * Get recipients with pending email invitations
      *
      * @return array<RecipientRecord>
-     * @since 5.0.0
      */
     public function getPendingEmailRecipients(int $siteId): array
     {
@@ -165,8 +153,6 @@ class CampaignRecord extends ActiveRecord
 
     /**
      * Get content for a specific site
-     *
-     * @since 5.0.0
      */
     public function getContentForSite(int $siteId): ?CampaignContentRecord
     {
@@ -178,8 +164,6 @@ class CampaignRecord extends ActiveRecord
 
     /**
      * Find a campaign record (main table only)
-     *
-     * @since 5.0.0
      */
     public static function findOneForSite(?int $id, ?int $siteId): ?self
     {
@@ -197,7 +181,6 @@ class CampaignRecord extends ActiveRecord
      * Get cloneable attributes
      *
      * @return array<string, mixed>
-     * @since 5.0.0
      */
     public function getCloneableAttributes(): array
     {
@@ -216,7 +199,6 @@ class CampaignRecord extends ActiveRecord
      * Create a campaign record for an element
      *
      * @param array<string, mixed> $attributes
-     * @since 5.0.0
      */
     public static function makeForElement(ElementInterface $element, array $attributes = []): self
     {

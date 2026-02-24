@@ -35,8 +35,6 @@ class CampaignsService extends Component
 
     /**
      * Get a campaign element query
-     *
-     * @since 5.0.0
      */
     public function find(): ElementQueryInterface
     {
@@ -55,8 +53,6 @@ class CampaignsService extends Component
 
     /**
      * Get a campaign by ID
-     *
-     * @since 5.0.0
      */
     public function getCampaignById(int $id): ?\lindemannrock\campaignmanager\elements\Campaign
     {

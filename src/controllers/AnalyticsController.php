@@ -42,7 +42,6 @@ class AnalyticsController extends Controller
      * Analytics index page
      *
      * @return Response
-     * @since 5.1.0
      */
     public function actionIndex(): Response
     {
@@ -97,7 +96,6 @@ class AnalyticsController extends Controller
      * Get chart data via AJAX
      *
      * @return Response
-     * @since 5.1.0
      */
     public function actionGetData(): Response
     {
@@ -144,7 +142,6 @@ class AnalyticsController extends Controller
      *
      * @return Response
      * @throws BadRequestHttpException
-     * @since 5.1.0
      */
     public function actionExport(): Response
     {
