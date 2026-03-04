@@ -9,6 +9,7 @@
 {% block content %}
     {{ actionInput('campaign-manager/settings/save') }}
     {{ redirectInput('campaign-manager/settings/interface') }}
+    {{ hiddenInput('section', 'interface') }}
 
     <h2 style="margin-top: 0px;">{{ "Interface Settings"|t('campaign-manager') }}</h2>
 

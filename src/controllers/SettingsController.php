@@ -86,6 +86,9 @@ class SettingsController extends Controller
         // Load settings from database (not project config)
         $settings = Settings::loadFromDatabase();
         $postedSettings = Craft::$app->getRequest()->getBodyParam('settings', []);
+        $section = $this->_validSettingsSection(
+            Craft::$app->getRequest()->getBodyParam('section', 'general'),
+        );
 
         // Fields that should be cast to int (nullable)
         $nullableIntFields = ['defaultSenderIdId'];
@@ -95,7 +98,7 @@ class SettingsController extends Controller
 
         // Update settings with posted values
         foreach ($postedSettings as $key => $value) {
-            if (property_exists($settings, $key)) {
+            if (property_exists($settings, $key) && !$settings->isOverriddenByConfig($key)) {
                 if (in_array($key, $nullableIntFields, true)) {
                     $settings->$key = $value !== '' && $value !== null ? (int)$value : null;
                 } elseif (in_array($key, $nullableStringFields, true)) {
@@ -106,23 +109,29 @@ class SettingsController extends Controller
             }
         }
 
+        $attributesToValidate = $this->_validationAttributesForSection($section);
+        $attributesToValidate = array_values(array_filter(
+            $attributesToValidate,
+            fn(string $attribute): bool => !$settings->isOverriddenByConfig($attribute),
+        ));
+
         // Validate
-        if (!$settings->validate()) {
+        if (!$settings->validate($attributesToValidate)) {
             $this->logError('Settings validation failed', ['errors' => $settings->getErrors()]);
 
             Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Couldn\'t save settings.'));
 
-            return $this->renderTemplate('campaign-manager/settings/general', [
+            return $this->renderTemplate("campaign-manager/settings/{$section}", [
                 'settings' => $settings,
                 'readOnly' => $this->readOnly,
             ]);
         }
 
         // Save to database (works even when allowAdminChanges is false)
-        if (!$settings->saveToDatabase()) {
+        if (!$settings->saveToDatabase($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Couldn\'t save settings.'));
 
-            return $this->renderTemplate('campaign-manager/settings/general', [
+            return $this->renderTemplate("campaign-manager/settings/{$section}", [
                 'settings' => $settings,
                 'readOnly' => $this->readOnly,
             ]);
@@ -131,6 +140,43 @@ class SettingsController extends Controller
         Craft::$app->getSession()->setNotice(Craft::t('campaign-manager', 'Settings saved.'));
 
         return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Validate and sanitize the settings section parameter.
+     */
+    private function _validSettingsSection(string $section): string
+    {
+        $allowed = ['general', 'interface'];
+        return in_array($section, $allowed, true) ? $section : 'general';
+    }
+
+    /**
+     * Get settings attributes that belong to a section.
+     *
+     * @param string $section
+     * @return array<int, string>
+     */
+    private function _validationAttributesForSection(string $section): array
+    {
+        return match ($section) {
+            'general' => [
+                'pluginName',
+                'defaultProviderHandle',
+                'defaultSenderIdHandle',
+                'invitationRoute',
+                'invitationTemplate',
+                'logLevel',
+                'enableActivityLogs',
+                'activityLogsRetention',
+                'activityLogsLimit',
+                'activityAutoTrimLogs',
+            ],
+            'interface' => [
+                'itemsPerPage',
+            ],
+            default => [],
+        };
     }
 
     /**

@@ -9,6 +9,7 @@
 {% block content %}
     {{ actionInput('campaign-manager/settings/save') }}
     {{ redirectInput('campaign-manager/settings') }}
+    {{ hiddenInput('section', 'general') }}
 
     <h2 style="margin-top: 0px;">{{ "General Settings"|t('campaign-manager') }}</h2>
 
@@ -259,6 +260,7 @@
         name: 'settings[enableActivityLogs]',
         on: settings.enableActivityLogs ?? true,
         toggle: 'activity-logs-settings',
+        errors: settings.getErrors('enableActivityLogs'),
         disabled: settings.isOverriddenByConfig('enableActivityLogs'),
         warning: settings.isOverriddenByConfig('enableActivityLogs') ?
             "This is being overridden by the <code>enableActivityLogs</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
@@ -279,6 +281,7 @@
             type: 'number',
             value: settings.activityLogsRetention,
             required: true,
+            errors: settings.getErrors('activityLogsRetention'),
             disabled: settings.isOverriddenByConfig('activityLogsRetention'),
             warning: settings.isOverriddenByConfig('activityLogsRetention') ?
                 "This is being overridden by the <code>activityLogsRetention</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
@@ -292,6 +295,7 @@
             type: 'number',
             value: settings.activityLogsLimit,
             required: true,
+            errors: settings.getErrors('activityLogsLimit'),
             disabled: settings.isOverriddenByConfig('activityLogsLimit'),
             warning: settings.isOverriddenByConfig('activityLogsLimit') ?
                 "This is being overridden by the <code>activityLogsLimit</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
@@ -303,6 +307,7 @@
             id: 'activityAutoTrimLogs',
             name: 'settings[activityAutoTrimLogs]',
             on: settings.activityAutoTrimLogs,
+            errors: settings.getErrors('activityAutoTrimLogs'),
             disabled: settings.isOverriddenByConfig('activityAutoTrimLogs'),
             warning: settings.isOverriddenByConfig('activityAutoTrimLogs') ?
                 "This is being overridden by the <code>activityAutoTrimLogs</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,

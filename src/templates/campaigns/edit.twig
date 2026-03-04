@@ -97,6 +97,16 @@
     {% endif %}
 {% endblock %}
 
+{% if campaign is defined and campaign.hasErrors() %}
+    {% set errorSummary %}
+        {% include 'lindemannrock-base/_partials/error-summary' with {
+            errors: campaign.getErrors(),
+            linkMode: 'field-id',
+            translationCategory: 'campaign-manager'
+        } %}
+    {% endset %}
+{% endif %}
+
 {% block content %}
     {{ actionInput('campaign-manager/campaigns/save') }}
     {{ redirectInput('campaign-manager') }}

@@ -6,6 +6,14 @@
 
 {% set title = title ?? 'Settings'|t('campaign-manager') %}
 {% set selectedSubnavItem = 'settings' %}
+{% set errorSummary = '' %}
+{% if settings is defined and settings.hasErrors() %}
+    {% set errorSummary = include('lindemannrock-base/_partials/error-summary', {
+        errors: settings.getErrors(),
+        linkMode: 'field-id',
+        translationCategory: 'campaign-manager'
+    })|trim %}
+{% endif %}
 
 {% set crumbs = [
     { label: settings.pluginName, url: url('campaign-manager') },
