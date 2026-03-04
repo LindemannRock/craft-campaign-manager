@@ -11,6 +11,7 @@ namespace lindemannrock\campaignmanager\jobs;
 use Craft;
 use craft\queue\BaseJob;
 use Exception;
+use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\PhoneHelper;
 use lindemannrock\campaignmanager\records\RecipientRecord;
@@ -29,6 +30,7 @@ use yii\queue\RetryableJobInterface;
  */
 class ImportRecipientsJob extends BaseJob implements RetryableJobInterface
 {
+    use QueueTtrTrait;
     use LoggingTrait;
 
     public const BATCH_SIZE = 100;
@@ -255,15 +257,6 @@ class ImportRecipientsJob extends BaseJob implements RetryableJobInterface
         }
 
         return ['saved' => $saved, 'errors' => $errors];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getTtr(): int
-    {
-        // 30 minutes for large imports
-        return 1800;
     }
 
     /**

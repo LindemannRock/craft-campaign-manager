@@ -11,6 +11,7 @@ namespace lindemannrock\campaignmanager\jobs;
 use Craft;
 use craft\queue\BaseJob;
 use Exception;
+use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
@@ -28,6 +29,7 @@ use yii\queue\RetryableJobInterface;
  */
 class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
 {
+    use QueueTtrTrait;
     use LoggingTrait;
 
     public const BATCH_SIZE = 50;
@@ -238,15 +240,6 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
         $results = $query->column();
 
         return array_map('intval', $results);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getTtr(): int
-    {
-        // 5 minutes to queue all batches
-        return 300;
     }
 
     /**

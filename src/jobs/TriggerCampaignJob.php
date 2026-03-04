@@ -13,6 +13,7 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\queue\BaseJob;
 use Exception;
+use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\campaignmanager\behaviors\CampaignBehavior;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\records\CampaignRecord;
@@ -31,6 +32,7 @@ use yii\queue\RetryableJobInterface;
  */
 class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
 {
+    use QueueTtrTrait;
     use LoggingTrait;
 
     /**
@@ -91,10 +93,7 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
         $this->setProgress($queue, 1);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getTtr(): int
+    protected function queueTtrSeconds(): int
     {
         return 3600;
     }
