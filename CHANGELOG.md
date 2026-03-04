@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.5.4](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.3...v5.5.4) (2026-03-04)
+
+
+### Bug Fixes
+
+* **jobs:** implement QueueTtrTrait in job classes ([4ce38d1](https://github.com/LindemannRock/craft-campaign-manager/commit/4ce38d118d4e1b428b2e70f94c8c2969b704bfa3))
+* **SettingsController:** enhance settings validation and error handling ([77ec426](https://github.com/LindemannRock/craft-campaign-manager/commit/77ec426c98c489abe011531e5d7232cc626ff763))
+
 ## [5.5.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.2...v5.5.3) (2026-02-23)
 
 
