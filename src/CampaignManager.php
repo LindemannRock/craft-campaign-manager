@@ -175,7 +175,6 @@ class CampaignManager extends Plugin
             $settings = $this->getSettings();
 
             $item['label'] = $settings->getFullName();
-            $item['icon'] = '@appicons/share.svg';
 
             $sections = $this->getCpSections($settings);
             $item['subnav'] = CpNavHelper::buildSubnav($user, $settings, $sections);
