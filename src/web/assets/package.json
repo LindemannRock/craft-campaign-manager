@@ -2,9 +2,13 @@
   "name": "@lindemannrock/campaign-manager",
   "version": "1.0.0",
   "private": true,
+  "description": "Build tools for Campaign Manager asset packages",
   "scripts": {
-    "build": "cd src/web/assets && npm run build",
-    "build:analytics": "cd src/web/assets && npm run build:analytics"
+    "build": "npm run build:analytics",
+    "build:analytics": "mkdir -p analytics/dist && terser analytics/src/analytics.js -o analytics/dist/analytics.js -c -m"
+  },
+  "devDependencies": {
+    "terser": "^5.46.1"
   },
   "author": {
     "name": "Bilal Harry Lindemann",
