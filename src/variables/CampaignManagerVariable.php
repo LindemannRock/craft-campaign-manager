@@ -10,7 +10,6 @@ namespace lindemannrock\campaignmanager\variables;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\ckeditor\CkeConfig;
 use craft\ckeditor\web\assets\ckeditor\CkeditorAsset;
 use craft\helpers\Html;
 use craft\helpers\Json;
@@ -75,7 +74,12 @@ class CampaignManagerVariable extends Behavior
         $view = Craft::$app->getView();
         $view->registerAssetBundle(CkeditorAsset::class);
 
-        $ckeConfig = new CkeConfig();
+        /** @var object|null $ckeConfig */
+        $ckeConfig = null;
+        if (class_exists(\craft\ckeditor\CkeConfig::class)) {
+            /** @var object $ckeConfig */
+            $ckeConfig = new \craft\ckeditor\CkeConfig();
+        }
 
         // Toolbar cleanup
         $toolbar = ['bold'];
@@ -100,7 +104,7 @@ class CampaignManagerVariable extends Behavior
                         'view' => "h$level",
                         'title' => "Heading $level",
                         'class' => "ck-heading_heading$level",
-                    ], $ckeConfig->headingLevels ?: []),
+                        ], $this->getCkeConfigHeadingLevels($ckeConfig)),
                 ],
             ],
             'image' => [
@@ -129,17 +133,18 @@ class CampaignManagerVariable extends Behavior
             ],
         ];
 
-        if (isset($ckeConfig->options)) {
+        if ($this->getCkeConfigOptions($ckeConfig) !== null) {
             // translate the placeholder text
-            if (isset($ckeConfig->options['placeholder']) && is_string($ckeConfig->options['placeholder'])) {
-                $ckeConfig->options['placeholder'] = Craft::t('site', $ckeConfig->options['placeholder']);
+            $configOptions = $this->getCkeConfigOptions($ckeConfig);
+            if (isset($configOptions['placeholder']) && is_string($configOptions['placeholder'])) {
+                $configOptions['placeholder'] = Craft::t('site', $configOptions['placeholder']);
             }
 
-            $configOptionsJs = Json::encode($ckeConfig->options);
-        } elseif (isset($ckeConfig->js)) {
+            $configOptionsJs = Json::encode($configOptions);
+        } elseif (($configJs = $this->getCkeConfigJs($ckeConfig)) !== null) {
             $configOptionsJs = <<<JS
 (() => {
-  $ckeConfig->js
+  $configJs
 })()
 JS;
         } else {
@@ -213,8 +218,8 @@ JS,
             View::POS_END,
         );
 
-        if ($ckeConfig->css) {
-            $view->registerCss($ckeConfig->css);
+        if (($configCss = $this->getCkeConfigCss($ckeConfig)) !== null && $configCss !== '') {
+            $view->registerCss($configCss);
         }
 
         $html = Html::textarea($handle, $value, [
@@ -244,5 +249,52 @@ JS,
             ->sortBy('title')
             ->values()
             ->all();
+    }
+
+    /**
+     * @param object|null $ckeConfig
+     * @return list<int>
+     */
+    private function getCkeConfigHeadingLevels(?object $ckeConfig): array
+    {
+        if ($ckeConfig === null || !property_exists($ckeConfig, 'headingLevels') || !is_array($ckeConfig->headingLevels)) {
+            return [];
+        }
+
+        return array_values(array_filter($ckeConfig->headingLevels, static fn(mixed $level): bool => is_int($level)));
+    }
+
+    /**
+     * @param object|null $ckeConfig
+     * @return array<string, mixed>|null
+     */
+    private function getCkeConfigOptions(?object $ckeConfig): ?array
+    {
+        if ($ckeConfig === null || !property_exists($ckeConfig, 'options') || !is_array($ckeConfig->options)) {
+            return null;
+        }
+
+        /** @var array<string, mixed> $options */
+        $options = $ckeConfig->options;
+
+        return $options;
+    }
+
+    private function getCkeConfigJs(?object $ckeConfig): ?string
+    {
+        if ($ckeConfig === null || !property_exists($ckeConfig, 'js') || !is_string($ckeConfig->js) || $ckeConfig->js === '') {
+            return null;
+        }
+
+        return $ckeConfig->js;
+    }
+
+    private function getCkeConfigCss(?object $ckeConfig): ?string
+    {
+        if ($ckeConfig === null || !property_exists($ckeConfig, 'css') || !is_string($ckeConfig->css) || $ckeConfig->css === '') {
+            return null;
+        }
+
+        return $ckeConfig->css;
     }
 }
