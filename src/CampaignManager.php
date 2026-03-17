@@ -140,8 +140,6 @@ class CampaignManager extends Plugin
                     'ctaLabel' => 'Open Campaign Manager',
                     'ctaUrl' => 'campaign-manager',
                     'redirectUri' => 'campaign-manager',
-                    'sidebarColor' => '#22C55E',
-                    'uiColor' => '#22C55E',
                     'confettiPreset' => 'surprise',
                 ],
             ]
