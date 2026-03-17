@@ -134,6 +134,16 @@ class CampaignManager extends Plugin
                         'failed' => ColorHelper::getPaletteColor('red'),
                     ],
                 ],
+                'installExperience' => [
+                    'headline' => 'Campaign Manager',
+                    'body' => 'Launch campaigns, track delivery, and manage recipients from one control panel workspace.',
+                    'ctaLabel' => 'Open Campaign Manager',
+                    'ctaUrl' => 'campaign-manager',
+                    'redirectUri' => 'campaign-manager',
+                    'sidebarColor' => '#22C55E',
+                    'uiColor' => '#22C55E',
+                    'confettiPreset' => 'surprise',
+                ],
             ]
         );
         PluginHelper::applyPluginNameFromConfig($this);
