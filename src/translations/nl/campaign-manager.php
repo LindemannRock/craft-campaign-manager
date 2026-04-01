@@ -222,6 +222,7 @@ return [
     'No field layout available.' => 'Geen veldindeling beschikbaar.',
 
     // Settings: Validation messages (Settings model)
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fout} other{fouten}} gevonden',
     'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Alleen letters, cijfers, koppeltekens, underscores en schuine strepen zijn toegestaan.',
     'Route cannot contain double slashes.' => 'Route mag geen dubbele schuine strepen bevatten.',
     'Route cannot contain spaces.' => 'Route mag geen spaties bevatten.',

@@ -222,6 +222,7 @@ return [
     'No field layout available.' => 'Aucune disposition de champs disponible.',
 
     // Settings: Validation messages (Settings model)
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{erreur trouvée} other{erreurs trouvées}}',
     'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Seuls les lettres, chiffres, tirets, underscores et barres obliques sont autorisés.',
     'Route cannot contain double slashes.' => 'La route ne peut pas contenir de doubles barres obliques.',
     'Route cannot contain spaces.' => 'La route ne peut pas contenir d\'espaces.',

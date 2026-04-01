@@ -170,6 +170,7 @@ return [
     '{count} recipients' => '{count} recipients',
 
     // Validation messages
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Found {count, number} {count, plural, =1{error} other{errors}}',
     'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Only letters, numbers, hyphens, underscores, and slashes are allowed.',
     'Route cannot contain double slashes.' => 'Route cannot contain double slashes.',
     'Route cannot contain spaces.' => 'Route cannot contain spaces.',

@@ -222,6 +222,7 @@ return [
     'No field layout available.' => 'Ingen feltlayout tilgængeligt.',
 
     // Settings: Validation messages (Settings model)
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fejl} other{fejl}} fundet',
     'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Kun bogstaver, tal, bindestreger, underscores og skråstreger er tilladt.',
     'Route cannot contain double slashes.' => 'Ruten må ikke indeholde dobbelte skråstreger.',
     'Route cannot contain spaces.' => 'Ruten må ikke indeholde mellemrum.',

@@ -222,6 +222,7 @@ return [
     'No field layout available.' => 'Ingen fältlayout tillgänglig.',
 
     // Settings: Validation messages (Settings model)
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fel} other{fel}} hittades',
     'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Endast bokstäver, siffror, bindestreck, understreck och snedstreck är tillåtna.',
     'Route cannot contain double slashes.' => 'Vägen får inte innehålla dubbla snedstreck.',
     'Route cannot contain spaces.' => 'Vägen får inte innehålla mellanslag.',

@@ -222,6 +222,7 @@ return [
     'No field layout available.' => 'لا يوجد تخطيط حقول متاح.',
 
     // Settings: Validation messages (Settings model)
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => 'تم العثور على {count, number} {count, plural, =1{خطأ} other{أخطاء}}',
     'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'يُسمح فقط بالحروف والأرقام والشرطات والشرطات السفلية والشرطات المائلة.',
     'Route cannot contain double slashes.' => 'لا يمكن أن يحتوي المسار على شرطات مائلة مزدوجة.',
     'Route cannot contain spaces.' => 'لا يمكن أن يحتوي المسار على مسافات.',
