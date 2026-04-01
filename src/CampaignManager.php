@@ -135,9 +135,9 @@ class CampaignManager extends Plugin
                     ],
                 ],
                 'installExperience' => [
-                    'headline' => 'Campaign Manager',
-                    'body' => 'Launch campaigns, track delivery, and manage recipients from one control panel workspace.',
-                    'ctaLabel' => 'Open Campaign Manager',
+                    'headline' => Craft::t('campaign-manager', 'Campaign Manager'),
+                    'body' => Craft::t('campaign-manager', 'Launch campaigns, track delivery, and manage recipients from one control panel workspace.'),
+                    'ctaLabel' => Craft::t('campaign-manager', 'Open Campaign Manager'),
                     'ctaUrl' => 'campaign-manager',
                     'redirectUri' => 'campaign-manager',
                     'confettiPreset' => 'surprise',
