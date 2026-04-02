@@ -384,6 +384,7 @@ class AnalyticsService extends Component
             $result[] = [
                 'campaignId' => $campaign->id,
                 'campaignName' => $campaign->title,
+                'siteId' => $campaign->siteId,
                 'totalRecipients' => (int)$totalRecipients,
                 'submissions' => (int)$submissions,
                 'conversionRate' => $totalRecipients > 0 ? round(($submissions / $totalRecipients) * 100, 1) : 0,

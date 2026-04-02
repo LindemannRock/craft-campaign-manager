@@ -45,6 +45,7 @@
             <thead>
                 <tr>
                     <th>{{ 'Campaign'|t('campaign-manager') }}</th>
+                    <th>{{ 'Site'|t('campaign-manager') }}</th>
                     <th class="lr-text-end">{{ 'Recipients'|t('campaign-manager') }}</th>
                     <th class="lr-text-end">{{ 'Responses'|t('campaign-manager') }}</th>
                     <th class="lr-text-end">{{ 'Conversion Rate'|t('campaign-manager') }}</th>
@@ -55,6 +56,14 @@
                     {% for item in campaignBreakdown %}
                         <tr>
                             <td><strong>{{ item.campaignName }}</strong></td>
+                            <td>
+                                {% if item.siteId %}
+                                    {% set site = craft.app.sites.getSiteById(item.siteId) %}
+                                    {{ site ? site.name : '—' }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
                             <td class="lr-text-end">{{ item.totalRecipients|number_format }}</td>
                             <td class="lr-text-end">{{ item.submissions|number_format }}</td>
                             <td class="lr-text-end">{{ item.conversionRate }}%</td>
@@ -62,7 +71,7 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="4" class="light lr-text-center">{{ 'No data available'|t('campaign-manager') }}</td>
+                        <td colspan="5" class="light lr-text-center">{{ 'No data available'|t('campaign-manager') }}</td>
                     </tr>
                 {% endif %}
             </tbody>

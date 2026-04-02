@@ -185,8 +185,11 @@ class AnalyticsController extends Controller
             // Get detailed stats for this specific campaign
             $campaignStats = $analyticsService->getOverviewStats($data['campaignId'], $effectiveSiteId, $dateRange);
 
+            $site = $data['siteId'] ? Craft::$app->getSites()->getSiteById($data['siteId']) : null;
+
             $rows[] = [
                 'campaign' => $data['campaignName'],
+                'site' => $site?->name ?? '—',
                 'totalRecipients' => $campaignStats['totalRecipients'],
                 'emailsSent' => $campaignStats['emailsSent'],
                 'smsSent' => $campaignStats['smsSent'],
@@ -202,6 +205,7 @@ class AnalyticsController extends Controller
 
         $headers = [
             Craft::t('campaign-manager', 'Campaign'),
+            Craft::t('campaign-manager', 'Site'),
             Craft::t('campaign-manager', 'Total Recipients'),
             Craft::t('campaign-manager', 'Emails Sent'),
             Craft::t('campaign-manager', 'SMS Sent'),
