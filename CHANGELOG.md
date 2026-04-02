@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.7.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.6.0...v5.7.0) (2026-04-02)
+
+
+### Features
+
+* **Analytics:** add site information to campaign stats and overview table ([1d5cf2d](https://github.com/LindemannRock/craft-campaign-manager/commit/1d5cf2da6d6db0b79a6882a7f8afae4f1ddfe379))
+
+
+### Bug Fixes
+
+* **CampaignManager:** read-only settings page accessibility flag ([1db49c4](https://github.com/LindemannRock/craft-campaign-manager/commit/1db49c4d317192683c9372f175d9aea3a9abbb83))
+
 ## [5.6.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.4...v5.6.0) (2026-04-02)
 
 
