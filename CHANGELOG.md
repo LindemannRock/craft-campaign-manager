@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.6.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.4...v5.6.0) (2026-04-02)
+
+
+### Features
+
+* **CampaignManager:** add install experience configuration ([d28acba](https://github.com/LindemannRock/craft-campaign-manager/commit/d28acba0b3dec019b4d3f9dee225e5deb44c1ef3))
+* **icons:** add new SVG icons for campaign manager ([1ff303b](https://github.com/LindemannRock/craft-campaign-manager/commit/1ff303bee71efc58c01cea7191055c25eaf6eddc))
+
+
+### Bug Fixes
+
+* **CampaignManagerVariable:** improve CKE config handling and validation ([855dac9](https://github.com/LindemannRock/craft-campaign-manager/commit/855dac97c541162f8da5a4bb64f01e3850022975))
+* install experience text to use Craft translation ([d1f3f55](https://github.com/LindemannRock/craft-campaign-manager/commit/d1f3f552be14211222cb057ea9392707947fcf20))
+
+
+### Miscellaneous Chores
+
+* **assets:** update build configuration and package management ([d42c7f2](https://github.com/LindemannRock/craft-campaign-manager/commit/d42c7f229be28d2d28e62f75e975d7cd563adb8e))
+
 ## [5.5.4](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.3...v5.5.4) (2026-03-04)
 
 
