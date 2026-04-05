@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.7.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.0...v5.7.1) (2026-04-05)
+
+
+### Bug Fixes
+
+* **AnalyticsService:** correct siteId usage in recipient query ([5b418b7](https://github.com/LindemannRock/craft-campaign-manager/commit/5b418b7ee844b4fdb7c8cf80cabe1b2b007843f9))
+
 ## [5.7.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.6.0...v5.7.0) (2026-04-02)
 
 
