@@ -374,7 +374,7 @@ class AnalyticsService extends Component
 
         $result = [];
         foreach ($campaigns as $campaign) {
-            $query = $this->buildRecipientQuery($campaign->id, $siteId, $dateRange);
+            $query = $this->buildRecipientQuery($campaign->id, $campaign->siteId, $dateRange);
 
             $totalRecipients = (clone $query)->count();
             $submissions = (clone $query)

@@ -183,7 +183,7 @@ class AnalyticsController extends Controller
         $rows = [];
         foreach ($campaignBreakdown as $data) {
             // Get detailed stats for this specific campaign
-            $campaignStats = $analyticsService->getOverviewStats($data['campaignId'], $effectiveSiteId, $dateRange);
+            $campaignStats = $analyticsService->getOverviewStats($data['campaignId'], $data['siteId'], $dateRange);
 
             $site = $data['siteId'] ? Craft::$app->getSites()->getSiteById($data['siteId']) : null;
 
