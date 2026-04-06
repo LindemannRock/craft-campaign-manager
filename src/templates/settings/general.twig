@@ -214,7 +214,7 @@
         value: settings.invitationTemplate,
         placeholder: 'campaign-manager/invite',
         errors: settings.getErrors('invitationTemplate'),
-        tip: "Copy reference template from <code>plugins/campaign-manager/src/templates/invite.twig</code> to <code>templates/campaign-manager/invite.twig</code>"|t('campaign-manager')|raw,
+        tip: "Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project's templates folder."|t('campaign-manager')|raw,
         disabled: settings.isOverriddenByConfig('invitationTemplate'),
         warning: settings.isOverriddenByConfig('invitationTemplate') ?
             "This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
