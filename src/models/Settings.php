@@ -11,7 +11,6 @@ namespace lindemannrock\campaignmanager\models;
 use Craft;
 use craft\base\Model;
 use craft\behaviors\EnvAttributeParserBehavior;
-use craft\elements\Entry;
 use lindemannrock\base\traits\SettingsConfigTrait;
 use lindemannrock\base\traits\SettingsDisplayNameTrait;
 use lindemannrock\base\traits\SettingsPersistenceTrait;
@@ -44,16 +43,6 @@ class Settings extends Model
      * @var array<int|string, string>|null Campaign type options for dropdown
      */
     public ?array $campaignTypeOptions = null;
-
-    /**
-     * @var string Element type to use for campaigns
-     */
-    public string $campaignElementType = Entry::class;
-
-    /**
-     * @var string|null Section handle to filter campaigns (e.g., 'surveys')
-     */
-    public ?string $campaignSectionHandle = null;
 
     /**
      * @var string Route for invitation links
@@ -175,8 +164,6 @@ class Settings extends Model
     {
         return [
             'pluginName',
-            'campaignElementType',
-            'campaignSectionHandle',
             'invitationRoute',
             'invitationTemplate',
             'defaultProviderHandle',
@@ -257,7 +244,6 @@ class Settings extends Model
             ['invitationRoute', 'match', 'pattern' => '/^[a-zA-Z0-9\-\_\/]+$/', 'message' => Craft::t('campaign-manager', 'Only letters, numbers, hyphens, underscores, and slashes are allowed.')],
             ['invitationRoute', 'validateInvitationRoute'],
             ['invitationTemplate', 'string'],
-            ['campaignElementType', 'string'],
             ['defaultSenderIdId', 'integer'],
             [['defaultProviderHandle', 'defaultSenderIdHandle'], 'string', 'max' => 64],
             [['logLevel'], 'in', 'range' => ['debug', 'info', 'warning', 'error']],

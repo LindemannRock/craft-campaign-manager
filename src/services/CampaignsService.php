@@ -11,6 +11,7 @@ namespace lindemannrock\campaignmanager\services;
 use craft\base\Component;
 use craft\elements\db\ElementQueryInterface;
 use lindemannrock\campaignmanager\CampaignManager;
+use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 
 /**
@@ -38,17 +39,7 @@ class CampaignsService extends Component
      */
     public function find(): ElementQueryInterface
     {
-        $settings = CampaignManager::$plugin->getSettings();
-        $elementType = $settings->campaignElementType ?: \lindemannrock\campaignmanager\elements\Campaign::class;
-
-        $query = $elementType::find();
-
-        // Filter by section if configured (only for Entry-based campaigns)
-        if (!empty($settings->campaignSectionHandle) && $elementType === \craft\elements\Entry::class) {
-            $query->section($settings->campaignSectionHandle);
-        }
-
-        return $query;
+        return Campaign::find();
     }
 
     /**

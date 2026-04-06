@@ -53,8 +53,6 @@ class Install extends Migration
         $this->createTable($tableName, [
             'id' => $this->primaryKey(),
             'pluginName' => $this->string()->defaultValue('Campaign Manager'),
-            'campaignElementType' => $this->string(),
-            'campaignSectionHandle' => $this->string(),
             'invitationRoute' => $this->string()->defaultValue('campaign-manager/invitation'),
             'invitationTemplate' => $this->string(),
             'defaultSenderIdId' => $this->integer(),

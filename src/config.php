@@ -88,13 +88,6 @@ return [
          */
         // 'campaignTypeOptions' => ['Survey', 'Newsletter', 'Event'],
 
-        /**
-         * Section handle to filter campaigns
-         * Only entries from this section will be available as campaigns
-         * Default: null (all sections)
-         */
-        // 'campaignSectionHandle' => 'surveys',
-
         // ========================================
         // INVITATION SETTINGS
         // ========================================
@@ -102,7 +95,7 @@ return [
         /**
          * Route for invitation links
          * This is the URL path where recipients access their invitations
-         * Example URL: https://yoursite.com/{invitationRoute}/{invitationCode}
+         * Example URL: https://yoursite.com/{invitationRoute}?code={invitationCode}
          * Default: 'cm/invite'
          */
         // 'invitationRoute' => 'cm/invite',

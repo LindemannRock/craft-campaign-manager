@@ -538,26 +538,10 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * Check if the owner element is a campaign element (in the configured section)
+     * Check if the owner element is a campaign element
      */
     private function isCampaignElement(): bool
     {
-        $owner = $this->owner;
-
-        // Must be an Entry
-        if (!$owner instanceof \craft\elements\Entry) {
-            return false;
-        }
-
-        // Check if in the configured campaigns section
-        $settings = \lindemannrock\campaignmanager\CampaignManager::$plugin->getSettings();
-        $sectionHandle = $settings->campaignSectionHandle;
-
-        if (empty($sectionHandle)) {
-            return false;
-        }
-
-        $section = $owner->getSection();
-        return $section && $section->handle === $sectionHandle;
+        return $this->owner instanceof \lindemannrock\campaignmanager\elements\Campaign;
     }
 }
