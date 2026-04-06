@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.7.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.2...v5.7.3) (2026-04-06)
+
+
+### Bug Fixes
+
+* **invite.twig:** update invitation template documentation and logic ([c61b439](https://github.com/LindemannRock/craft-campaign-manager/commit/c61b439f6d29f22de440aee7746bb1a858de880f))
+
 ## [5.7.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.1...v5.7.2) (2026-04-06)
 
 
