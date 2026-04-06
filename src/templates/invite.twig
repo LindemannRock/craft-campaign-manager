@@ -1,19 +1,11 @@
 {#
- # Campaign Manager - Invitation Template
+ # Campaign Manager - Default Invitation Template
  #
- # This is the default invitation template. Copy this to your templates folder
- # and customize it for your needs.
+ # This is a minimal fallback template. Copy it to your project's templates
+ # folder and customize it, then set the `invitationTemplate` setting to
+ # point to your custom template.
  #
- # Available variables:
- #   - token: The invitation token from the URL
- #
- # Example usage in your template:
- #   {% set recipient = craft.campaignManager.recipients.findByToken(token) %}
- #   {% if recipient %}
- #       ... show invitation content ...
- #   {% else %}
- #       ... show error or expired message ...
- #   {% endif %}
+ # The invitation URL uses a `?code=` query parameter.
  #}
 
 <!DOCTYPE html>
@@ -35,23 +27,40 @@
     </style>
 </head>
 <body>
-    {% set recipient = craft.campaignManager.recipients.findByToken(token ?? null) %}
+    {% set invitationCode = craft.app.request.getQueryParam('code') ?? null %}
 
-    {% if recipient %}
-        {% set campaign = recipient.getCampaign() %}
-        <h1>{{ campaign.title ?? 'Invitation'|t('campaign-manager') }}</h1>
-
-        {% if recipient.hasResponded %}
-            <p class="error">{{ 'You have already responded to this invitation.'|t('campaign-manager') }}</p>
-        {% elseif recipient.isExpired %}
-            <p class="error">{{ 'This invitation has expired.'|t('campaign-manager') }}</p>
-        {% else %}
-            <p>{{ 'Welcome! Please complete the form below.'|t('campaign-manager') }}</p>
-            {# Add your form or content here #}
-        {% endif %}
-    {% else %}
+    {% if invitationCode is null %}
         <h1>{{ 'Invalid Invitation'|t('campaign-manager') }}</h1>
-        <p class="error">{{ 'This invitation link is not valid or has expired.'|t('campaign-manager') }}</p>
+        <p class="error">{{ 'Invalid or missing invitation code.'|t('campaign-manager') }}</p>
+    {% else %}
+        {% set recipient = craft.campaignManager.recipients.getRecipientByInvitationCode(invitationCode) %}
+
+        {% if not recipient %}
+            <h1>{{ 'Invalid Invitation'|t('campaign-manager') }}</h1>
+            <p class="error">{{ 'This invitation link is not valid or has expired.'|t('campaign-manager') }}</p>
+        {% else %}
+            {% set campaign = recipient.getCampaign() %}
+
+            {% if not campaign %}
+                <h1>{{ 'Invalid Invitation'|t('campaign-manager') }}</h1>
+                <p class="error">{{ 'The campaign for this invitation could not be found.'|t('campaign-manager') }}</p>
+            {% elseif recipient.hasSubmission() %}
+                <h1>{{ campaign.title ?? 'Invitation'|t('campaign-manager') }}</h1>
+                <p class="error">{{ 'You have already responded to this invitation.'|t('campaign-manager') }}</p>
+            {% elseif recipient.invitationIsExpired() %}
+                <h1>{{ campaign.title ?? 'Invitation'|t('campaign-manager') }}</h1>
+                <p class="error">{{ 'This invitation has expired.'|t('campaign-manager') }}</p>
+            {% else %}
+                {% do craft.campaignManager.recipients.markAsOpened(recipient) %}
+                <h1>{{ campaign.title ?? 'Invitation'|t('campaign-manager') }}</h1>
+                <p class="success">{{ 'Welcome! Please complete the form below.'|t('campaign-manager') }}</p>
+
+                {% set form = campaign.getForm() %}
+                {% if form %}
+                    {{ craft.formie.renderForm(form) }}
+                {% endif %}
+            {% endif %}
+        {% endif %}
     {% endif %}
 </body>
 </html>
