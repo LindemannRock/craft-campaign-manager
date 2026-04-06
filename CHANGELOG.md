@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.7.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.1...v5.7.2) (2026-04-06)
+
+
+### Bug Fixes
+
+* **CampaignManager:** correct invitation route handling in event rules ([39212b5](https://github.com/LindemannRock/craft-campaign-manager/commit/39212b5a7e1beb460d85ded684a9402c247ab17e))
+* **RecipientsController:** handle MultiOptionsFieldData and SingleOptionFieldData correctly ([5ab3d9c](https://github.com/LindemannRock/craft-campaign-manager/commit/5ab3d9c0ea68511d9d1dee91bce11e0f09dd9421))
+
 ## [5.7.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.0...v5.7.1) (2026-04-05)
 
 
