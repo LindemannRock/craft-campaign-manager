@@ -449,10 +449,20 @@ class RecipientsController extends Controller
             foreach ($displayableFields as $field) {
                 if ($submission) {
                     $fieldValue = $submission->getFieldValue($field->handle);
-                    if (is_array($fieldValue)) {
+                    if ($fieldValue instanceof \verbb\formie\fields\data\MultiOptionsFieldData) {
+                        $selected = [];
+                        foreach ($fieldValue as $option) {
+                            if ($option->selected) {
+                                $selected[] = $option->label;
+                            }
+                        }
+                        $row[$field->handle] = implode(', ', $selected) ?: '-';
+                    } elseif ($fieldValue instanceof \verbb\formie\fields\data\SingleOptionFieldData) {
+                        $row[$field->handle] = $fieldValue->label ?? (string)$fieldValue ?: '-';
+                    } elseif (is_array($fieldValue)) {
                         $row[$field->handle] = implode(', ', $fieldValue);
                     } else {
-                        $row[$field->handle] = $fieldValue ?? '-';
+                        $row[$field->handle] = $fieldValue !== null ? (string)$fieldValue : '-';
                     }
                 } else {
                     $row[$field->handle] = '-';
