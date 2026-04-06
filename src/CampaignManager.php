@@ -492,7 +492,7 @@ class CampaignManager extends Plugin
                 $settings = $this->getSettings();
                 // Use custom template or fallback to plugin's default template
                 $template = $settings->invitationTemplate ?: 'campaign-manager/invite';
-                $event->rules[$settings->invitationRoute . '/<token:{slug}>'] = ['template' => $template];
+                $event->rules[$settings->invitationRoute] = ['template' => $template];
             }
         );
 
