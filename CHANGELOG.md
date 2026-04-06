@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.7.4](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.3...v5.7.4) (2026-04-06)
+
+
+### Bug Fixes
+
+* campaign element check and remove unused settings ([9b3a052](https://github.com/LindemannRock/craft-campaign-manager/commit/9b3a052835284656f3ab474dc404472c20a9b9cb))
+
 ## [5.7.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.2...v5.7.3) (2026-04-06)
 
 
