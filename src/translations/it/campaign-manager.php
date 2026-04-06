@@ -184,7 +184,7 @@ return [
     'This is being overridden by the <code>invitationRoute</code> setting in <code>config/campaign-manager.php</code>.' => 'Questa impostazione è sovrascritta dall\'impostazione <code>invitationRoute</code> in <code>config/campaign-manager.php</code>.',
     'Invitation Template' => 'Template invito',
     'Path to your Invitation template in your templates/ folder (e.g., campaign-manager/invite).' => 'Percorso del template di invito nella cartella templates/ (es. campaign-manager/invite).',
-    'Copy reference template from <code>plugins/campaign-manager/src/templates/invite.twig</code> to <code>templates/campaign-manager/invite.twig</code>' => 'Copia il template di riferimento da <code>plugins/campaign-manager/src/templates/invite.twig</code> a <code>templates/campaign-manager/invite.twig</code>',
+    'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.' => 'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.',
     'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.' => 'Questa impostazione è sovrascritta dall\'impostazione <code>invitationTemplate</code> in <code>config/campaign-manager.php</code>.',
     'Logging Settings' => 'Impostazioni di log',
     'Log Level' => 'Livello di log',

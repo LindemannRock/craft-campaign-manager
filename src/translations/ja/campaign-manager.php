@@ -184,7 +184,7 @@ return [
     'This is being overridden by the <code>invitationRoute</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>invitationRoute</code> 設定で上書きされています。',
     'Invitation Template' => '招待テンプレート',
     'Path to your Invitation template in your templates/ folder (e.g., campaign-manager/invite).' => 'templates/ フォルダー内の招待テンプレートへのパスです（例: campaign-manager/invite）。',
-    'Copy reference template from <code>plugins/campaign-manager/src/templates/invite.twig</code> to <code>templates/campaign-manager/invite.twig</code>' => '<code>plugins/campaign-manager/src/templates/invite.twig</code> から <code>templates/campaign-manager/invite.twig</code> へ参照テンプレートをコピーしてください',
+    'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.' => 'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.',
     'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>invitationTemplate</code> 設定で上書きされています。',
     'Logging Settings' => 'ログ設定',
     'Log Level' => 'ログレベル',

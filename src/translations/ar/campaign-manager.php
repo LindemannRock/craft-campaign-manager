@@ -184,7 +184,7 @@ return [
     'This is being overridden by the <code>invitationRoute</code> setting in <code>config/campaign-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>invitationRoute</code> في <code>config/campaign-manager.php</code>.',
     'Invitation Template' => 'Template الدعوة',
     'Path to your Invitation template in your templates/ folder (e.g., campaign-manager/invite).' => 'المسار إلى Template الدعوة في مجلد templates/ (مثال: campaign-manager/invite).',
-    'Copy reference template from <code>plugins/campaign-manager/src/templates/invite.twig</code> to <code>templates/campaign-manager/invite.twig</code>' => 'نسخ Template المرجع من <code>plugins/campaign-manager/src/templates/invite.twig</code> إلى <code>templates/campaign-manager/invite.twig</code>',
+    'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.' => 'انسخ Template المرجعي من <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> إلى مجلد templates الخاص بمشروعك.',
     'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>invitationTemplate</code> في <code>config/campaign-manager.php</code>.',
     'Logging Settings' => 'إعدادات التسجيل',
     'Log Level' => 'مستوى السجل',
