@@ -311,14 +311,7 @@ class CampaignManager extends Plugin
         $settings = parent::getSettings();
 
         if ($settings) {
-            $config = Craft::$app->getConfig()->getConfigFromFile('campaign-manager');
-            if (!empty($config) && is_array($config)) {
-                foreach ($config as $key => $value) {
-                    if (property_exists($settings, $key)) {
-                        $settings->$key = $value;
-                    }
-                }
-            }
+            PluginHelper::applyConfigOverridesToSettings($settings, 'campaign-manager');
         }
 
         return $settings;
