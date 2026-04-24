@@ -72,7 +72,7 @@ class AnalyticsController extends Controller
         $effectiveSiteId = $this->_resolveSiteId($rawSiteId);
 
         // Get overview stats
-        $summaryStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange, $dateBasis);
+        $summaryStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange);
 
         // Get campaign options for filter
         $campaignOptions = $analyticsService->getCampaignOptions($effectiveSiteId);
@@ -81,7 +81,7 @@ class AnalyticsController extends Controller
         $sites = Craft::$app->getSites()->getEditableSites();
 
         // Get campaign breakdown (filtered by selected campaign)
-        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis);
+        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange);
 
         // Pass display-friendly siteId (string/int) for template filters/JS, not the array
         $displaySiteId = is_array($effectiveSiteId) ? 'all' : $effectiveSiteId;
@@ -167,10 +167,10 @@ class AnalyticsController extends Controller
         $analyticsService = CampaignManager::$plugin->analytics;
 
         $data = match ($type) {
-            'daily' => $analyticsService->getDailyTrend($campaignId, $effectiveSiteId, $dateRange, $dateBasis),
-            'channels' => $analyticsService->getChannelDistribution($campaignId, $effectiveSiteId, $dateRange, $dateBasis),
-            'engagement' => $analyticsService->getEngagementOverTime($campaignId, $effectiveSiteId, $dateRange, $dateBasis),
-            'funnel' => $analyticsService->getConversionFunnel($campaignId, $effectiveSiteId, $dateRange, $dateBasis),
+            'daily' => $analyticsService->getDailyTrend($campaignId, $effectiveSiteId, $dateRange),
+            'channels' => $analyticsService->getChannelDistribution($campaignId, $effectiveSiteId, $dateRange),
+            'engagement' => $analyticsService->getEngagementOverTime($campaignId, $effectiveSiteId, $dateRange),
+            'funnel' => $analyticsService->getConversionFunnel($campaignId, $effectiveSiteId, $dateRange),
             'nps-distribution' => $analyticsService->getNpsDistribution($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId),
             'nps-trend' => $analyticsService->getNpsTrend($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId),
         };
@@ -197,12 +197,6 @@ class AnalyticsController extends Controller
         $format = $request->getBodyParam('format', 'csv');
         $campaignId = $request->getBodyParam('campaign', 'all');
         $rawSiteId = $request->getBodyParam('siteId', 'all');
-        $dateBasis = $request->getBodyParam('dateBasis', 'sent');
-
-        // Validate dateBasis
-        if (!in_array($dateBasis, ['sent', 'response'], true)) {
-            $dateBasis = 'sent';
-        }
 
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
@@ -220,8 +214,8 @@ class AnalyticsController extends Controller
         $analyticsService = CampaignManager::$plugin->analytics;
 
         // Get comprehensive stats for export
-        $overviewStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange, $dateBasis);
-        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis);
+        $overviewStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange);
+        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange);
 
         // Check for empty data
         if (empty($campaignBreakdown) && $overviewStats['totalRecipients'] === 0) {
@@ -233,7 +227,7 @@ class AnalyticsController extends Controller
         $rows = [];
         foreach ($campaignBreakdown as $data) {
             // Get detailed stats for this specific campaign
-            $campaignStats = $analyticsService->getOverviewStats($data['campaignId'], $data['siteId'], $dateRange, $dateBasis);
+            $campaignStats = $analyticsService->getOverviewStats($data['campaignId'], $data['siteId'], $dateRange);
 
             $site = $data['siteId'] ? Craft::$app->getSites()->getSiteById($data['siteId']) : null;
 

@@ -51,15 +51,6 @@
                 current: campaignId,
                 options: campaignOptions,
             },
-            {
-                param: 'dateBasis',
-                current: dateBasis,
-                options: [
-                    { value: 'sent', label: 'Send activity'|t('campaign-manager') },
-                    { value: 'response', label: 'Response date'|t('campaign-manager') },
-                ],
-                label: 'Date based on'|t('campaign-manager'),
-            },
         ],
     },
     export: {
@@ -141,7 +132,6 @@
     dataEndpoint: analyticsConfig.charts.dataEndpoint,
     customFilters: {
         campaign: campaignId,
-        dateBasis: dateBasis,
         fieldId: ratingFieldId ?? '',
     },
     strings: campaignStrings,

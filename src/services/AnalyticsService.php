@@ -86,13 +86,11 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
-     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, int|float>
      */
-    public function getOverviewStats(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
+    public function getOverviewStats(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
         // Total recipients
         $totalRecipients = (clone $query)->count();
@@ -159,15 +157,13 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
-     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, mixed>
      */
-    public function getDailyTrend(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
+    public function getDailyTrend(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
-        $dateColumn = $dateBasis === 'response' ? 'fs.dateCreated' : 'campaignmanager_recipients.dateCreated';
-        $localDateExpr = DateFormatHelper::localDateExpression($dateColumn);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
+        $localDateExpr = DateFormatHelper::localDateExpression('campaignmanager_recipients.dateCreated');
 
         // Get daily counts
         $data = (clone $query)
@@ -216,13 +212,11 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
-     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, mixed>
      */
-    public function getChannelDistribution(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
+    public function getChannelDistribution(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
         // Email only (email sent, SMS not sent)
         $emailOnly = (clone $query)
@@ -258,13 +252,12 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
-     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, mixed>
      */
-    public function getEngagementOverTime(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
+    public function getEngagementOverTime(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
         $emailOpenExpr = DateFormatHelper::localDateExpression('emailOpenDate');
         $smsOpenExpr = DateFormatHelper::localDateExpression('smsOpenDate');
 
@@ -315,13 +308,11 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
-     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, mixed>
      */
-    public function getConversionFunnel(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
+    public function getConversionFunnel(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
         $totalRecipients = (clone $query)->count();
 
@@ -367,13 +358,10 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
-     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<int, array<string, mixed>>
      */
-    public function getCampaignBreakdown(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
+    public function getCampaignBreakdown(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
-        $dates = $this->getDateRangeFromParam($dateRange);
-
         $campaignQuery = Campaign::find();
         if ($siteId !== 'all') {
             $campaignQuery->siteId($siteId);
@@ -386,7 +374,7 @@ class AnalyticsService extends Component
 
         $result = [];
         foreach ($campaigns as $campaign) {
-            $query = $this->buildRecipientQuery($campaign->id, $campaign->siteId, $dateRange, $dateBasis);
+            $query = $this->buildRecipientQuery($campaign->id, $campaign->siteId, $dateRange);
 
             $totalRecipients = (clone $query)->count();
             $submissions = (clone $query)
@@ -443,12 +431,11 @@ class AnalyticsService extends Component
      * @param int $campaignId Campaign ID
      * @param int|null $siteId Site ID or null for all sites
      * @param string $dateRange Date range parameter
-     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, int|float>
      */
-    public function getCampaignStats(int $campaignId, ?int $siteId, string $dateRange, string $dateBasis = 'sent'): array
+    public function getCampaignStats(int $campaignId, ?int $siteId, string $dateRange): array
     {
-        return $this->getOverviewStats($campaignId, $siteId ?? 'all', $dateRange, $dateBasis);
+        return $this->getOverviewStats($campaignId, $siteId ?? 'all', $dateRange);
     }
 
     /**
@@ -457,13 +444,12 @@ class AnalyticsService extends Component
      * @param int $campaignId Campaign ID
      * @param int|null $siteId Site ID or null for all sites
      * @param string $dateRange Date range parameter
-     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, mixed>
      */
-    public function getCampaignDailyTrend(int $campaignId, ?int $siteId, string $dateRange, string $dateBasis = 'sent'): array
+    public function getCampaignDailyTrend(int $campaignId, ?int $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dateRange, $dateBasis);
+        $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dateRange);
         $recipientTable = RecipientRecord::tableName();
         $smsSendExpr = DateFormatHelper::localDateExpression($recipientTable . '.smsSendDate');
         $emailSendExpr = DateFormatHelper::localDateExpression($recipientTable . '.emailSendDate');
@@ -541,17 +527,13 @@ class AnalyticsService extends Component
         }
 
         // Get submissions - bucket by the Formie submission's dateCreated.
-        // In 'response' mode, buildRecipientQuery already joined formie_submissions as `fs`.
-        // In 'sent' mode, we add the join here for this sub-query only.
+        // Always in sent mode: add the leftJoin here for this sub-query only.
         $submissionsQuery = (clone $query)
-            ->andWhere(['not', [$recipientTable . '.submissionId' => null]]);
-
-        if ($dateBasis !== 'response') {
-            $submissionsQuery->leftJoin(
+            ->andWhere(['not', [$recipientTable . '.submissionId' => null]])
+            ->leftJoin(
                 ['fs' => '{{%formie_submissions}}'],
                 'fs.id = ' . $recipientTable . '.submissionId'
             );
-        }
 
         $submissionsByDate = $submissionsQuery
             ->select(['date' => $submissionExpr, 'COUNT(*) as count'])
@@ -650,10 +632,13 @@ class AnalyticsService extends Component
             return [];
         }
 
-        // Get all campaigns in scope
-        $campaignQuery = Campaign::find()->status(null)->unique();
+        // Get all campaigns in scope (iterate site-localized versions so rating fields
+        // on campaigns that exist only in non-current sites are still detected).
+        $campaignQuery = Campaign::find()->status(null);
         if ($siteId !== 'all') {
             $campaignQuery->siteId($siteId);
+        } else {
+            $campaignQuery->siteId('*');
         }
         if ($campaignId !== 'all') {
             $campaignQuery->id($campaignId);
@@ -800,9 +785,11 @@ class AnalyticsService extends Component
             return [];
         }
 
-        $campaignQuery = Campaign::find()->status(null)->unique();
+        $campaignQuery = Campaign::find()->status(null);
         if ($siteId !== 'all') {
             $campaignQuery->siteId($siteId);
+        } else {
+            $campaignQuery->siteId('*');
         }
         if ($campaignId !== 'all') {
             $campaignQuery->id($campaignId);

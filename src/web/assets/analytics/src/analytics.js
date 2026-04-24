@@ -61,6 +61,10 @@
                 extraParams.fieldId = extraFilters.fieldId;
             }
 
+            // dateBasis is NPS-scoped: read from URL so NPS charts always use the
+            // correct value even though it's no longer in the global customFilters.
+            const npsDateBasis = new URLSearchParams(window.location.search).get('dateBasis') || 'sent';
+
             window.lrLoadChartData('daily', function(data) {
                 if (!data || !data.labels) {
                     return;
@@ -133,7 +137,7 @@
                         return;
                     }
                     renderNpsDistributionChart(data);
-                }, extraParams);
+                }, Object.assign({}, extraParams, { dateBasis: npsDateBasis }));
             }
 
             if (document.getElementById('nps-trend-chart')) {
@@ -148,7 +152,7 @@
                         return;
                     }
                     renderNpsTrendChart(data);
-                }, extraParams);
+                }, Object.assign({}, extraParams, { dateBasis: npsDateBasis }));
             }
         }
 
@@ -277,29 +281,18 @@
                         tension: 0.3,
                         fill: true,
                         spanGaps: true
-                    },
-                    {
-                        label: strings.promotersLabel || 'Promoters',
-                        data: data.promoters,
-                        borderColor: '#10b981',
-                        backgroundColor: 'transparent',
-                        tension: 0.3,
-                        fill: false,
-                        borderDash: [4, 4]
-                    },
-                    {
-                        label: strings.detractorsLabel || 'Detractors',
-                        data: data.detractors,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'transparent',
-                        tension: 0.3,
-                        fill: false,
-                        borderDash: [4, 4]
                     }
                 ]
             }, {
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'top' } }
+                plugins: { legend: { position: 'top' } },
+                scales: {
+                    y: {
+                        min: -100,
+                        max: 100,
+                        ticks: { stepSize: 50 }
+                    }
+                }
             });
         }
 
