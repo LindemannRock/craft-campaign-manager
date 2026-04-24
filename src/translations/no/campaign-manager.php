@@ -518,9 +518,6 @@ return [
     'Rating Field' => 'Vurderingsfelt',
     'No rating fields found for this selection.' => 'Ingen vurderingsfelter funnet for dette utvalget.',
     'Select a rating field' => 'Velg et vurderingsfelt',
-    'NPS is calculated from rating field responses.' => 'NPS beregnes ut fra svar på vurderingsfelter.',
-    'Filter uses response date.' => 'Filteret bruker svarsdato.',
-    'Filter uses send activity date.' => 'Filteret bruker sendeaktivitetsdato.',
     'No NPS distribution data available for the selected filters.' => 'Ingen NPS-fordelingsdata tilgjengelig for de valgte filtrene.',
     'No NPS trend data available for the selected filters.' => 'Ingen NPS-trenddata tilgjengelig for de valgte filtrene.',
 ];

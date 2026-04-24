@@ -518,9 +518,6 @@ return [
     'Rating Field' => 'Betygsfält',
     'No rating fields found for this selection.' => 'Inga betygsfält hittades för detta urval.',
     'Select a rating field' => 'Välj ett betygsfält',
-    'NPS is calculated from rating field responses.' => 'NPS beräknas utifrån svar på betygsfält.',
-    'Filter uses response date.' => 'Filtret använder svarsdatum.',
-    'Filter uses send activity date.' => 'Filtret använder sändningsaktivitetsdatum.',
     'No NPS distribution data available for the selected filters.' => 'Inga NPS-fördelningsdata tillgängliga för de valda filtren.',
     'No NPS trend data available for the selected filters.' => 'Inga NPS-trenddata tillgängliga för de valda filtren.',
 ];

@@ -518,9 +518,6 @@ return [
     'Rating Field' => 'حقل التقييم',
     'No rating fields found for this selection.' => 'لم يتم العثور على حقول تقييم لهذا الاختيار.',
     'Select a rating field' => 'تحديد حقل تقييم',
-    'NPS is calculated from rating field responses.' => 'يُحسب NPS من استجابات حقول التقييم.',
-    'Filter uses response date.' => 'يستخدم الفلتر تاريخ الاستجابة.',
-    'Filter uses send activity date.' => 'يستخدم الفلتر تاريخ نشاط الإرسال.',
     'No NPS distribution data available for the selected filters.' => 'لا تتوفر بيانات توزيع NPS للفلاتر المحددة.',
     'No NPS trend data available for the selected filters.' => 'لا تتوفر بيانات اتجاه NPS للفلاتر المحددة.',
 ];

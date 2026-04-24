@@ -518,9 +518,6 @@ return [
     'Rating Field' => 'Beoordelingsveld',
     'No rating fields found for this selection.' => 'Geen beoordelingsvelden gevonden voor deze selectie.',
     'Select a rating field' => 'Selecteer een beoordelingsveld',
-    'NPS is calculated from rating field responses.' => 'De NPS wordt berekend op basis van antwoorden op beoordelingsvelden.',
-    'Filter uses response date.' => 'Filter gebruikt de reactiedatum.',
-    'Filter uses send activity date.' => 'Filter gebruikt de verzendactiviteitsdatum.',
     'No NPS distribution data available for the selected filters.' => 'Geen NPS-verdelingsgegevens beschikbaar voor de geselecteerde filters.',
     'No NPS trend data available for the selected filters.' => 'Geen NPS-trendgegevens beschikbaar voor de geselecteerde filters.',
 ];

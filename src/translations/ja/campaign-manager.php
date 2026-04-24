@@ -518,9 +518,6 @@ return [
     'Rating Field' => '評価フィールド',
     'No rating fields found for this selection.' => 'この選択に評価フィールドが見つかりません。',
     'Select a rating field' => '評価フィールドを選択してください',
-    'NPS is calculated from rating field responses.' => 'NPS は評価フィールドの回答から計算されます。',
-    'Filter uses response date.' => 'フィルターはレスポンス日を使用します。',
-    'Filter uses send activity date.' => 'フィルターは送信アクティビティ日を使用します。',
     'No NPS distribution data available for the selected filters.' => '選択したフィルターに利用可能な NPS 分布データがありません。',
     'No NPS trend data available for the selected filters.' => '選択したフィルターに利用可能な NPS トレンドデータがありません。',
 ];

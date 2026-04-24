@@ -518,9 +518,6 @@ return [
     'Rating Field' => 'Campo de avaliação',
     'No rating fields found for this selection.' => 'Nenhum campo de avaliação encontrado para esta seleção.',
     'Select a rating field' => 'Selecionar um campo de avaliação',
-    'NPS is calculated from rating field responses.' => 'O NPS é calculado a partir das respostas aos campos de avaliação.',
-    'Filter uses response date.' => 'O filtro usa a data de resposta.',
-    'Filter uses send activity date.' => 'O filtro usa a data de atividade de envio.',
     'No NPS distribution data available for the selected filters.' => 'Nenhum dado de distribuição NPS disponível para os filtros selecionados.',
     'No NPS trend data available for the selected filters.' => 'Nenhum dado de tendência NPS disponível para os filtros selecionados.',
 ];

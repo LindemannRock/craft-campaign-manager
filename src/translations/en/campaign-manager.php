@@ -510,9 +510,6 @@ return [
     'Rating Field' => 'Rating Field',
     'No rating fields found for this selection.' => 'No rating fields found for this selection.',
     'Select a rating field' => 'Select a rating field',
-    'NPS is calculated from rating field responses.' => 'NPS is calculated from rating field responses.',
-    'Filter uses response date.' => 'Filter uses response date.',
-    'Filter uses send activity date.' => 'Filter uses send activity date.',
     'No NPS distribution data available for the selected filters.' => 'No NPS distribution data available for the selected filters.',
     'No NPS trend data available for the selected filters.' => 'No NPS trend data available for the selected filters.',
 ];

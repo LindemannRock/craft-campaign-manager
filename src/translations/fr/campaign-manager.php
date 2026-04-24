@@ -518,9 +518,6 @@ return [
     'Rating Field' => 'Champ de notation',
     'No rating fields found for this selection.' => 'Aucun champ de notation trouvé pour cette sélection.',
     'Select a rating field' => 'Sélectionner un champ de notation',
-    'NPS is calculated from rating field responses.' => 'Le NPS est calculé à partir des réponses aux champs de notation.',
-    'Filter uses response date.' => 'Le filtre utilise la date de réponse.',
-    'Filter uses send activity date.' => 'Le filtre utilise la date d\'activité d\'envoi.',
     'No NPS distribution data available for the selected filters.' => 'Aucune donnée de distribution NPS disponible pour les filtres sélectionnés.',
     'No NPS trend data available for the selected filters.' => 'Aucune donnée de tendance NPS disponible pour les filtres sélectionnés.',
 ];
