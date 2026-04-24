@@ -500,4 +500,27 @@ return [
     'Email Only' => 'Kun e-mail',
     'SMS Only' => 'Kun SMS',
     'Both' => 'Begge',
+
+    // Analytics: Date basis filter
+    'Date based on' => 'Dato baseret på',
+    'Send activity' => 'Sendeaktivitet',
+    'Response date' => 'Svarsdato',
+
+    // Analytics: NPS
+    'NPS' => 'NPS',
+    'NPS Score' => 'NPS-score',
+    'Promoters' => 'Fortalere',
+    'Passives' => 'Passive',
+    'Detractors' => 'Kritikere',
+    'NPS Distribution' => 'NPS-fordeling',
+    'NPS Trend' => 'NPS-tendens',
+    'NPS over time' => 'NPS over tid',
+    'Rating Field' => 'Vurderingsfelt',
+    'No rating fields found for this selection.' => 'Ingen vurderingsfelter fundet for dette udvalg.',
+    'Select a rating field' => 'Vælg et vurderingsfelt',
+    'NPS is calculated from rating field responses.' => 'NPS beregnes ud fra svar på vurderingsfelter.',
+    'Filter uses response date.' => 'Filter bruger svarsdato.',
+    'Filter uses send activity date.' => 'Filter bruger sendeaktivitetsdato.',
+    'No NPS distribution data available for the selected filters.' => 'Ingen NPS-fordelingsdata tilgængelige for de valgte filtre.',
+    'No NPS trend data available for the selected filters.' => 'Ingen NPS-tendensdata tilgængelige for de valgte filtre.',
 ];

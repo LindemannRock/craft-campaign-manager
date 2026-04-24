@@ -500,4 +500,27 @@ return [
     'Email Only' => 'Endast e-post',
     'SMS Only' => 'Endast SMS',
     'Both' => 'Båda',
+
+    // Analytics: Date basis filter
+    'Date based on' => 'Datum baserat på',
+    'Send activity' => 'Sändningsaktivitet',
+    'Response date' => 'Svarsdatum',
+
+    // Analytics: NPS
+    'NPS' => 'NPS',
+    'NPS Score' => 'NPS-poäng',
+    'Promoters' => 'Förespråkare',
+    'Passives' => 'Passiva',
+    'Detractors' => 'Kritiker',
+    'NPS Distribution' => 'NPS-fördelning',
+    'NPS Trend' => 'NPS-trend',
+    'NPS over time' => 'NPS över tid',
+    'Rating Field' => 'Betygsfält',
+    'No rating fields found for this selection.' => 'Inga betygsfält hittades för detta urval.',
+    'Select a rating field' => 'Välj ett betygsfält',
+    'NPS is calculated from rating field responses.' => 'NPS beräknas utifrån svar på betygsfält.',
+    'Filter uses response date.' => 'Filtret använder svarsdatum.',
+    'Filter uses send activity date.' => 'Filtret använder sändningsaktivitetsdatum.',
+    'No NPS distribution data available for the selected filters.' => 'Inga NPS-fördelningsdata tillgängliga för de valda filtren.',
+    'No NPS trend data available for the selected filters.' => 'Inga NPS-trenddata tillgängliga för de valda filtren.',
 ];

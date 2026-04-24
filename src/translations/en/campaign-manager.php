@@ -492,4 +492,27 @@ return [
     'Email Only' => 'Email Only',
     'SMS Only' => 'SMS Only',
     'Both' => 'Both',
+
+    // Analytics: Date basis filter
+    'Date based on' => 'Date based on',
+    'Send activity' => 'Send activity',
+    'Response date' => 'Response date',
+
+    // Analytics: NPS
+    'NPS' => 'NPS',
+    'NPS Score' => 'NPS Score',
+    'Promoters' => 'Promoters',
+    'Passives' => 'Passives',
+    'Detractors' => 'Detractors',
+    'NPS Distribution' => 'NPS Distribution',
+    'NPS Trend' => 'NPS Trend',
+    'NPS over time' => 'NPS over time',
+    'Rating Field' => 'Rating Field',
+    'No rating fields found for this selection.' => 'No rating fields found for this selection.',
+    'Select a rating field' => 'Select a rating field',
+    'NPS is calculated from rating field responses.' => 'NPS is calculated from rating field responses.',
+    'Filter uses response date.' => 'Filter uses response date.',
+    'Filter uses send activity date.' => 'Filter uses send activity date.',
+    'No NPS distribution data available for the selected filters.' => 'No NPS distribution data available for the selected filters.',
+    'No NPS trend data available for the selected filters.' => 'No NPS trend data available for the selected filters.',
 ];

@@ -500,4 +500,27 @@ return [
     'Email Only' => 'Email のみ',
     'SMS Only' => 'SMS のみ',
     'Both' => '両方',
+
+    // Analytics: Date basis filter
+    'Date based on' => '日付の基準',
+    'Send activity' => '送信アクティビティ',
+    'Response date' => 'レスポンス日',
+
+    // Analytics: NPS
+    'NPS' => 'NPS',
+    'NPS Score' => 'NPS スコア',
+    'Promoters' => 'プロモーター',
+    'Passives' => 'パッシブ',
+    'Detractors' => 'デトラクター',
+    'NPS Distribution' => 'NPS 分布',
+    'NPS Trend' => 'NPS トレンド',
+    'NPS over time' => '時系列 NPS',
+    'Rating Field' => '評価フィールド',
+    'No rating fields found for this selection.' => 'この選択に評価フィールドが見つかりません。',
+    'Select a rating field' => '評価フィールドを選択してください',
+    'NPS is calculated from rating field responses.' => 'NPS は評価フィールドの回答から計算されます。',
+    'Filter uses response date.' => 'フィルターはレスポンス日を使用します。',
+    'Filter uses send activity date.' => 'フィルターは送信アクティビティ日を使用します。',
+    'No NPS distribution data available for the selected filters.' => '選択したフィルターに利用可能な NPS 分布データがありません。',
+    'No NPS trend data available for the selected filters.' => '選択したフィルターに利用可能な NPS トレンドデータがありません。',
 ];
