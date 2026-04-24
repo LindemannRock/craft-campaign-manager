@@ -52,10 +52,13 @@
             canvas.parentNode.appendChild(emptyMsg);
         }
 
-        function loadAllChartData(campaignId, prefix) {
+        function loadAllChartData(campaignId, prefix, extraFilters) {
             const extraParams = {};
             if (campaignId && campaignId !== 'all') {
                 extraParams.campaignId = campaignId;
+            }
+            if (extraFilters && extraFilters.fieldId) {
+                extraParams.fieldId = extraFilters.fieldId;
             }
 
             window.lrLoadChartData('daily', function(data) {
@@ -116,6 +119,37 @@
 
                 renderFunnelChart(data);
             }, extraParams);
+
+            // NPS charts (only rendered if canvas elements exist)
+            if (document.getElementById('nps-distribution-chart')) {
+                window.lrLoadChartData('nps-distribution', function(data) {
+                    if (!data || !data.labels || !data.data) {
+                        renderEmptyState('nps-distribution-chart', strings.noNpsDistribution || 'No NPS distribution data available.', prefix);
+                        return;
+                    }
+                    const hasData = Array.isArray(data.data) && data.data.some(v => Number(v) > 0);
+                    if (!hasData) {
+                        renderEmptyState('nps-distribution-chart', strings.noNpsDistribution || 'No NPS distribution data available.', prefix);
+                        return;
+                    }
+                    renderNpsDistributionChart(data);
+                }, extraParams);
+            }
+
+            if (document.getElementById('nps-trend-chart')) {
+                window.lrLoadChartData('nps-trend', function(data) {
+                    if (!data || !data.labels) {
+                        renderEmptyState('nps-trend-chart', strings.noNpsTrend || 'No NPS trend data available.', prefix);
+                        return;
+                    }
+                    const hasData = Array.isArray(data.npsScore) && data.npsScore.some(v => v !== null);
+                    if (!hasData) {
+                        renderEmptyState('nps-trend-chart', strings.noNpsTrend || 'No NPS trend data available.', prefix);
+                        return;
+                    }
+                    renderNpsTrendChart(data);
+                }, extraParams);
+            }
         }
 
         function renderDailyChart(data) {
@@ -213,11 +247,67 @@
             });
         }
 
+        function renderNpsDistributionChart(data) {
+            const canvas = document.getElementById('nps-distribution-chart');
+            if (!canvas) return;
+            resetChartState(canvas);
+
+            window.lrCreateChart('nps-distribution-chart', 'doughnut', {
+                labels: data.labels,
+                datasets: [{
+                    data: data.data,
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                }]
+            });
+        }
+
+        function renderNpsTrendChart(data) {
+            const canvas = document.getElementById('nps-trend-chart');
+            if (!canvas) return;
+            resetChartState(canvas);
+
+            window.lrCreateChart('nps-trend-chart', 'line', {
+                labels: data.labels,
+                datasets: [
+                    {
+                        label: strings.npsScoreLabel || 'NPS Score',
+                        data: data.npsScore,
+                        borderColor: '#0d78f2',
+                        backgroundColor: 'rgba(13, 120, 242, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        spanGaps: true
+                    },
+                    {
+                        label: strings.promotersLabel || 'Promoters',
+                        data: data.promoters,
+                        borderColor: '#10b981',
+                        backgroundColor: 'transparent',
+                        tension: 0.3,
+                        fill: false,
+                        borderDash: [4, 4]
+                    },
+                    {
+                        label: strings.detractorsLabel || 'Detractors',
+                        data: data.detractors,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'transparent',
+                        tension: 0.3,
+                        fill: false,
+                        borderDash: [4, 4]
+                    }
+                ]
+            }, {
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' } }
+            });
+        }
+
         document.addEventListener('lr:analyticsInit', function(e) {
             const eventConfig = e.detail && e.detail.config ? e.detail.config : (window.lrAnalyticsConfig || {});
             const campaignId = eventConfig.customFilters ? eventConfig.customFilters.campaign : null;
             const prefix = eventConfig.prefix || 'analytics';
-            loadAllChartData(campaignId, prefix);
+            loadAllChartData(campaignId, prefix, eventConfig.customFilters || {});
         });
     };
 })(window);

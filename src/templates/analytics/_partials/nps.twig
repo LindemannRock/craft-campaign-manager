@@ -1,0 +1,175 @@
+{# NPS Tab - Net Promoter Score and rating field analytics #}
+
+{# Info box #}
+{% set npsInfoMessage = 'NPS is calculated from rating field responses.'|t('campaign-manager')
+    ~ ' '
+    ~ (dateBasis == 'response'
+        ? 'Filter uses response date.'|t('campaign-manager')
+        : 'Filter uses send activity date.'|t('campaign-manager')) %}
+{% include 'lindemannrock-base/_components/info-box' with {
+    type: 'info',
+    message: npsInfoMessage,
+    margin: 'bottom',
+} %}
+
+{# Rating field picker (only when 2+ fields are available) #}
+{% if ratingFields|length > 1 %}
+    <div class="lr-mb-24">
+        <form method="get" action="">
+            {% set currentParams = craft.app.request.getQueryParams() %}
+            {% for paramName, paramValue in currentParams %}
+                {% if paramName != 'rating' %}
+                    <input type="hidden" name="{{ paramName }}" value="{{ paramValue }}">
+                {% endif %}
+            {% endfor %}
+            <label for="nps-field-picker" style="display: block; margin-bottom: 6px;"><strong>{{ 'Rating Field'|t('campaign-manager') }}</strong></label>
+            <div class="select">
+                <select id="nps-field-picker" name="rating" onchange="this.form.submit()">
+                    {% for rf in ratingFields %}
+                        <option value="{{ rf.fieldId }}" {{ ratingFieldId == rf.fieldId ? 'selected' }} title="{{ rf.label }} ({{ rf.formTitle }})">
+                            {{ rf.shortLabel }} ({{ rf.formTitle }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+{% elseif ratingFields|length == 1 %}
+    <p class="lr-text-muted lr-mb-24" title="{{ ratingFields[0].label }} ({{ ratingFields[0].formTitle }})">
+        <strong>{{ 'Rating Field'|t('campaign-manager') }}:</strong> {{ ratingFields[0].shortLabel }} ({{ ratingFields[0].formTitle }})
+    </p>
+{% else %}
+    {% include 'lindemannrock-base/_components/info-box' with {
+        type: 'warning',
+        message: 'No rating fields found for this selection.'|t('campaign-manager'),
+        margin: 'bottom',
+    } %}
+{% endif %}
+
+{% if ratingFields|length > 0 %}
+
+    {# Stat boxes #}
+    <div class="lr-unified-cards">
+        {# NPS Score #}
+        {% if npsStats.totalResponses > 0 and npsStats.npsScore is defined %}
+            {% set npsValue = npsStats.npsScore %}
+            {% set npsDisplay = (npsValue == npsValue|round(0)) ? npsValue|number_format(0) : npsValue|number_format(1) %}
+            {% set npsColorClass = npsValue >= 50 ? 'lr-text-green' : (npsValue >= 0 ? 'lr-text-yellow' : 'lr-text-red') %}
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: npsDisplay,
+                description: 'NPS Score'|t('campaign-manager'),
+                align: 'center',
+                valueClass: npsColorClass,
+            } only %}
+        {% else %}
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: '—',
+                description: 'NPS Score'|t('campaign-manager'),
+                align: 'center',
+            } only %}
+        {% endif %}
+
+        {# Promoters #}
+        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            value: npsStats.promoters ?? 0,
+            description: 'Promoters'|t('campaign-manager') ~ (npsStats.totalResponses > 0 and npsStats.promotersPercentage is defined ? ' (' ~ npsStats.promotersPercentage ~ '%)' : ''),
+            align: 'center',
+        } only %}
+
+        {# Passives #}
+        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            value: npsStats.passives ?? 0,
+            description: 'Passives'|t('campaign-manager') ~ (npsStats.totalResponses > 0 and npsStats.passivesPercentage is defined ? ' (' ~ npsStats.passivesPercentage ~ '%)' : ''),
+            align: 'center',
+        } only %}
+
+        {# Detractors #}
+        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            value: npsStats.detractors ?? 0,
+            description: 'Detractors'|t('campaign-manager') ~ (npsStats.totalResponses > 0 and npsStats.detractorsPercentage is defined ? ' (' ~ npsStats.detractorsPercentage ~ '%)' : ''),
+            align: 'center',
+        } only %}
+
+        {# Total Responses #}
+        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            value: npsStats.totalResponses ?? 0,
+            description: 'Responses'|t('campaign-manager'),
+            align: 'center',
+        } only %}
+    </div>
+
+    {% if npsStats.totalResponses > 0 %}
+
+        {# Charts row #}
+        <div class="lr-analytics-charts">
+            {# Distribution donut chart #}
+            <div class="lr-chart-container">
+                <h3>{{ 'NPS Distribution'|t('campaign-manager') }}</h3>
+                <div class="lr-chart-height-250">
+                    <canvas id="nps-distribution-chart"></canvas>
+                </div>
+            </div>
+
+            {# Trend line chart #}
+            <div class="lr-chart-container">
+                <h3>{{ 'NPS over time'|t('campaign-manager') }}</h3>
+                <div class="lr-chart-height-250">
+                    <canvas id="nps-trend-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {# Per-campaign NPS table #}
+        {% if campaignNpsBreakdown|length > 0 %}
+            <div class="lr-chart-container lr-mt-24">
+                <h3>{{ 'Campaign Performance'|t('campaign-manager') }}</h3>
+                <div class="lr-table-scroll">
+                    <table class="data fullwidth">
+                        <thead>
+                            <tr>
+                                <th>{{ 'Campaign'|t('campaign-manager') }}</th>
+                                <th>{{ 'Site'|t('campaign-manager') }}</th>
+                                <th class="lr-text-end">{{ 'Responses'|t('campaign-manager') }}</th>
+                                <th class="lr-text-end">{{ 'NPS Score'|t('campaign-manager') }}</th>
+                                <th class="lr-text-end">{{ 'Promoters'|t('campaign-manager') }}</th>
+                                <th class="lr-text-end">{{ 'Passives'|t('campaign-manager') }}</th>
+                                <th class="lr-text-end">{{ 'Detractors'|t('campaign-manager') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in campaignNpsBreakdown %}
+                                {% set rowSite = row.siteId ? craft.app.sites.getSiteById(row.siteId) : null %}
+                                <tr>
+                                    <td><strong>{{ row.campaignName }}</strong></td>
+                                    <td>{{ rowSite ? rowSite.name : '—' }}</td>
+                                    <td class="lr-text-end">{{ row.totalResponses|number_format }}</td>
+                                    <td class="lr-text-end">
+                                        {% if row.npsScore is not null %}
+                                            {% set rowNpsDisplay = (row.npsScore == row.npsScore|round(0)) ? row.npsScore|number_format(0) : row.npsScore|number_format(1) %}
+                                            {% set rowNpsClass = row.npsScore >= 50 ? 'lr-text-green' : (row.npsScore >= 0 ? 'lr-text-yellow' : 'lr-text-red') %}
+                                            <span class="{{ rowNpsClass }}"><strong>{{ rowNpsDisplay }}</strong></span>
+                                        {% else %}
+                                            <span class="lr-text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="lr-text-end">{{ row.totalResponses > 0 ? row.promoters|number_format : '—' }}</td>
+                                    <td class="lr-text-end">{{ row.totalResponses > 0 ? row.passives|number_format : '—' }}</td>
+                                    <td class="lr-text-end">{{ row.totalResponses > 0 ? row.detractors|number_format : '—' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+
+    {% else %}
+        {# Zero state — fields exist but no responses yet #}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            type: 'info',
+            message: 'No data available'|t('campaign-manager'),
+            margin: 'top',
+        } %}
+    {% endif %}
+
+{% endif %}

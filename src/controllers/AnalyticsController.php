@@ -12,6 +12,7 @@ use Craft;
 use craft\web\Controller;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
+use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use yii\web\BadRequestHttpException;
@@ -55,6 +56,12 @@ class AnalyticsController extends Controller
         $dateRange = $request->getQueryParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $campaignId = $request->getQueryParam('campaign', 'all');
         $rawSiteId = $request->getQueryParam('siteId', 'all');
+        $dateBasis = $request->getQueryParam('dateBasis', 'sent');
+
+        // Validate dateBasis
+        if (!in_array($dateBasis, ['sent', 'response'], true)) {
+            $dateBasis = 'sent';
+        }
 
         // Normalize campaign ID
         if ($campaignId !== 'all' && is_numeric($campaignId)) {
@@ -65,7 +72,7 @@ class AnalyticsController extends Controller
         $effectiveSiteId = $this->_resolveSiteId($rawSiteId);
 
         // Get overview stats
-        $summaryStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange);
+        $summaryStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange, $dateBasis);
 
         // Get campaign options for filter
         $campaignOptions = $analyticsService->getCampaignOptions($effectiveSiteId);
@@ -74,21 +81,46 @@ class AnalyticsController extends Controller
         $sites = Craft::$app->getSites()->getEditableSites();
 
         // Get campaign breakdown (filtered by selected campaign)
-        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange);
+        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis);
 
         // Pass display-friendly siteId (string/int) for template filters/JS, not the array
         $displaySiteId = is_array($effectiveSiteId) ? 'all' : $effectiveSiteId;
+
+        // NPS tab data (only when formie-rating-field is enabled)
+        $ratingFields = [];
+        $ratingFieldId = null;
+        $npsStats = [];
+        $campaignNpsBreakdown = [];
+
+        if (PluginHelper::isPluginEnabled('formie-rating-field')) {
+            $rawRating = $request->getQueryParam('rating');
+            $ratingFields = $analyticsService->getRatingFieldsInScope($campaignId, $effectiveSiteId, $dateRange, $dateBasis);
+
+            if ($rawRating !== null && is_numeric($rawRating)) {
+                $ratingFieldId = (int)$rawRating;
+            } elseif (!empty($ratingFields)) {
+                $ratingFieldId = $ratingFields[0]['fieldId'];
+            }
+
+            $npsStats = $analyticsService->getNpsStats($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $ratingFieldId);
+            $campaignNpsBreakdown = $analyticsService->getCampaignNpsBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $ratingFieldId);
+        }
 
         return $this->renderTemplate('campaign-manager/analytics/index', [
             'settings' => $settings,
             'dateRange' => $dateRange,
             'campaignId' => $campaignId,
             'siteId' => $displaySiteId,
+            'dateBasis' => $dateBasis,
             'summaryStats' => $summaryStats,
             'campaignOptions' => $campaignOptions,
             'campaignBreakdown' => $campaignBreakdown,
             'sites' => $sites,
             'pluginHandle' => CampaignManager::$plugin->id,
+            'ratingFields' => $ratingFields,
+            'ratingFieldId' => $ratingFieldId,
+            'npsStats' => $npsStats,
+            'campaignNpsBreakdown' => $campaignNpsBreakdown,
         ]);
     }
 
@@ -105,7 +137,7 @@ class AnalyticsController extends Controller
         $request = Craft::$app->getRequest();
         $type = $request->getBodyParam('type', 'daily');
 
-        $validTypes = ['daily', 'channels', 'engagement', 'funnel'];
+        $validTypes = ['daily', 'channels', 'engagement', 'funnel', 'nps-distribution', 'nps-trend'];
         if (!in_array($type, $validTypes, true)) {
             throw new BadRequestHttpException('Invalid data type.');
         }
@@ -113,6 +145,12 @@ class AnalyticsController extends Controller
         $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $campaignId = $request->getBodyParam('campaignId', 'all');
         $rawSiteId = $request->getBodyParam('siteId', 'all');
+        $dateBasis = $request->getBodyParam('dateBasis', 'sent');
+
+        // Validate dateBasis
+        if (!in_array($dateBasis, ['sent', 'response'], true)) {
+            $dateBasis = 'sent';
+        }
 
         // Normalize campaign ID
         if ($campaignId !== 'all' && is_numeric($campaignId)) {
@@ -122,13 +160,19 @@ class AnalyticsController extends Controller
         // Resolve and validate site ID against editable sites
         $effectiveSiteId = $this->_resolveSiteId($rawSiteId);
 
+        // NPS field ID (optional, for nps-* types)
+        $rawFieldId = $request->getBodyParam('fieldId');
+        $fieldId = ($rawFieldId !== null && is_numeric($rawFieldId)) ? (int)$rawFieldId : null;
+
         $analyticsService = CampaignManager::$plugin->analytics;
 
         $data = match ($type) {
-            'daily' => $analyticsService->getDailyTrend($campaignId, $effectiveSiteId, $dateRange),
-            'channels' => $analyticsService->getChannelDistribution($campaignId, $effectiveSiteId, $dateRange),
-            'engagement' => $analyticsService->getEngagementOverTime($campaignId, $effectiveSiteId, $dateRange),
-            'funnel' => $analyticsService->getConversionFunnel($campaignId, $effectiveSiteId, $dateRange),
+            'daily' => $analyticsService->getDailyTrend($campaignId, $effectiveSiteId, $dateRange, $dateBasis),
+            'channels' => $analyticsService->getChannelDistribution($campaignId, $effectiveSiteId, $dateRange, $dateBasis),
+            'engagement' => $analyticsService->getEngagementOverTime($campaignId, $effectiveSiteId, $dateRange, $dateBasis),
+            'funnel' => $analyticsService->getConversionFunnel($campaignId, $effectiveSiteId, $dateRange, $dateBasis),
+            'nps-distribution' => $analyticsService->getNpsDistribution($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId),
+            'nps-trend' => $analyticsService->getNpsTrend($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId),
         };
 
         return $this->asJson([
@@ -153,6 +197,12 @@ class AnalyticsController extends Controller
         $format = $request->getBodyParam('format', 'csv');
         $campaignId = $request->getBodyParam('campaign', 'all');
         $rawSiteId = $request->getBodyParam('siteId', 'all');
+        $dateBasis = $request->getBodyParam('dateBasis', 'sent');
+
+        // Validate dateBasis
+        if (!in_array($dateBasis, ['sent', 'response'], true)) {
+            $dateBasis = 'sent';
+        }
 
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
@@ -170,8 +220,8 @@ class AnalyticsController extends Controller
         $analyticsService = CampaignManager::$plugin->analytics;
 
         // Get comprehensive stats for export
-        $overviewStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange);
-        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange);
+        $overviewStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange, $dateBasis);
+        $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis);
 
         // Check for empty data
         if (empty($campaignBreakdown) && $overviewStats['totalRecipients'] === 0) {
@@ -183,7 +233,7 @@ class AnalyticsController extends Controller
         $rows = [];
         foreach ($campaignBreakdown as $data) {
             // Get detailed stats for this specific campaign
-            $campaignStats = $analyticsService->getOverviewStats($data['campaignId'], $data['siteId'], $dateRange);
+            $campaignStats = $analyticsService->getOverviewStats($data['campaignId'], $data['siteId'], $dateRange, $dateBasis);
 
             $site = $data['siteId'] ? Craft::$app->getSites()->getSiteById($data['siteId']) : null;
 

@@ -13,11 +13,16 @@ use craft\base\Component;
 use craft\db\Query;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
+use lindemannrock\base\helpers\LabelHelper;
+use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\records\AnalyticsRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
+use lindemannrock\formieratingfield\fields\Rating;
+use lindemannrock\formieratingfield\FormieRatingField;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use verbb\formie\elements\Submission;
 
 /**
  * Analytics Service
@@ -81,12 +86,13 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, int|float>
      */
-    public function getOverviewStats(int|string $campaignId, int|string|array $siteId, string $dateRange): array
+    public function getOverviewStats(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
 
         // Total recipients
         $totalRecipients = (clone $query)->count();
@@ -153,13 +159,15 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, mixed>
      */
-    public function getDailyTrend(int|string $campaignId, int|string|array $siteId, string $dateRange): array
+    public function getDailyTrend(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
-        $localDateExpr = DateFormatHelper::localDateExpression('dateCreated');
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
+        $dateColumn = $dateBasis === 'response' ? 'fs.dateCreated' : 'campaignmanager_recipients.dateCreated';
+        $localDateExpr = DateFormatHelper::localDateExpression($dateColumn);
 
         // Get daily counts
         $data = (clone $query)
@@ -208,12 +216,13 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, mixed>
      */
-    public function getChannelDistribution(int|string $campaignId, int|string|array $siteId, string $dateRange): array
+    public function getChannelDistribution(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
 
         // Email only (email sent, SMS not sent)
         $emailOnly = (clone $query)
@@ -249,12 +258,13 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, mixed>
      */
-    public function getEngagementOverTime(int|string $campaignId, int|string|array $siteId, string $dateRange): array
+    public function getEngagementOverTime(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
         $emailOpenExpr = DateFormatHelper::localDateExpression('emailOpenDate');
         $smsOpenExpr = DateFormatHelper::localDateExpression('smsOpenDate');
 
@@ -305,12 +315,13 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, mixed>
      */
-    public function getConversionFunnel(int|string $campaignId, int|string|array $siteId, string $dateRange): array
+    public function getConversionFunnel(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
 
         $totalRecipients = (clone $query)->count();
 
@@ -356,9 +367,10 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<int, array<string, mixed>>
      */
-    public function getCampaignBreakdown(int|string $campaignId, int|string|array $siteId, string $dateRange): array
+    public function getCampaignBreakdown(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
 
@@ -374,7 +386,7 @@ class AnalyticsService extends Component
 
         $result = [];
         foreach ($campaigns as $campaign) {
-            $query = $this->buildRecipientQuery($campaign->id, $campaign->siteId, $dateRange);
+            $query = $this->buildRecipientQuery($campaign->id, $campaign->siteId, $dateRange, $dateBasis);
 
             $totalRecipients = (clone $query)->count();
             $submissions = (clone $query)
@@ -431,11 +443,12 @@ class AnalyticsService extends Component
      * @param int $campaignId Campaign ID
      * @param int|null $siteId Site ID or null for all sites
      * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, int|float>
      */
-    public function getCampaignStats(int $campaignId, ?int $siteId, string $dateRange): array
+    public function getCampaignStats(int $campaignId, ?int $siteId, string $dateRange, string $dateBasis = 'sent'): array
     {
-        return $this->getOverviewStats($campaignId, $siteId ?? 'all', $dateRange);
+        return $this->getOverviewStats($campaignId, $siteId ?? 'all', $dateRange, $dateBasis);
     }
 
     /**
@@ -444,17 +457,19 @@ class AnalyticsService extends Component
      * @param int $campaignId Campaign ID
      * @param int|null $siteId Site ID or null for all sites
      * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' (recipient dateCreated) or 'response' (submission dateCreated)
      * @return array<string, mixed>
      */
-    public function getCampaignDailyTrend(int $campaignId, ?int $siteId, string $dateRange): array
+    public function getCampaignDailyTrend(int $campaignId, ?int $siteId, string $dateRange, string $dateBasis = 'sent'): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dateRange);
-        $smsSendExpr = DateFormatHelper::localDateExpression('smsSendDate');
-        $emailSendExpr = DateFormatHelper::localDateExpression('emailSendDate');
-        $smsOpenExpr = DateFormatHelper::localDateExpression('smsOpenDate');
-        $emailOpenExpr = DateFormatHelper::localDateExpression('emailOpenDate');
-        $submissionExpr = DateFormatHelper::localDateExpression('dateUpdated');
+        $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dateRange, $dateBasis);
+        $recipientTable = RecipientRecord::tableName();
+        $smsSendExpr = DateFormatHelper::localDateExpression($recipientTable . '.smsSendDate');
+        $emailSendExpr = DateFormatHelper::localDateExpression($recipientTable . '.emailSendDate');
+        $smsOpenExpr = DateFormatHelper::localDateExpression($recipientTable . '.smsOpenDate');
+        $emailOpenExpr = DateFormatHelper::localDateExpression($recipientTable . '.emailOpenDate');
+        $submissionExpr = DateFormatHelper::localDateExpression($recipientTable . '.dateUpdated');
 
         // Get daily sent counts (using send dates, not dateCreated)
         $sentData = [];
@@ -476,7 +491,7 @@ class AnalyticsService extends Component
         // Get SMS sent by date
         $smsSentByDate = (clone $query)
             ->select(['date' => $smsSendExpr, 'COUNT(*) as count'])
-            ->andWhere(['not', ['smsSendDate' => null]])
+            ->andWhere(['not', [$recipientTable . '.smsSendDate' => null]])
             ->groupBy($smsSendExpr)
             ->all();
 
@@ -489,7 +504,7 @@ class AnalyticsService extends Component
         // Get email sent by date
         $emailSentByDate = (clone $query)
             ->select(['date' => $emailSendExpr, 'COUNT(*) as count'])
-            ->andWhere(['not', ['emailSendDate' => null]])
+            ->andWhere(['not', [$recipientTable . '.emailSendDate' => null]])
             ->groupBy($emailSendExpr)
             ->all();
 
@@ -502,7 +517,7 @@ class AnalyticsService extends Component
         // Get opened by date (SMS)
         $smsOpenedByDate = (clone $query)
             ->select(['date' => $smsOpenExpr, 'COUNT(*) as count'])
-            ->andWhere(['not', ['smsOpenDate' => null]])
+            ->andWhere(['not', [$recipientTable . '.smsOpenDate' => null]])
             ->groupBy($smsOpenExpr)
             ->all();
 
@@ -515,7 +530,7 @@ class AnalyticsService extends Component
         // Get opened by date (Email)
         $emailOpenedByDate = (clone $query)
             ->select(['date' => $emailOpenExpr, 'COUNT(*) as count'])
-            ->andWhere(['not', ['emailOpenDate' => null]])
+            ->andWhere(['not', [$recipientTable . '.emailOpenDate' => null]])
             ->groupBy($emailOpenExpr)
             ->all();
 
@@ -525,11 +540,10 @@ class AnalyticsService extends Component
             }
         }
 
-        // Get submissions - we need to join with formie submissions to get the actual submission date
-        // For now, use dateUpdated as a proxy when submissionId is set
+        // Get submissions - use dateUpdated as a proxy when submissionId is set
         $submissionsByDate = (clone $query)
             ->select(['date' => $submissionExpr, 'COUNT(*) as count'])
-            ->andWhere(['not', ['submissionId' => null]])
+            ->andWhere(['not', [$recipientTable . '.submissionId' => null]])
             ->groupBy($submissionExpr)
             ->all();
 
@@ -553,27 +567,45 @@ class AnalyticsService extends Component
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' (filter by recipient dateCreated) or 'response' (filter by submission dateCreated via JOIN)
      * @return Query
      */
-    private function buildRecipientQuery(int|string $campaignId, int|string|array $siteId, string $dateRange): Query
+    private function buildRecipientQuery(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): Query
     {
-        $query = (new Query())
-            ->from(RecipientRecord::tableName());
+        $recipientTable = RecipientRecord::tableName();
 
-        $bounds = DateRangeHelper::getBounds($dateRange);
-        if ($bounds['start']) {
-            $query->andWhere(['>=', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
-        }
-        if ($bounds['end']) {
-            $query->andWhere(['<', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
+        $query = (new Query())
+            ->from([$recipientTable]);
+
+        if ($dateBasis === 'response') {
+            // JOIN formie_submissions so we can filter and bucket by submission dateCreated
+            $query->innerJoin(
+                ['fs' => '{{%formie_submissions}}'],
+                'fs.id = ' . $recipientTable . '.submissionId'
+            );
+            $bounds = DateRangeHelper::getBounds($dateRange);
+            if ($bounds['start']) {
+                $query->andWhere(['>=', 'fs.dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
+            }
+            if ($bounds['end']) {
+                $query->andWhere(['<', 'fs.dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
+            }
+        } else {
+            $bounds = DateRangeHelper::getBounds($dateRange);
+            if ($bounds['start']) {
+                $query->andWhere(['>=', $recipientTable . '.dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
+            }
+            if ($bounds['end']) {
+                $query->andWhere(['<', $recipientTable . '.dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
+            }
         }
 
         if ($campaignId !== 'all') {
-            $query->andWhere(['campaignId' => $campaignId]);
+            $query->andWhere([$recipientTable . '.campaignId' => $campaignId]);
         }
 
         if ($siteId !== 'all') {
-            $query->andWhere(['siteId' => $siteId]);
+            $query->andWhere([$recipientTable . '.siteId' => $siteId]);
         }
 
         return $query;
@@ -585,6 +617,495 @@ class AnalyticsService extends Component
      * @param string $column
      * @return \yii\db\Expression
      */
+    /**
+     * Get rating fields present on forms tied to submissions in the current filter scope.
+     *
+     * Returns deduplicated entries (by fieldId) across all campaigns in scope.
+     *
+     * @param int|string $campaignId Campaign ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
+     * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' or 'response'
+     * @return array<int, array{fieldId: int, handle: string, label: string, shortLabel: string, formId: int, formTitle: string}>
+     * @since 5.8.0
+     */
+    public function getRatingFieldsInScope(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): array
+    {
+        if (!PluginHelper::isPluginEnabled('formie-rating-field')) {
+            return [];
+        }
+
+        if (!class_exists(Rating::class)) {
+            return [];
+        }
+
+        // Get all campaigns in scope
+        $campaignQuery = Campaign::find()->status(null)->unique();
+        if ($siteId !== 'all') {
+            $campaignQuery->siteId($siteId);
+        }
+        if ($campaignId !== 'all') {
+            $campaignQuery->id($campaignId);
+        }
+        $campaigns = $campaignQuery->all();
+
+        $fields = [];
+        $seenFieldIds = [];
+
+        foreach ($campaigns as $campaign) {
+            if (!$campaign->formId) {
+                continue;
+            }
+
+            $formElement = \verbb\formie\elements\Form::find()->id($campaign->formId)->one();
+            if (!($formElement instanceof \verbb\formie\elements\Form)) {
+                continue;
+            }
+
+            foreach ($formElement->getFields() as $field) {
+                if (!($field instanceof Rating)) {
+                    continue;
+                }
+
+                if (in_array($field->id, $seenFieldIds, true)) {
+                    continue;
+                }
+
+                $seenFieldIds[] = $field->id;
+                $fields[] = [
+                    'fieldId' => $field->id,
+                    'handle' => $field->handle,
+                    'label' => $field->label,
+                    'shortLabel' => LabelHelper::shorten($field->label),
+                    'formId' => $formElement->id,
+                    'formTitle' => $formElement->title,
+                ];
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Calculate NPS/rating stats for a specific field across the filter scope.
+     *
+     * @param int|string $campaignId Campaign ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
+     * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' or 'response'
+     * @param int|null $fieldId Formie field ID; if null, first rating field in scope is used
+     * @return array<string, mixed>
+     * @since 5.8.0
+     */
+    public function getNpsStats(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
+    {
+        $zeroState = [
+            'fieldType' => null,
+            'fieldLabel' => '',
+            'fieldHandle' => '',
+            'totalResponses' => 0,
+            'minValue' => 0,
+            'maxValue' => 10,
+            'npsScore' => null,
+            'promoters' => 0,
+            'promotersPercentage' => 0,
+            'passives' => 0,
+            'passivesPercentage' => 0,
+            'detractors' => 0,
+            'detractorsPercentage' => 0,
+            'average' => 0,
+        ];
+
+        if (!PluginHelper::isPluginEnabled('formie-rating-field')) {
+            return $zeroState;
+        }
+
+        if (!class_exists(Rating::class)) {
+            return $zeroState;
+        }
+
+        $ratingFields = $this->getRatingFieldsInScope($campaignId, $siteId, $dateRange, $dateBasis);
+        if (empty($ratingFields)) {
+            return $zeroState;
+        }
+
+        // Pick the target field
+        $targetFieldInfo = null;
+        if ($fieldId !== null) {
+            foreach ($ratingFields as $rf) {
+                if ($rf['fieldId'] === $fieldId) {
+                    $targetFieldInfo = $rf;
+                    break;
+                }
+            }
+        }
+        if ($targetFieldInfo === null) {
+            $targetFieldInfo = $ratingFields[0];
+        }
+
+        $formElement = \verbb\formie\elements\Form::find()->id($targetFieldInfo['formId'])->one();
+        if (!($formElement instanceof \verbb\formie\elements\Form)) {
+            return $zeroState;
+        }
+
+        /** @var Rating|null $ratingField */
+        $ratingField = null;
+        foreach ($formElement->getFields() as $f) {
+            if ($f instanceof Rating && $f->id === $targetFieldInfo['fieldId']) {
+                $ratingField = $f;
+                break;
+            }
+        }
+        if (!$ratingField) {
+            return $zeroState;
+        }
+
+        $submissions = $this->_getSubmissionsInScope($campaignId, $siteId, $dateRange, $dateBasis, $targetFieldInfo['formId']);
+        if (empty($submissions)) {
+            return FormieRatingField::$plugin->statistics->calculateStatsForSubmissions([], $ratingField);
+        }
+
+        return FormieRatingField::$plugin->statistics->calculateStatsForSubmissions($submissions, $ratingField);
+    }
+
+    /**
+     * Per-campaign NPS breakdown — one row per campaign in scope with NPS score + counts.
+     *
+     * @param int|string $campaignId Campaign ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
+     * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' or 'response'
+     * @param int|null $fieldId Required; returns empty array if null
+     * @return array<int, array{campaignId: int, campaignName: string, siteId: int|null, totalResponses: int, npsScore: float|null, promoters: int, passives: int, detractors: int}>
+     * @since 5.8.0
+     */
+    public function getCampaignNpsBreakdown(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
+    {
+        if (!PluginHelper::isPluginEnabled('formie-rating-field') || $fieldId === null) {
+            return [];
+        }
+
+        if (!class_exists(Rating::class)) {
+            return [];
+        }
+
+        $campaignQuery = Campaign::find()->status(null)->unique();
+        if ($siteId !== 'all') {
+            $campaignQuery->siteId($siteId);
+        }
+        if ($campaignId !== 'all') {
+            $campaignQuery->id($campaignId);
+        }
+        $campaigns = $campaignQuery->all();
+
+        $result = [];
+
+        foreach ($campaigns as $campaign) {
+            if (!$campaign->formId) {
+                $result[] = [
+                    'campaignId' => $campaign->id,
+                    'campaignName' => $campaign->title,
+                    'siteId' => $campaign->siteId,
+                    'totalResponses' => 0,
+                    'npsScore' => null,
+                    'promoters' => 0,
+                    'passives' => 0,
+                    'detractors' => 0,
+                ];
+                continue;
+            }
+
+            $formElement = \verbb\formie\elements\Form::find()->id($campaign->formId)->one();
+            if (!($formElement instanceof \verbb\formie\elements\Form)) {
+                $result[] = [
+                    'campaignId' => $campaign->id,
+                    'campaignName' => $campaign->title,
+                    'siteId' => $campaign->siteId,
+                    'totalResponses' => 0,
+                    'npsScore' => null,
+                    'promoters' => 0,
+                    'passives' => 0,
+                    'detractors' => 0,
+                ];
+                continue;
+            }
+
+            /** @var Rating|null $ratingField */
+            $ratingField = null;
+            foreach ($formElement->getFields() as $f) {
+                if ($f instanceof Rating && $f->id === $fieldId) {
+                    $ratingField = $f;
+                    break;
+                }
+            }
+
+            if (!$ratingField) {
+                $result[] = [
+                    'campaignId' => $campaign->id,
+                    'campaignName' => $campaign->title,
+                    'siteId' => $campaign->siteId,
+                    'totalResponses' => 0,
+                    'npsScore' => null,
+                    'promoters' => 0,
+                    'passives' => 0,
+                    'detractors' => 0,
+                ];
+                continue;
+            }
+
+            $submissions = $this->_getSubmissionsInScope($campaign->id, $campaign->siteId, $dateRange, $dateBasis, $campaign->formId);
+            $stats = FormieRatingField::$plugin->statistics->calculateStatsForSubmissions($submissions, $ratingField);
+
+            $result[] = [
+                'campaignId' => $campaign->id,
+                'campaignName' => $campaign->title,
+                'siteId' => $campaign->siteId,
+                'totalResponses' => $stats['totalResponses'],
+                'npsScore' => $stats['totalResponses'] > 0 ? ($stats['npsScore'] ?? null) : null,
+                'promoters' => $stats['promoters'] ?? 0,
+                'passives' => $stats['passives'] ?? 0,
+                'detractors' => $stats['detractors'] ?? 0,
+            ];
+        }
+
+        usort($result, fn($a, $b) => $b['totalResponses'] <=> $a['totalResponses']);
+
+        return $result;
+    }
+
+    /**
+     * NPS trend over time — bucketed by day (or week if > 90 days).
+     *
+     * @param int|string $campaignId Campaign ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
+     * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' or 'response'
+     * @param int|null $fieldId Formie field ID
+     * @return array{labels: array<string>, npsScore: array<float|null>, promoters: array<int>, passives: array<int>, detractors: array<int>}
+     * @since 5.8.0
+     */
+    public function getNpsTrend(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
+    {
+        $empty = ['labels' => [], 'npsScore' => [], 'promoters' => [], 'passives' => [], 'detractors' => []];
+
+        if (!PluginHelper::isPluginEnabled('formie-rating-field')) {
+            return $empty;
+        }
+
+        if (!class_exists(Rating::class)) {
+            return $empty;
+        }
+
+        $stats = $this->getNpsStats($campaignId, $siteId, $dateRange, $dateBasis, $fieldId);
+        if ($stats['totalResponses'] === 0) {
+            return $empty;
+        }
+
+        // Resolve field info
+        $ratingFields = $this->getRatingFieldsInScope($campaignId, $siteId, $dateRange, $dateBasis);
+        $targetFieldInfo = null;
+        if ($fieldId !== null) {
+            foreach ($ratingFields as $rf) {
+                if ($rf['fieldId'] === $fieldId) {
+                    $targetFieldInfo = $rf;
+                    break;
+                }
+            }
+        }
+        if ($targetFieldInfo === null && !empty($ratingFields)) {
+            $targetFieldInfo = $ratingFields[0];
+        }
+        if ($targetFieldInfo === null) {
+            return $empty;
+        }
+
+        $formElement = \verbb\formie\elements\Form::find()->id($targetFieldInfo['formId'])->one();
+        if (!($formElement instanceof \verbb\formie\elements\Form)) {
+            return $empty;
+        }
+
+        /** @var Rating|null $ratingField */
+        $ratingField = null;
+        foreach ($formElement->getFields() as $f) {
+            if ($f instanceof Rating && $f->id === $targetFieldInfo['fieldId']) {
+                $ratingField = $f;
+                break;
+            }
+        }
+        if (!$ratingField) {
+            return $empty;
+        }
+
+        $dates = $this->getDateRangeFromParam($dateRange);
+        $start = $dates['start'];
+        $end = $dates['end'];
+
+        // Determine bucket size
+        $daysDiff = (int)$start->diff($end)->days;
+        $byWeek = $daysDiff > 90;
+
+        // Fetch all submissions in scope
+        $allSubmissions = $this->_getSubmissionsInScope($campaignId, $siteId, $dateRange, $dateBasis, $targetFieldInfo['formId']);
+
+        // Index submissions by date string
+        $submissionsByDate = [];
+        foreach ($allSubmissions as $sub) {
+            $submissionDate = new \DateTime($sub->dateCreated->format('Y-m-d'));
+            $dateKey = $byWeek
+                ? $submissionDate->format('o-W') // ISO year-week
+                : $submissionDate->format('Y-m-d');
+            if (!isset($submissionsByDate[$dateKey])) {
+                $submissionsByDate[$dateKey] = [];
+            }
+            $submissionsByDate[$dateKey][] = $sub;
+        }
+
+        $labels = [];
+        $npsScores = [];
+        $promotersData = [];
+        $passivesData = [];
+        $detractorsData = [];
+
+        if ($byWeek) {
+            // Build weekly buckets
+            $cursor = clone $start;
+            // Align to start of week (Monday)
+            $dayOfWeek = (int)$cursor->format('N');
+            if ($dayOfWeek > 1) {
+                $cursor->modify('-' . ($dayOfWeek - 1) . ' days');
+            }
+            while ($cursor <= $end) {
+                $weekKey = $cursor->format('o-W');
+                $weekLabel = $cursor->format('M j');
+                $bucketSubs = $submissionsByDate[$weekKey] ?? [];
+                $bucketStats = FormieRatingField::$plugin->statistics->calculateStatsForSubmissions($bucketSubs, $ratingField);
+
+                $labels[] = $weekLabel;
+                $npsScores[] = $bucketStats['totalResponses'] > 0 ? ($bucketStats['npsScore'] ?? null) : null;
+                $promotersData[] = $bucketStats['promoters'] ?? 0;
+                $passivesData[] = $bucketStats['passives'] ?? 0;
+                $detractorsData[] = $bucketStats['detractors'] ?? 0;
+
+                $cursor->modify('+7 days');
+            }
+        } else {
+            $cursor = clone $start;
+            while ($cursor <= $end) {
+                $dateKey = $cursor->format('Y-m-d');
+                $bucketSubs = $submissionsByDate[$dateKey] ?? [];
+                $bucketStats = FormieRatingField::$plugin->statistics->calculateStatsForSubmissions($bucketSubs, $ratingField);
+
+                $labels[] = $cursor->format('M j');
+                $npsScores[] = $bucketStats['totalResponses'] > 0 ? ($bucketStats['npsScore'] ?? null) : null;
+                $promotersData[] = $bucketStats['promoters'] ?? 0;
+                $passivesData[] = $bucketStats['passives'] ?? 0;
+                $detractorsData[] = $bucketStats['detractors'] ?? 0;
+
+                $cursor->modify('+1 day');
+            }
+        }
+
+        return [
+            'labels' => $labels,
+            'npsScore' => $npsScores,
+            'promoters' => $promotersData,
+            'passives' => $passivesData,
+            'detractors' => $detractorsData,
+        ];
+    }
+
+    /**
+     * NPS distribution — donut chart data.
+     *
+     * For NPS fields: Promoters / Passives / Detractors counts.
+     * For star/emoji fields: distribution map (star values → counts).
+     *
+     * @param int|string $campaignId Campaign ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
+     * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' or 'response'
+     * @param int|null $fieldId Formie field ID
+     * @return array{labels: array<string>, data: array<int>}
+     * @since 5.8.0
+     */
+    public function getNpsDistribution(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
+    {
+        $empty = ['labels' => [], 'data' => []];
+
+        if (!PluginHelper::isPluginEnabled('formie-rating-field')) {
+            return $empty;
+        }
+
+        if (!class_exists(Rating::class)) {
+            return $empty;
+        }
+
+        $stats = $this->getNpsStats($campaignId, $siteId, $dateRange, $dateBasis, $fieldId);
+        if ($stats['totalResponses'] === 0) {
+            return $empty;
+        }
+
+        if ($stats['fieldType'] === Rating::RATING_TYPE_NPS) {
+            return [
+                'labels' => [
+                    Craft::t('campaign-manager', 'Promoters'),
+                    Craft::t('campaign-manager', 'Passives'),
+                    Craft::t('campaign-manager', 'Detractors'),
+                ],
+                'data' => [
+                    (int)($stats['promoters'] ?? 0),
+                    (int)($stats['passives'] ?? 0),
+                    (int)($stats['detractors'] ?? 0),
+                ],
+            ];
+        }
+
+        // Star/emoji: distribution map
+        $distribution = $stats['distribution'] ?? [];
+        $labels = [];
+        $data = [];
+        foreach ($distribution as $value => $count) {
+            $labels[] = (string)$value;
+            $data[] = (int)$count;
+        }
+
+        return ['labels' => $labels, 'data' => $data];
+    }
+
+    /**
+     * Fetch Formie Submission elements in scope for a specific form ID.
+     *
+     * @param int|string $campaignId Campaign ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
+     * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' or 'response'
+     * @param int $formId The Formie form ID to filter submissions by
+     * @return Submission[]
+     */
+    private function _getSubmissionsInScope(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis, int $formId): array
+    {
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
+
+        $submissionIds = (clone $query)
+            ->select(['submissionId'])
+            ->andWhere(['not', ['submissionId' => null]])
+            ->column();
+
+        if (empty($submissionIds)) {
+            return [];
+        }
+
+        /** @var Submission[] $submissions */
+        $submissions = Submission::find()
+            ->id($submissionIds)
+            ->formId($formId)
+            ->isIncomplete(false)
+            ->isSpam(false)
+            ->all();
+
+        return $submissions;
+    }
+
     /**
      * Refresh statistics for a campaign
      *

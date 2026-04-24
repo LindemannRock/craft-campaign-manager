@@ -10,6 +10,18 @@
    ANALYTICS CONFIGURATION
    ============================================================================ #}
 
+{% set _tabs = {
+    overview: { label: 'Overview'|t('campaign-manager') },
+    delivery: { label: 'Delivery'|t('campaign-manager') },
+    engagement: { label: 'Engagement'|t('campaign-manager') },
+    conversion: { label: 'Conversion'|t('campaign-manager') },
+} %}
+{% if craft.app.plugins.isPluginEnabled('formie-rating-field') %}
+    {% set _tabs = _tabs|merge({
+        nps: { label: 'NPS'|t('campaign-manager') }
+    }) %}
+{% endif %}
+
 {% set analyticsConfig = {
     plugin: {
         handle: pluginHandle ?? 'campaign-manager',
@@ -23,12 +35,7 @@
             { label: 'Analytics'|t('campaign-manager'), url: url('campaign-manager/analytics') },
         ],
     },
-    tabs: {
-        overview: { label: 'Overview'|t('campaign-manager') },
-        delivery: { label: 'Delivery'|t('campaign-manager') },
-        engagement: { label: 'Engagement'|t('campaign-manager') },
-        conversion: { label: 'Conversion'|t('campaign-manager') },
-    },
+    tabs: _tabs,
     filters: {
         dateRange: {
             current: dateRange,
@@ -43,6 +50,15 @@
                 param: 'campaign',
                 current: campaignId,
                 options: campaignOptions,
+            },
+            {
+                param: 'dateBasis',
+                current: dateBasis,
+                options: [
+                    { value: 'sent', label: 'Send activity'|t('campaign-manager') },
+                    { value: 'response', label: 'Response date'|t('campaign-manager') },
+                ],
+                label: 'Date based on'|t('campaign-manager'),
             },
         ],
     },
@@ -81,6 +97,13 @@
     <div id="conversion" class="lr-tab-content hidden">
         {% include 'campaign-manager/analytics/_partials/conversion' %}
     </div>
+
+    {# NPS Tab #}
+    {% if craft.app.plugins.isPluginEnabled('formie-rating-field') %}
+        <div id="nps" class="lr-tab-content hidden">
+            {% include 'campaign-manager/analytics/_partials/nps' %}
+        </div>
+    {% endif %}
 {% endblock %}
 
 
@@ -96,11 +119,17 @@
     noChannel: 'No channel data available for the selected filters.'|t('campaign-manager'),
     noEngagement: 'No engagement data available for the selected filters.'|t('campaign-manager'),
     noFunnel: 'No funnel data available for the selected filters.'|t('campaign-manager'),
+    noNpsDistribution: 'No NPS distribution data available for the selected filters.'|t('campaign-manager'),
+    noNpsTrend: 'No NPS trend data available for the selected filters.'|t('campaign-manager'),
     recipientsLabel: 'Recipients Added'|t('campaign-manager'),
     responsesLabel: 'Responses'|t('campaign-manager'),
     emailOpensLabel: 'Email Opens'|t('campaign-manager'),
     smsOpensLabel: 'SMS Opens'|t('campaign-manager'),
     countLabel: 'Count'|t('campaign-manager'),
+    npsScoreLabel: 'NPS Score'|t('campaign-manager'),
+    promotersLabel: 'Promoters'|t('campaign-manager'),
+    passivesLabel: 'Passives'|t('campaign-manager'),
+    detractorsLabel: 'Detractors'|t('campaign-manager'),
 } %}
 
 {% set campaignAnalyticsConfig = {
@@ -112,6 +141,8 @@
     dataEndpoint: analyticsConfig.charts.dataEndpoint,
     customFilters: {
         campaign: campaignId,
+        dateBasis: dateBasis,
+        fieldId: ratingFieldId ?? '',
     },
     strings: campaignStrings,
 } %}
