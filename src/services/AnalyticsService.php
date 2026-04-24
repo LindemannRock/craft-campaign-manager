@@ -469,7 +469,7 @@ class AnalyticsService extends Component
         $emailSendExpr = DateFormatHelper::localDateExpression($recipientTable . '.emailSendDate');
         $smsOpenExpr = DateFormatHelper::localDateExpression($recipientTable . '.smsOpenDate');
         $emailOpenExpr = DateFormatHelper::localDateExpression($recipientTable . '.emailOpenDate');
-        $submissionExpr = DateFormatHelper::localDateExpression($recipientTable . '.dateUpdated');
+        $submissionExpr = DateFormatHelper::localDateExpression('fs.dateCreated');
 
         // Get daily sent counts (using send dates, not dateCreated)
         $sentData = [];
@@ -540,10 +540,21 @@ class AnalyticsService extends Component
             }
         }
 
-        // Get submissions - use dateUpdated as a proxy when submissionId is set
-        $submissionsByDate = (clone $query)
+        // Get submissions - bucket by the Formie submission's dateCreated.
+        // In 'response' mode, buildRecipientQuery already joined formie_submissions as `fs`.
+        // In 'sent' mode, we add the join here for this sub-query only.
+        $submissionsQuery = (clone $query)
+            ->andWhere(['not', [$recipientTable . '.submissionId' => null]]);
+
+        if ($dateBasis !== 'response') {
+            $submissionsQuery->leftJoin(
+                ['fs' => '{{%formie_submissions}}'],
+                'fs.id = ' . $recipientTable . '.submissionId'
+            );
+        }
+
+        $submissionsByDate = $submissionsQuery
             ->select(['date' => $submissionExpr, 'COUNT(*) as count'])
-            ->andWhere(['not', [$recipientTable . '.submissionId' => null]])
             ->groupBy($submissionExpr)
             ->all();
 
