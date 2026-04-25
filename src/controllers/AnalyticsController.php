@@ -140,7 +140,11 @@ class AnalyticsController extends Controller
         $request = Craft::$app->getRequest();
         $type = $request->getBodyParam('type', 'daily');
 
-        $validTypes = ['daily', 'channels', 'engagement', 'funnel', 'rating-distribution', 'rating-trend'];
+        $validTypes = ['daily', 'channels', 'engagement', 'funnel'];
+        if (PluginHelper::isPluginEnabled('formie-rating-field')) {
+            $validTypes[] = 'rating-distribution';
+            $validTypes[] = 'rating-trend';
+        }
         if (!in_array($type, $validTypes, true)) {
             throw new BadRequestHttpException('Invalid data type.');
         }
