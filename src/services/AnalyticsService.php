@@ -451,10 +451,12 @@ class AnalyticsService extends Component
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dateRange);
         $recipientTable = RecipientRecord::tableName();
-        $smsSendExpr = DateFormatHelper::localDateExpression($recipientTable . '.smsSendDate');
-        $emailSendExpr = DateFormatHelper::localDateExpression($recipientTable . '.emailSendDate');
-        $smsOpenExpr = DateFormatHelper::localDateExpression($recipientTable . '.smsOpenDate');
-        $emailOpenExpr = DateFormatHelper::localDateExpression($recipientTable . '.emailOpenDate');
+        // localDateExpression() wraps the column in [[...]]; pass the raw table.column
+        // (without {{%...}} prefix) so Yii's quoting resolves cleanly.
+        $smsSendExpr = DateFormatHelper::localDateExpression('campaignmanager_recipients.smsSendDate');
+        $emailSendExpr = DateFormatHelper::localDateExpression('campaignmanager_recipients.emailSendDate');
+        $smsOpenExpr = DateFormatHelper::localDateExpression('campaignmanager_recipients.smsOpenDate');
+        $emailOpenExpr = DateFormatHelper::localDateExpression('campaignmanager_recipients.emailOpenDate');
         $submissionExpr = DateFormatHelper::localDateExpression('fs.dateCreated');
 
         // Get daily sent counts (using send dates, not dateCreated)
