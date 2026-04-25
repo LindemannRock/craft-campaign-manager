@@ -1,5 +1,29 @@
 # Changelog
 
+## [5.8.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.4...v5.8.0) (2026-04-25)
+
+
+### Features
+
+* **analytics:** add export scope update functionality for NPS charts ([b96b398](https://github.com/LindemannRock/craft-campaign-manager/commit/b96b398c500fb7b18e4d9ff974af38342a623658))
+* **analytics:** add NPS export functionality with validation and filename generation ([e5e12a4](https://github.com/LindemannRock/craft-campaign-manager/commit/e5e12a42e061ab82d08b426d1710267a25f22054))
+* **analytics:** add NPS tab with distribution and trend charts ([c0da2e0](https://github.com/LindemannRock/craft-campaign-manager/commit/c0da2e081d67aa02897f13a0e0857d8c94ddeba7))
+* **analytics:** add ratings tab with NPS, star, and emoji analytics ([807eeae](https://github.com/LindemannRock/craft-campaign-manager/commit/807eeaede62bd6c6328c1e673fcb56a730f58c30))
+* **analytics:** add support for rating distribution and trend types ([1d86b2f](https://github.com/LindemannRock/craft-campaign-manager/commit/1d86b2f5db391b994dc75893e19853801c67ec48))
+* **analytics:** enhance ratings export functionality with summary and breakdown sections ([89c1a99](https://github.com/LindemannRock/craft-campaign-manager/commit/89c1a994b2b1df1fb793801ea79eda5b77bcc09c))
+* **i18n:** add new translations for NPS data export messages ([48b59c1](https://github.com/LindemannRock/craft-campaign-manager/commit/48b59c1590223faaa375410daf502cac2ae5ab01))
+* **i18n:** add new translations for ratings analytics in multiple languages ([85acaec](https://github.com/LindemannRock/craft-campaign-manager/commit/85acaec386d2bef83a49349c1fbc6c8b99787a66))
+* **i18n:** add new translations for ratings and related data ([88faccb](https://github.com/LindemannRock/craft-campaign-manager/commit/88faccb69b4627c01b05652e6fa70ce83adf808c))
+* **i18n:** add NPS translations for multiple languages ([f4ecf32](https://github.com/LindemannRock/craft-campaign-manager/commit/f4ecf3264f02c459c0247df9561a9a87aa3ce4a3))
+
+
+### Bug Fixes
+
+* **analytics:** update submission date logic to use dateCreated ([e98c72a](https://github.com/LindemannRock/craft-campaign-manager/commit/e98c72af22a403e45a32b61a1ab1394c7d9679d3))
+* apply config overrides through shared settings helper ([501dc05](https://github.com/LindemannRock/craft-campaign-manager/commit/501dc057162500ff9adb3c8c63c95af1c613b616))
+* drop PAT requirement for release-please — use built-in GITHUB_TOKEN ([a1b0e8f](https://github.com/LindemannRock/craft-campaign-manager/commit/a1b0e8f5f42972c205d975a189404ba4f8970410))
+* **i18n:** remove outdated NPS-related strings from translations ([7b9296b](https://github.com/LindemannRock/craft-campaign-manager/commit/7b9296bee51f48a2fa92e7dec074e81006211c5c))
+
 ## [5.7.4](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.3...v5.7.4) (2026-04-06)
 
 
