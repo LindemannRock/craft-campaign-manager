@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.8.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.0...v5.8.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **analytics:** localDateExpression usage for recipient dates ([b2d0c1f](https://github.com/LindemannRock/craft-campaign-manager/commit/b2d0c1f4a0c52a84e804ee6a781308becefc0797))
+
 ## [5.8.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.4...v5.8.0) (2026-04-25)
 
 
