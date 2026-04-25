@@ -1201,6 +1201,282 @@ class AnalyticsService extends Component
     }
 
     /**
+     * Build the Summary section export rows for the ratings export.
+     *
+     * Returns a single row with aggregate stats across the entire scope for the chosen field.
+     *
+     * @param array<int, array{fieldId: int, handle: string, label: string, shortLabel: string, formId: int, formTitle: string}> $ratingFields
+     * @param array{fieldId: int, handle: string, label: string, shortLabel: string, formId: int, formTitle: string} $ratingFieldInfo
+     * @param array<string, mixed> $stats Output of getRatingStats()
+     * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' or 'response'
+     * @return array{headers: array<string>, rows: array<array<mixed>>}
+     * @since 5.8.0
+     */
+    public function buildSummaryExportRow(array $ratingFields, array $ratingFieldInfo, array $stats, string $dateRange, string $dateBasis): array
+    {
+        $isNps = ($stats['fieldType'] ?? null) === Rating::RATING_TYPE_NPS;
+
+        $dateBasisLabel = $dateBasis === 'response'
+            ? Craft::t('campaign-manager', 'Response date')
+            : Craft::t('campaign-manager', 'Send activity');
+
+        $headers = [
+            Craft::t('campaign-manager', 'Rating Field'),
+            Craft::t('campaign-manager', 'Field Type'),
+            Craft::t('campaign-manager', 'Date Basis'),
+            Craft::t('campaign-manager', 'Date Range'),
+            Craft::t('campaign-manager', 'Total Responses'),
+            Craft::t('campaign-manager', 'NPS Score'),
+            Craft::t('campaign-manager', 'Promoters'),
+            Craft::t('campaign-manager', 'Promoters %'),
+            Craft::t('campaign-manager', 'Passives'),
+            Craft::t('campaign-manager', 'Passives %'),
+            Craft::t('campaign-manager', 'Detractors'),
+            Craft::t('campaign-manager', 'Detractors %'),
+            Craft::t('campaign-manager', 'Average'),
+            Craft::t('campaign-manager', 'Median'),
+            Craft::t('campaign-manager', 'Most Common'),
+        ];
+
+        $totalResponses = $stats['totalResponses'] ?? 0;
+
+        if ($isNps) {
+            $row = [
+                $ratingFieldInfo['label'],
+                Craft::t('campaign-manager', 'NPS'),
+                $dateBasisLabel,
+                $dateRange,
+                $totalResponses,
+                $totalResponses > 0 ? ($stats['npsScore'] ?? '—') : '—',
+                $totalResponses > 0 ? ($stats['promoters'] ?? 0) : '—',
+                $totalResponses > 0 ? (($stats['promotersPercentage'] ?? 0) . '%') : '—',
+                $totalResponses > 0 ? ($stats['passives'] ?? 0) : '—',
+                $totalResponses > 0 ? (($stats['passivesPercentage'] ?? 0) . '%') : '—',
+                $totalResponses > 0 ? ($stats['detractors'] ?? 0) : '—',
+                $totalResponses > 0 ? (($stats['detractorsPercentage'] ?? 0) . '%') : '—',
+                $totalResponses > 0 ? round((float)($stats['average'] ?? 0), 2) : '—',
+                '—',
+                '—',
+            ];
+        } else {
+            $row = [
+                $ratingFieldInfo['label'],
+                Craft::t('campaign-manager', 'Star Rating'),
+                $dateBasisLabel,
+                $dateRange,
+                $totalResponses,
+                '—',
+                '—',
+                '—',
+                '—',
+                '—',
+                '—',
+                '—',
+                $totalResponses > 0 ? round((float)($stats['average'] ?? 0), 2) : '—',
+                $totalResponses > 0 ? ($stats['median'] ?? '—') : '—',
+                $totalResponses > 0 ? ($stats['mode'] ?? '—') : '—',
+            ];
+        }
+
+        return ['headers' => $headers, 'rows' => [$row]];
+    }
+
+    /**
+     * Build the Per Campaign section export rows from the breakdown result.
+     *
+     * @param array{fieldType: string|null, rows: array<int, array<string, mixed>>} $breakdownResult Output of getCampaignRatingBreakdown()
+     * @return array{headers: array<string>, rows: array<array<mixed>>}
+     * @since 5.8.0
+     */
+    public function buildCampaignBreakdownExportRows(array $breakdownResult): array
+    {
+        $fieldType = $breakdownResult['fieldType'];
+        $breakdownRows = $breakdownResult['rows'];
+        $isNps = $fieldType === Rating::RATING_TYPE_NPS;
+
+        if ($isNps) {
+            $headers = [
+                Craft::t('campaign-manager', 'Campaign'),
+                Craft::t('campaign-manager', 'Site'),
+                Craft::t('campaign-manager', 'Responses'),
+                Craft::t('campaign-manager', 'NPS Score'),
+                Craft::t('campaign-manager', 'Promoters'),
+                Craft::t('campaign-manager', 'Passives'),
+                Craft::t('campaign-manager', 'Detractors'),
+            ];
+        } else {
+            $headers = [
+                Craft::t('campaign-manager', 'Campaign'),
+                Craft::t('campaign-manager', 'Site'),
+                Craft::t('campaign-manager', 'Responses'),
+                Craft::t('campaign-manager', 'Average'),
+                Craft::t('campaign-manager', 'Median'),
+                Craft::t('campaign-manager', 'Most Common'),
+            ];
+        }
+
+        $rows = [];
+        foreach ($breakdownRows as $data) {
+            $site = $data['siteId'] ? Craft::$app->getSites()->getSiteById($data['siteId']) : null;
+            $hasResponses = $data['totalResponses'] > 0;
+
+            if ($isNps) {
+                $rows[] = [
+                    $data['campaignName'],
+                    $site?->name ?? '—',
+                    $data['totalResponses'],
+                    $hasResponses ? ($data['npsScore'] !== null ? $data['npsScore'] : '—') : '—',
+                    $hasResponses ? $data['promoters'] : '—',
+                    $hasResponses ? $data['passives'] : '—',
+                    $hasResponses ? $data['detractors'] : '—',
+                ];
+            } else {
+                $rows[] = [
+                    $data['campaignName'],
+                    $site?->name ?? '—',
+                    $data['totalResponses'],
+                    $hasResponses ? round((float)($data['average'] ?? 0), 2) : '—',
+                    $hasResponses ? $data['median'] : '—',
+                    $hasResponses ? ($data['mode'] ?? '—') : '—',
+                ];
+            }
+        }
+
+        return ['headers' => $headers, 'rows' => $rows];
+    }
+
+    /**
+     * Get raw rating responses — one row per recipient who submitted a rating.
+     *
+     * Scoped by all filter parameters. Bulk-fetches submissions by ID to avoid N+1.
+     *
+     * @param int|string $campaignId Campaign ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
+     * @param string $dateRange Date range parameter
+     * @param string $dateBasis Date basis: 'sent' or 'response'
+     * @param int|null $fieldId Rating field ID; required, returns empty if null
+     * @return array{headers: array<string>, rows: array<array<mixed>>}
+     * @since 5.8.0
+     */
+    public function getRawRatingResponses(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
+    {
+        $headers = [
+            Craft::t('campaign-manager', 'Campaign'),
+            Craft::t('campaign-manager', 'Site'),
+            Craft::t('campaign-manager', 'Recipient'),
+            Craft::t('campaign-manager', 'Email'),
+            Craft::t('campaign-manager', 'Phone'),
+            Craft::t('campaign-manager', 'Send Date'),
+            Craft::t('campaign-manager', 'Response Date'),
+            Craft::t('campaign-manager', 'Rating Value'),
+        ];
+
+        $emptyResult = ['headers' => $headers, 'rows' => []];
+
+        if (!PluginHelper::isPluginEnabled('formie-rating-field') || $fieldId === null) {
+            return $emptyResult;
+        }
+
+        if (!class_exists(Rating::class)) {
+            return $emptyResult;
+        }
+
+        $recipientTable = RecipientRecord::tableName();
+
+        // Build recipient query scoped by filters — must have a submission
+        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);
+        $query->andWhere(['not', [$recipientTable . '.submissionId' => null]]);
+
+        $recipientRows = $query
+            ->select([
+                $recipientTable . '.campaignId',
+                $recipientTable . '.siteId',
+                $recipientTable . '.name',
+                $recipientTable . '.email',
+                $recipientTable . '.sms',
+                $recipientTable . '.emailSendDate',
+                $recipientTable . '.smsSendDate',
+                $recipientTable . '.submissionId',
+            ])
+            ->orderBy([$recipientTable . '.dateCreated' => SORT_ASC])
+            ->all();
+
+        if (empty($recipientRows)) {
+            return $emptyResult;
+        }
+
+        // Bulk-fetch submissions to avoid N+1
+        $submissionIds = array_unique(array_column($recipientRows, 'submissionId'));
+
+        /** @var Submission[] $submissions */
+        $submissions = Submission::find()
+            ->id($submissionIds)
+            ->isIncomplete(false)
+            ->isSpam(false)
+            ->all();
+
+        // Index by ID for fast lookup
+        $submissionMap = [];
+        foreach ($submissions as $sub) {
+            $submissionMap[$sub->id] = $sub;
+        }
+
+        // Resolve field handle — we need it to read the field value from the submission
+        $ratingFields = $this->getRatingFieldsInScope($campaignId, $siteId, $dateRange, $dateBasis);
+        $fieldHandle = null;
+        foreach ($ratingFields as $rf) {
+            if ($rf['fieldId'] === $fieldId) {
+                $fieldHandle = $rf['handle'];
+                break;
+            }
+        }
+
+        if ($fieldHandle === null) {
+            return $emptyResult;
+        }
+
+        // Build export rows
+        $rows = [];
+        foreach ($recipientRows as $data) {
+            $submissionId = (int)$data['submissionId'];
+            $submission = $submissionMap[$submissionId] ?? null;
+
+            if (!$submission) {
+                continue;
+            }
+
+            $site = $data['siteId'] ? Craft::$app->getSites()->getSiteById((int)$data['siteId']) : null;
+            $campaign = Craft::$app->elements->getElementById((int)$data['campaignId'], null, (int)$data['siteId'] ?: null);
+
+            // Determine send date: prefer email send date, fall back to SMS send date
+            $sendDate = $data['emailSendDate'] ?? $data['smsSendDate'];
+            $sendDateFormatted = $sendDate ? (new \DateTime($sendDate))->format('Y-m-d H:i:s') : '—';
+
+            $responseDate = $submission->dateCreated?->format('Y-m-d H:i:s') ?? '—';
+
+            try {
+                $ratingValue = $submission->getFieldValue($fieldHandle);
+            } catch (\Throwable) {
+                $ratingValue = '—';
+            }
+
+            $rows[] = [
+                $campaign instanceof \lindemannrock\campaignmanager\elements\Campaign ? ($campaign->title ?? '—') : '—',
+                $site?->name ?? '—',
+                $data['name'] ?? '—',
+                $data['email'] ?? '—',
+                $data['sms'] ?? '—',
+                $sendDateFormatted,
+                $responseDate,
+                $ratingValue !== null && $ratingValue !== '' ? (string)$ratingValue : '—',
+            ];
+        }
+
+        return ['headers' => $headers, 'rows' => $rows];
+    }
+
+    /**
      * Refresh statistics for a campaign
      *
      * Recalculates and stores aggregated statistics.

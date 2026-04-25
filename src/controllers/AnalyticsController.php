@@ -318,9 +318,12 @@ class AnalyticsController extends Controller
     /**
      * Handle ratings-scoped export branch.
      *
-     * Columns vary by field type:
-     * - NPS:        Campaign, Site, Rating Field, Date Basis, Responses, NPS Score, Promoters, Passives, Detractors
-     * - Star/Emoji: Campaign, Site, Rating Field, Date Basis, Responses, Average, Median, Most Common, Min, Max
+     * Every format returns all three sections:
+     * - Summary: single aggregate row for the chosen field across all scope
+     * - Per Campaign: one row per campaign × site breakdown
+     * - Raw Responses: one row per recipient who submitted a rating
+     *
+     * Excel → multi-sheet .xlsx; CSV → ZIP of three CSVs; JSON → nested payload.
      *
      * @param \craft\web\Request $request
      * @param \lindemannrock\campaignmanager\services\AnalyticsService $analyticsService
@@ -375,91 +378,7 @@ class AnalyticsController extends Controller
             return $this->redirect(Craft::$app->getRequest()->getReferrer());
         }
 
-        // Fetch data — new shape: {fieldType, rows}
-        $breakdownResult = $analyticsService->getCampaignRatingBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId);
-        $fieldType = $breakdownResult['fieldType'];
-        $breakdownRows = $breakdownResult['rows'];
-
-        if (empty($breakdownRows)) {
-            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No ratings data available to export.'));
-            return $this->redirect(Craft::$app->getRequest()->getReferrer());
-        }
-
-        // Fetch overall stats for min/max on Star/Emoji exports
-        $overallStats = $analyticsService->getRatingStats($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId);
-
-        $dateBasisLabel = $dateBasis === 'response'
-            ? Craft::t('campaign-manager', 'Response date')
-            : Craft::t('campaign-manager', 'Send activity');
-
-        $ratingFieldLabel = $ratingFieldInfo['label'];
-
-        // Determine if this is an NPS field
-        $isNps = $fieldType === \lindemannrock\formieratingfield\fields\Rating::RATING_TYPE_NPS;
-
-        // Build rows
-        $rows = [];
-        foreach ($breakdownRows as $data) {
-            $site = $data['siteId'] ? Craft::$app->getSites()->getSiteById($data['siteId']) : null;
-            $hasResponses = $data['totalResponses'] > 0;
-
-            if ($isNps) {
-                $rows[] = [
-                    'campaign' => $data['campaignName'],
-                    'site' => $site?->name ?? '—',
-                    'ratingField' => $ratingFieldLabel,
-                    'dateBasis' => $dateBasisLabel,
-                    'responses' => $data['totalResponses'],
-                    'npsScore' => $hasResponses ? ($data['npsScore'] !== null ? $data['npsScore'] : '—') : '—',
-                    'promoters' => $hasResponses ? $data['promoters'] : '—',
-                    'passives' => $hasResponses ? $data['passives'] : '—',
-                    'detractors' => $hasResponses ? $data['detractors'] : '—',
-                ];
-            } else {
-                $rows[] = [
-                    'campaign' => $data['campaignName'],
-                    'site' => $site?->name ?? '—',
-                    'ratingField' => $ratingFieldLabel,
-                    'dateBasis' => $dateBasisLabel,
-                    'responses' => $data['totalResponses'],
-                    'average' => $hasResponses ? round((float)($data['average'] ?? 0), 2) : '—',
-                    'median' => $hasResponses ? $data['median'] : '—',
-                    'mode' => $hasResponses ? ($data['mode'] ?? '—') : '—',
-                    'min' => $overallStats['minValue'] ?? '—',
-                    'max' => $overallStats['maxValue'] ?? '—',
-                ];
-            }
-        }
-
-        // Build headers by type
-        if ($isNps) {
-            $headers = [
-                Craft::t('campaign-manager', 'Campaign'),
-                Craft::t('campaign-manager', 'Site'),
-                Craft::t('campaign-manager', 'Rating Field'),
-                Craft::t('campaign-manager', 'Date Basis'),
-                Craft::t('campaign-manager', 'Responses'),
-                Craft::t('campaign-manager', 'NPS Score'),
-                Craft::t('campaign-manager', 'Promoters'),
-                Craft::t('campaign-manager', 'Passives'),
-                Craft::t('campaign-manager', 'Detractors'),
-            ];
-        } else {
-            $headers = [
-                Craft::t('campaign-manager', 'Campaign'),
-                Craft::t('campaign-manager', 'Site'),
-                Craft::t('campaign-manager', 'Rating Field'),
-                Craft::t('campaign-manager', 'Date Basis'),
-                Craft::t('campaign-manager', 'Responses'),
-                Craft::t('campaign-manager', 'Average'),
-                Craft::t('campaign-manager', 'Median'),
-                Craft::t('campaign-manager', 'Most Common'),
-                Craft::t('campaign-manager', 'Min'),
-                Craft::t('campaign-manager', 'Max'),
-            ];
-        }
-
-        // Build filename: ratings-[campaignSlug?]-[siteHandle?]-{fieldHandle}-{dateRange}-{dateBasis}-{timestamp}
+        // Build filename parts: ratings-[campaignSlug?]-[siteHandle?]-{fieldHandle}-{dateRange}-{dateBasis}
         $filenameParts = ['ratings'];
 
         if (is_int($campaignId)) {
@@ -483,16 +402,93 @@ class AnalyticsController extends Controller
         $filenameParts[] = $dateRangeLabel;
         $filenameParts[] = $dateBasis;
 
-        $filename = ExportHelper::filename($settings, $filenameParts, $extension);
+        try {
+            // Build all three sections
+            $stats = $analyticsService->getRatingStats($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId);
+            $summary = $analyticsService->buildSummaryExportRow($ratingFields, $ratingFieldInfo, $stats, $dateRange, $dateBasis);
 
-        return match ($format) {
-            'csv' => ExportHelper::toCsv($rows, $headers, $filename),
-            'json' => ExportHelper::toJson($rows, $filename),
-            'xlsx', 'excel' => ExportHelper::toExcel($rows, $headers, $filename, [], [
-                'sheetTitle' => 'Ratings',
-            ]),
-            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
-        };
+            $breakdownResult = $analyticsService->getCampaignRatingBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId);
+            $perCampaign = $analyticsService->buildCampaignBreakdownExportRows($breakdownResult);
+
+            $raw = $analyticsService->getRawRatingResponses($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId);
+
+            if ($format === 'xlsx' || $format === 'excel') {
+                $filename = ExportHelper::filename($settings, $filenameParts, 'xlsx');
+
+                $sheets = [
+                    [
+                        'title' => Craft::t('campaign-manager', 'Summary'),
+                        'headers' => $summary['headers'],
+                        'rows' => $summary['rows'],
+                    ],
+                    [
+                        'title' => Craft::t('campaign-manager', 'Per Campaign'),
+                        'headers' => $perCampaign['headers'],
+                        'rows' => $perCampaign['rows'],
+                    ],
+                    [
+                        'title' => Craft::t('campaign-manager', 'Raw Responses'),
+                        'headers' => $raw['headers'],
+                        'rows' => $raw['rows'],
+                    ],
+                ];
+
+                return ExportHelper::toExcelMulti($sheets, $filename);
+            }
+
+            if ($format === 'json') {
+                $filename = ExportHelper::filename($settings, $filenameParts, 'json');
+
+                $payload = [
+                    'exported' => date('c'),
+                    'ratingField' => [
+                        'id' => $fieldId,
+                        'handle' => $ratingFieldInfo['handle'],
+                        'label' => $ratingFieldInfo['label'],
+                        'type' => $stats['fieldType'] ?? null,
+                    ],
+                    'filters' => [
+                        'campaignId' => $campaignId,
+                        'siteId' => is_array($effectiveSiteId) ? 'all' : $effectiveSiteId,
+                        'dateRange' => $dateRange,
+                        'dateBasis' => $dateBasis,
+                    ],
+                    'summary' => ['columns' => $summary['headers'], 'rows' => $summary['rows']],
+                    'perCampaign' => ['columns' => $perCampaign['headers'], 'rows' => $perCampaign['rows']],
+                    'rawResponses' => ['columns' => $raw['headers'], 'rows' => $raw['rows']],
+                ];
+
+                return ExportHelper::toJson($payload, $filename);
+            }
+
+            // CSV: ZIP of three CSV files
+            $csvFilenameParts = array_merge($filenameParts, ['csv']);
+            $filename = ExportHelper::filename($settings, $csvFilenameParts, 'zip');
+
+            $suffix = implode('-', array_filter([
+                $fieldHandleSlug,
+                $dateRangeLabel,
+                $dateBasis,
+            ]));
+
+            $files = [
+                "summary-{$suffix}.csv" => ExportHelper::csvContent($summary['rows'], $summary['headers']),
+                "per-campaign-{$suffix}.csv" => ExportHelper::csvContent($perCampaign['rows'], $perCampaign['headers']),
+                "raw-responses-{$suffix}.csv" => ExportHelper::csvContent($raw['rows'], $raw['headers']),
+            ];
+
+            return ExportHelper::toZip($files, $filename);
+        } catch (\Exception $e) {
+            Craft::error('Ratings export failed: ' . $e->getMessage(), __METHOD__);
+
+            Craft::$app->getSession()->setError(
+                Craft::$app->getConfig()->getGeneral()->devMode
+                    ? $e->getMessage()
+                    : Craft::t('campaign-manager', 'Export failed. Please check the logs for details.')
+            );
+
+            return $this->redirect($request->getReferrer() ?? 'campaign-manager/analytics');
+        }
     }
 
     /**

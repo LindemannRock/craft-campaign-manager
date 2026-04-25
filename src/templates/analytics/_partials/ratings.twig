@@ -121,19 +121,30 @@
 
 {% if ratingFields|length > 0 %}
 
+    {# Selected rating field heading + metadata #}
+    {% set selectedField = currentField is defined and currentField ? currentField : ratingFields[0] %}
+    {% set ratingTypeLabel = ratingFieldType == 'nps'
+        ? 'NPS'|t('campaign-manager')
+        : (ratingFieldType == 'star' ? 'Star Rating'|t('campaign-manager') : 'Emoji Rating'|t('campaign-manager')) %}
+    <h2 style="margin: 0 0 6px;">{{ selectedField.label }}</h2>
+    <p class="lr-text-muted" style="margin: 0 0 16px; font-size: 13px;">
+        ({{ ratingTypeLabel }}) • {{ 'Last updated: {time}'|t('campaign-manager', {time: now|lrDatetime('short')}) }}
+    </p>
+
     {# Stat boxes — branch by field type #}
-    <div class="lr-unified-cards">
+    <div class="lr-unified-cards {{ ratingFieldType == 'nps' ? 'cols-5' : 'cols-4' }}">
         {% if ratingFieldType == 'nps' %}
             {# NPS: NPS Score, Promoters, Passives, Detractors, Responses #}
             {% if ratingStats.totalResponses > 0 and ratingStats.npsScore is defined %}
                 {% set npsValue = ratingStats.npsScore %}
                 {% set npsDisplay = (npsValue == npsValue|round(0)) ? npsValue|number_format(0) : npsValue|number_format(1) %}
-                {% set npsColorClass = npsValue >= 50 ? 'lr-text-green' : (npsValue >= 0 ? 'lr-text-yellow' : 'lr-text-red') %}
+                {% set npsColor = npsValue >= 50 ? '#10b981' : (npsValue >= 0 ? '#f59e0b' : '#ef4444') %}
                 {% include 'lindemannrock-base/_components/cards/unified-card' with {
                     value: npsDisplay,
+                    valueIsFormatted: true,
+                    valueColor: npsColor,
                     description: 'NPS Score'|t('campaign-manager'),
                     align: 'center',
-                    valueClass: npsColorClass,
                 } only %}
             {% else %}
                 {% include 'lindemannrock-base/_components/cards/unified-card' with {
@@ -145,18 +156,21 @@
 
             {% include 'lindemannrock-base/_components/cards/unified-card' with {
                 value: ratingStats.promoters ?? 0,
+                valueColor: '#10b981',
                 description: 'Promoters'|t('campaign-manager') ~ (ratingStats.totalResponses > 0 and ratingStats.promotersPercentage is defined ? ' (' ~ ratingStats.promotersPercentage ~ '%)' : ''),
                 align: 'center',
             } only %}
 
             {% include 'lindemannrock-base/_components/cards/unified-card' with {
                 value: ratingStats.passives ?? 0,
+                valueColor: '#f59e0b',
                 description: 'Passives'|t('campaign-manager') ~ (ratingStats.totalResponses > 0 and ratingStats.passivesPercentage is defined ? ' (' ~ ratingStats.passivesPercentage ~ '%)' : ''),
                 align: 'center',
             } only %}
 
             {% include 'lindemannrock-base/_components/cards/unified-card' with {
                 value: ratingStats.detractors ?? 0,
+                valueColor: '#ef4444',
                 description: 'Detractors'|t('campaign-manager') ~ (ratingStats.totalResponses > 0 and ratingStats.detractorsPercentage is defined ? ' (' ~ ratingStats.detractorsPercentage ~ '%)' : ''),
                 align: 'center',
             } only %}
@@ -207,7 +221,7 @@
                 {% else %}
                     <h3>{{ 'Rating Distribution'|t('campaign-manager') }}</h3>
                 {% endif %}
-                <div class="lr-chart-height-250">
+                <div class="{{ ratingFieldType == 'nps' ? 'lr-chart-center' : 'lr-chart-height-250' }}">
                     <canvas id="rating-distribution-chart"></canvas>
                 </div>
             </div>
