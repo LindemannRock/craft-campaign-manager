@@ -296,11 +296,35 @@
             });
         }
 
+        function updateExportScope() {
+            if (!window._lrExportConfigs) return;
+            var hash = (window.location.hash || '').replace(/^#/, '');
+            var search = new URLSearchParams(window.location.search || '');
+            var isNps = hash === 'nps';
+            Object.keys(window._lrExportConfigs).forEach(function(id) {
+                var cfg = window._lrExportConfigs[id];
+                if (!cfg || !cfg.params) return;
+                if (isNps) {
+                    cfg.params.scope = 'nps';
+                    cfg.params.fieldId = search.get('rating') || '';
+                    cfg.params.dateBasis = search.get('dateBasis') || 'sent';
+                } else {
+                    delete cfg.params.scope;
+                    delete cfg.params.fieldId;
+                    delete cfg.params.dateBasis;
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', updateExportScope);
+        window.addEventListener('hashchange', updateExportScope);
+
         document.addEventListener('lr:analyticsInit', function(e) {
             const eventConfig = e.detail && e.detail.config ? e.detail.config : (window.lrAnalyticsConfig || {});
             const campaignId = eventConfig.customFilters ? eventConfig.customFilters.campaign : null;
             const prefix = eventConfig.prefix || 'analytics';
             loadAllChartData(campaignId, prefix, eventConfig.customFilters || {});
+            updateExportScope();
         });
     };
 })(window);
