@@ -521,7 +521,19 @@ return [
 
     // Analytics: Ratings
     'Rating Field' => 'Campo de valoración',
+    'Field Type' => 'Tipo de campo',
     'Date Basis' => 'Base de fecha',
+    'Total Responses' => 'Respuestas totales',
+    'Promoters %' => 'Promotores %',
+    'Passives %' => 'Pasivos %',
+    'Detractors %' => 'Detractores %',
+    'Summary' => 'Resumen',
+    'Per Campaign' => 'Por campaña',
+    'Raw Responses' => 'Respuestas individuales',
+    'Send Date' => 'Fecha de envío',
+    'Response Date' => 'Fecha de respuesta',
+    'Rating Value' => 'Valor de valoración',
+    'Export failed. Please check the logs for details.' => 'Error en la exportación. Consulte los registros para obtener más detalles.',
     'No ratings data available to export.' => 'No hay datos de valoraciones disponibles para exportar.',
     'No rating fields found for this selection.' => 'No se encontraron campos de valoración para esta selección.',
     'Select a rating field' => 'Seleccionar un campo de valoración',
@@ -535,4 +547,5 @@ return [
     'Emoji Rating' => 'Valoración por emojis',
     'Rating Distribution' => 'Distribución de valoraciones',
     'Trend Over Time' => 'Tendencia a lo largo del tiempo',
+    'Last updated: {time}' => 'Última actualización: {time}',
 ];

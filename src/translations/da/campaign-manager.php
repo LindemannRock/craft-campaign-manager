@@ -521,7 +521,19 @@ return [
 
     // Analytics: Ratings
     'Rating Field' => 'Vurderingsfelt',
+    'Field Type' => 'Felttype',
     'Date Basis' => 'Datogrundlag',
+    'Total Responses' => 'Svar i alt',
+    'Promoters %' => 'Fortalere %',
+    'Passives %' => 'Passive %',
+    'Detractors %' => 'Kritikere %',
+    'Summary' => 'Oversigt',
+    'Per Campaign' => 'Pr. kampagne',
+    'Raw Responses' => 'Individuelle svar',
+    'Send Date' => 'Afsendelsesdato',
+    'Response Date' => 'Svarsdato',
+    'Rating Value' => 'Vurderingsværdi',
+    'Export failed. Please check the logs for details.' => 'Eksporten mislykkedes. Kontroller logfilerne for detaljer.',
     'No ratings data available to export.' => 'Ingen vurderingsdata tilgængelige til eksport.',
     'No rating fields found for this selection.' => 'Ingen vurderingsfelter fundet for dette udvalg.',
     'Select a rating field' => 'Vælg et vurderingsfelt',
@@ -535,4 +547,5 @@ return [
     'Emoji Rating' => 'Emoji-vurdering',
     'Rating Distribution' => 'Vurderingsfordeling',
     'Trend Over Time' => 'Tendens over tid',
+    'Last updated: {time}' => 'Senest opdateret: {time}',
 ];

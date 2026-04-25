@@ -521,7 +521,19 @@ return [
 
     // Analytics: Ratings
     'Rating Field' => 'Betygsfält',
+    'Field Type' => 'Fälttyp',
     'Date Basis' => 'Datumbas',
+    'Total Responses' => 'Totalt antal svar',
+    'Promoters %' => 'Ambassadörer %',
+    'Passives %' => 'Passiva %',
+    'Detractors %' => 'Kritiker %',
+    'Summary' => 'Sammanfattning',
+    'Per Campaign' => 'Per kampanj',
+    'Raw Responses' => 'Individuella svar',
+    'Send Date' => 'Skickdatum',
+    'Response Date' => 'Svarsdatum',
+    'Rating Value' => 'Betygsvärde',
+    'Export failed. Please check the logs for details.' => 'Exporten misslyckades. Kontrollera loggarna för detaljer.',
     'No ratings data available to export.' => 'Inga betygsdata tillgängliga för export.',
     'No rating fields found for this selection.' => 'Inga betygsfält hittades för detta urval.',
     'Select a rating field' => 'Välj ett betygsfält',
@@ -535,4 +547,5 @@ return [
     'Emoji Rating' => 'Emoji-betyg',
     'Rating Distribution' => 'Betygsfördelning',
     'Trend Over Time' => 'Trend över tid',
+    'Last updated: {time}' => 'Senast uppdaterad: {time}',
 ];

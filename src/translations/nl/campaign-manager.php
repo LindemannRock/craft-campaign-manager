@@ -521,7 +521,19 @@ return [
 
     // Analytics: Ratings
     'Rating Field' => 'Beoordelingsveld',
+    'Field Type' => 'Veldtype',
     'Date Basis' => 'Datumbasis',
+    'Total Responses' => 'Totaal reacties',
+    'Promoters %' => 'Promotors %',
+    'Passives %' => 'Passieven %',
+    'Detractors %' => 'Criticasters %',
+    'Summary' => 'Samenvatting',
+    'Per Campaign' => 'Per campagne',
+    'Raw Responses' => 'Individuele reacties',
+    'Send Date' => 'Verzenddatum',
+    'Response Date' => 'Antwoorddatum',
+    'Rating Value' => 'Beoordelingswaarde',
+    'Export failed. Please check the logs for details.' => 'Export mislukt. Raadpleeg de logbestanden voor meer informatie.',
     'No ratings data available to export.' => 'Geen beoordelingsgegevens beschikbaar om te exporteren.',
     'No rating fields found for this selection.' => 'Geen beoordelingsvelden gevonden voor deze selectie.',
     'Select a rating field' => 'Selecteer een beoordelingsveld',
@@ -535,4 +547,5 @@ return [
     'Emoji Rating' => 'Emoji-beoordeling',
     'Rating Distribution' => 'Beoordelingsverdeling',
     'Trend Over Time' => 'Trend in de tijd',
+    'Last updated: {time}' => 'Laatst bijgewerkt: {time}',
 ];

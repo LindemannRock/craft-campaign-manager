@@ -521,7 +521,19 @@ return [
 
     // Analytics: Ratings
     'Rating Field' => '評価フィールド',
+    'Field Type' => 'フィールドタイプ',
     'Date Basis' => '日付基準',
+    'Total Responses' => '回答数合計',
+    'Promoters %' => 'プロモーター %',
+    'Passives %' => 'パッシブ %',
+    'Detractors %' => 'デトラクター %',
+    'Summary' => 'サマリー',
+    'Per Campaign' => 'キャンペーン別',
+    'Raw Responses' => '個別回答',
+    'Send Date' => '送信日',
+    'Response Date' => '回答日',
+    'Rating Value' => '評価値',
+    'Export failed. Please check the logs for details.' => 'エクスポートに失敗しました。詳細はログをご確認ください。',
     'No ratings data available to export.' => 'エクスポートできるレーティングデータがありません。',
     'No rating fields found for this selection.' => 'この選択に評価フィールドが見つかりません。',
     'Select a rating field' => '評価フィールドを選択してください',
@@ -535,4 +547,5 @@ return [
     'Emoji Rating' => '絵文字評価',
     'Rating Distribution' => 'レーティング分布',
     'Trend Over Time' => '時系列トレンド',
+    'Last updated: {time}' => '最終更新: {time}',
 ];

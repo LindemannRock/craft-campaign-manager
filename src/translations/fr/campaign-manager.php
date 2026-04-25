@@ -521,7 +521,19 @@ return [
 
     // Analytics: Ratings
     'Rating Field' => 'Champ de notation',
+    'Field Type' => 'Type de champ',
     'Date Basis' => 'Base de date',
+    'Total Responses' => 'Réponses totales',
+    'Promoters %' => 'Promoteurs %',
+    'Passives %' => 'Passifs %',
+    'Detractors %' => 'Détracteurs %',
+    'Summary' => 'Résumé',
+    'Per Campaign' => 'Par campagne',
+    'Raw Responses' => 'Réponses individuelles',
+    'Send Date' => 'Date d\'envoi',
+    'Response Date' => 'Date de réponse',
+    'Rating Value' => 'Valeur de notation',
+    'Export failed. Please check the logs for details.' => 'L\'exportation a échoué. Veuillez vérifier les journaux pour plus de détails.',
     'No ratings data available to export.' => 'Aucune donnée d\'évaluation disponible pour l\'exportation.',
     'No rating fields found for this selection.' => 'Aucun champ de notation trouvé pour cette sélection.',
     'Select a rating field' => 'Sélectionner un champ de notation',
@@ -535,4 +547,5 @@ return [
     'Emoji Rating' => 'Note par emojis',
     'Rating Distribution' => 'Distribution des évaluations',
     'Trend Over Time' => 'Tendance dans le temps',
+    'Last updated: {time}' => 'Dernière mise à jour : {time}',
 ];

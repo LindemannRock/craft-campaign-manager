@@ -521,7 +521,19 @@ return [
 
     // Analytics: Ratings
     'Rating Field' => 'حقل التقييم',
+    'Field Type' => 'نوع الحقل',
     'Date Basis' => 'أساس التاريخ',
+    'Total Responses' => 'إجمالي الردود',
+    'Promoters %' => 'المروجون %',
+    'Passives %' => 'المحايدون %',
+    'Detractors %' => 'المنتقدون %',
+    'Summary' => 'ملخص',
+    'Per Campaign' => 'لكل حملة',
+    'Raw Responses' => 'الردود الفردية',
+    'Send Date' => 'تاريخ الإرسال',
+    'Response Date' => 'تاريخ الرد',
+    'Rating Value' => 'قيمة التقييم',
+    'Export failed. Please check the logs for details.' => 'فشل التصدير. يرجى مراجعة السجلات للاطلاع على التفاصيل.',
     'No ratings data available to export.' => 'لا تتوفر بيانات تقييمات للتصدير.',
     'No rating fields found for this selection.' => 'لم يتم العثور على حقول تقييم لهذا الاختيار.',
     'Select a rating field' => 'تحديد حقل تقييم',
@@ -535,4 +547,5 @@ return [
     'Emoji Rating' => 'تقييم بالرموز التعبيرية',
     'Rating Distribution' => 'توزيع التقييمات',
     'Trend Over Time' => 'الاتجاه عبر الزمن',
+    'Last updated: {time}' => 'آخر تحديث: {time}',
 ];

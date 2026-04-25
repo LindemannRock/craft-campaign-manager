@@ -513,7 +513,19 @@ return [
 
     // Analytics: Ratings
     'Rating Field' => 'Rating Field',
+    'Field Type' => 'Field Type',
     'Date Basis' => 'Date Basis',
+    'Total Responses' => 'Total Responses',
+    'Promoters %' => 'Promoters %',
+    'Passives %' => 'Passives %',
+    'Detractors %' => 'Detractors %',
+    'Summary' => 'Summary',
+    'Per Campaign' => 'Per Campaign',
+    'Raw Responses' => 'Raw Responses',
+    'Send Date' => 'Send Date',
+    'Response Date' => 'Response Date',
+    'Rating Value' => 'Rating Value',
+    'Export failed. Please check the logs for details.' => 'Export failed. Please check the logs for details.',
     'No ratings data available to export.' => 'No ratings data available to export.',
     'No rating fields found for this selection.' => 'No rating fields found for this selection.',
     'Select a rating field' => 'Select a rating field',
@@ -527,4 +539,5 @@ return [
     'Emoji Rating' => 'Emoji Rating',
     'Rating Distribution' => 'Rating Distribution',
     'Trend Over Time' => 'Trend Over Time',
+    'Last updated: {time}' => 'Last updated: {time}',
 ];
