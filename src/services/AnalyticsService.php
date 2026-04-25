@@ -703,7 +703,11 @@ class AnalyticsService extends Component
     }
 
     /**
-     * Calculate NPS/rating stats for a specific field across the filter scope.
+     * Calculate rating stats for a specific field across the filter scope.
+     *
+     * Returns the full stats array from calculateStatsForSubmissions(). Keys vary by
+     * field type: NPS fields include npsScore/promoters/passives/detractors/average;
+     * Star/Emoji fields include average/distribution/median/mode.
      *
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
@@ -713,7 +717,7 @@ class AnalyticsService extends Component
      * @return array<string, mixed>
      * @since 5.8.0
      */
-    public function getNpsStats(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
+    public function getRatingStats(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
     {
         $zeroState = [
             'fieldType' => null,
@@ -784,25 +788,34 @@ class AnalyticsService extends Component
         return FormieRatingField::$plugin->statistics->calculateStatsForSubmissions($submissions, $ratingField);
     }
 
+
     /**
-     * Per-campaign NPS breakdown — one row per campaign in scope with NPS score + counts.
+     * Per-campaign rating breakdown — one row per campaign in scope.
+     *
+     * Returns a shape of {fieldType: string, rows: array} so the template and export
+     * can branch on field type without re-querying the field.
+     *
+     * NPS rows:        campaignId, campaignName, siteId, totalResponses, npsScore, promoters, passives, detractors
+     * Star/Emoji rows: campaignId, campaignName, siteId, totalResponses, average, median, mode
      *
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @param string $dateBasis Date basis: 'sent' or 'response'
-     * @param int|null $fieldId Required; returns empty array if null
-     * @return array<int, array{campaignId: int, campaignName: string, siteId: int|null, totalResponses: int, npsScore: float|null, promoters: int, passives: int, detractors: int}>
+     * @param int|null $fieldId Required; returns empty result if null
+     * @return array{fieldType: string|null, rows: array<int, array<string, mixed>>}
      * @since 5.8.0
      */
-    public function getCampaignNpsBreakdown(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
+    public function getCampaignRatingBreakdown(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
     {
+        $emptyResult = ['fieldType' => null, 'rows' => []];
+
         if (!PluginHelper::isPluginEnabled('formie-rating-field') || $fieldId === null) {
-            return [];
+            return $emptyResult;
         }
 
         if (!class_exists(Rating::class)) {
-            return [];
+            return $emptyResult;
         }
 
         // Iterate sites explicitly so we get one row per (campaign, site) — see
@@ -819,35 +832,18 @@ class AnalyticsService extends Component
             }
         }
 
-        $result = [];
+        $rows = [];
+        $fieldType = null;
 
         foreach ($campaigns as $campaign) {
             if (!$campaign->formId) {
-                $result[] = [
-                    'campaignId' => $campaign->id,
-                    'campaignName' => $campaign->title,
-                    'siteId' => $campaign->siteId,
-                    'totalResponses' => 0,
-                    'npsScore' => null,
-                    'promoters' => 0,
-                    'passives' => 0,
-                    'detractors' => 0,
-                ];
+                $rows[] = $this->_emptyBreakdownRow($campaign, null);
                 continue;
             }
 
             $formElement = \verbb\formie\elements\Form::find()->id($campaign->formId)->one();
             if (!($formElement instanceof \verbb\formie\elements\Form)) {
-                $result[] = [
-                    'campaignId' => $campaign->id,
-                    'campaignName' => $campaign->title,
-                    'siteId' => $campaign->siteId,
-                    'totalResponses' => 0,
-                    'npsScore' => null,
-                    'promoters' => 0,
-                    'passives' => 0,
-                    'detractors' => 0,
-                ];
+                $rows[] = $this->_emptyBreakdownRow($campaign, null);
                 continue;
             }
 
@@ -861,53 +857,101 @@ class AnalyticsService extends Component
             }
 
             if (!$ratingField) {
-                $result[] = [
-                    'campaignId' => $campaign->id,
-                    'campaignName' => $campaign->title,
-                    'siteId' => $campaign->siteId,
-                    'totalResponses' => 0,
-                    'npsScore' => null,
-                    'promoters' => 0,
-                    'passives' => 0,
-                    'detractors' => 0,
-                ];
+                $rows[] = $this->_emptyBreakdownRow($campaign, null);
                 continue;
+            }
+
+            // Capture field type from the first found field (all rows share the same field)
+            if ($fieldType === null) {
+                $fieldType = $ratingField->ratingType;
             }
 
             $submissions = $this->_getSubmissionsInScope($campaign->id, $campaign->siteId, $dateRange, $dateBasis, $campaign->formId);
             $stats = FormieRatingField::$plugin->statistics->calculateStatsForSubmissions($submissions, $ratingField);
 
-            $result[] = [
-                'campaignId' => $campaign->id,
-                'campaignName' => $campaign->title,
-                'siteId' => $campaign->siteId,
-                'totalResponses' => $stats['totalResponses'],
-                'npsScore' => $stats['totalResponses'] > 0 ? ($stats['npsScore'] ?? null) : null,
-                'promoters' => $stats['promoters'] ?? 0,
-                'passives' => $stats['passives'] ?? 0,
-                'detractors' => $stats['detractors'] ?? 0,
-            ];
+            if ($stats['fieldType'] === Rating::RATING_TYPE_NPS) {
+                $rows[] = [
+                    'campaignId' => $campaign->id,
+                    'campaignName' => $campaign->title,
+                    'siteId' => $campaign->siteId,
+                    'totalResponses' => $stats['totalResponses'],
+                    'npsScore' => $stats['totalResponses'] > 0 ? ($stats['npsScore'] ?? null) : null,
+                    'promoters' => $stats['promoters'] ?? 0,
+                    'passives' => $stats['passives'] ?? 0,
+                    'detractors' => $stats['detractors'] ?? 0,
+                ];
+            } else {
+                $rows[] = [
+                    'campaignId' => $campaign->id,
+                    'campaignName' => $campaign->title,
+                    'siteId' => $campaign->siteId,
+                    'totalResponses' => $stats['totalResponses'],
+                    'average' => $stats['average'] ?? 0,
+                    'median' => $stats['median'] ?? 0,
+                    'mode' => $stats['mode'] ?? null,
+                ];
+            }
         }
 
-        usort($result, fn($a, $b) => $b['totalResponses'] <=> $a['totalResponses']);
+        usort($rows, fn($a, $b) => $b['totalResponses'] <=> $a['totalResponses']);
 
-        return $result;
+        return ['fieldType' => $fieldType, 'rows' => $rows];
     }
 
     /**
-     * NPS trend over time — bucketed by day (or week if > 90 days).
+     * Build an empty breakdown row for a campaign (no form or no matching field).
+     *
+     * @param Campaign $campaign
+     * @param string|null $fieldType
+     * @return array<string, mixed>
+     */
+    private function _emptyBreakdownRow(Campaign $campaign, ?string $fieldType): array
+    {
+        if ($fieldType === Rating::RATING_TYPE_NPS || $fieldType === null) {
+            return [
+                'campaignId' => $campaign->id,
+                'campaignName' => $campaign->title,
+                'siteId' => $campaign->siteId,
+                'totalResponses' => 0,
+                'npsScore' => null,
+                'promoters' => 0,
+                'passives' => 0,
+                'detractors' => 0,
+            ];
+        }
+
+        return [
+            'campaignId' => $campaign->id,
+            'campaignName' => $campaign->title,
+            'siteId' => $campaign->siteId,
+            'totalResponses' => 0,
+            'average' => 0,
+            'median' => 0,
+            'mode' => null,
+        ];
+    }
+
+    /**
+     * Rating trend over time — bucketed by day (or week if > 90 days).
+     *
+     * NPS fields return: {labels, value (npsScore per bucket), promoters, passives, detractors,
+     *                     scaleMin: -100, scaleMax: 100, chartType: 'line'}
+     * Star/Emoji fields return: {labels, value (average per bucket), scaleMin, scaleMax, chartType: 'line'}
+     *
+     * The JS uses `value` (neutral name), `scaleMin`/`scaleMax` for y-axis, and `chartType` for
+     * chart type selection.
      *
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @param string $dateBasis Date basis: 'sent' or 'response'
      * @param int|null $fieldId Formie field ID
-     * @return array{labels: array<string>, npsScore: array<float|null>, promoters: array<int>, passives: array<int>, detractors: array<int>}
+     * @return array<string, mixed>
      * @since 5.8.0
      */
-    public function getNpsTrend(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
+    public function getRatingTrend(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
     {
-        $empty = ['labels' => [], 'npsScore' => [], 'promoters' => [], 'passives' => [], 'detractors' => []];
+        $empty = ['labels' => [], 'value' => [], 'scaleMin' => -100, 'scaleMax' => 100, 'chartType' => 'line'];
 
         if (!PluginHelper::isPluginEnabled('formie-rating-field')) {
             return $empty;
@@ -917,7 +961,7 @@ class AnalyticsService extends Component
             return $empty;
         }
 
-        $stats = $this->getNpsStats($campaignId, $siteId, $dateRange, $dateBasis, $fieldId);
+        $stats = $this->getRatingStats($campaignId, $siteId, $dateRange, $dateBasis, $fieldId);
         if ($stats['totalResponses'] === 0) {
             return $empty;
         }
@@ -957,6 +1001,8 @@ class AnalyticsService extends Component
             return $empty;
         }
 
+        $isNps = $ratingField->ratingType === Rating::RATING_TYPE_NPS;
+
         $dates = $this->getDateRangeFromParam($dateRange);
         $start = $dates['start'];
         $end = $dates['end'];
@@ -982,7 +1028,7 @@ class AnalyticsService extends Component
         }
 
         $labels = [];
-        $npsScores = [];
+        $values = [];
         $promotersData = [];
         $passivesData = [];
         $detractorsData = [];
@@ -1002,10 +1048,14 @@ class AnalyticsService extends Component
                 $bucketStats = FormieRatingField::$plugin->statistics->calculateStatsForSubmissions($bucketSubs, $ratingField);
 
                 $labels[] = $weekLabel;
-                $npsScores[] = $bucketStats['totalResponses'] > 0 ? ($bucketStats['npsScore'] ?? null) : null;
-                $promotersData[] = $bucketStats['promoters'] ?? 0;
-                $passivesData[] = $bucketStats['passives'] ?? 0;
-                $detractorsData[] = $bucketStats['detractors'] ?? 0;
+                if ($isNps) {
+                    $values[] = $bucketStats['totalResponses'] > 0 ? ($bucketStats['npsScore'] ?? null) : null;
+                    $promotersData[] = $bucketStats['promoters'] ?? 0;
+                    $passivesData[] = $bucketStats['passives'] ?? 0;
+                    $detractorsData[] = $bucketStats['detractors'] ?? 0;
+                } else {
+                    $values[] = $bucketStats['totalResponses'] > 0 ? ($bucketStats['average'] ?? null) : null;
+                }
 
                 $cursor->modify('+7 days');
             }
@@ -1017,41 +1067,59 @@ class AnalyticsService extends Component
                 $bucketStats = FormieRatingField::$plugin->statistics->calculateStatsForSubmissions($bucketSubs, $ratingField);
 
                 $labels[] = $cursor->format('M j');
-                $npsScores[] = $bucketStats['totalResponses'] > 0 ? ($bucketStats['npsScore'] ?? null) : null;
-                $promotersData[] = $bucketStats['promoters'] ?? 0;
-                $passivesData[] = $bucketStats['passives'] ?? 0;
-                $detractorsData[] = $bucketStats['detractors'] ?? 0;
+                if ($isNps) {
+                    $values[] = $bucketStats['totalResponses'] > 0 ? ($bucketStats['npsScore'] ?? null) : null;
+                    $promotersData[] = $bucketStats['promoters'] ?? 0;
+                    $passivesData[] = $bucketStats['passives'] ?? 0;
+                    $detractorsData[] = $bucketStats['detractors'] ?? 0;
+                } else {
+                    $values[] = $bucketStats['totalResponses'] > 0 ? ($bucketStats['average'] ?? null) : null;
+                }
 
                 $cursor->modify('+1 day');
             }
         }
 
+        if ($isNps) {
+            return [
+                'labels' => $labels,
+                'value' => $values,
+                'promoters' => $promotersData,
+                'passives' => $passivesData,
+                'detractors' => $detractorsData,
+                'scaleMin' => -100,
+                'scaleMax' => 100,
+                'chartType' => 'line',
+            ];
+        }
+
         return [
             'labels' => $labels,
-            'npsScore' => $npsScores,
-            'promoters' => $promotersData,
-            'passives' => $passivesData,
-            'detractors' => $detractorsData,
+            'value' => $values,
+            'scaleMin' => (int)$ratingField->minValue,
+            'scaleMax' => (int)$ratingField->maxValue,
+            'chartType' => 'line',
         ];
     }
 
     /**
-     * NPS distribution — donut chart data.
+     * Rating distribution — chart data.
      *
-     * For NPS fields: Promoters / Passives / Detractors counts.
-     * For star/emoji fields: distribution map (star values → counts).
+     * NPS fields:        {labels: [Promoters, Passives, Detractors], data: [int, int, int], chartType: 'doughnut'}
+     * Star/Emoji fields: {labels: ['1','2',...,'N'], data: [int, ...], chartType: 'bar'}
+     *                    All integer buckets from minValue to maxValue are included (zeros for missing).
      *
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
      * @param string $dateBasis Date basis: 'sent' or 'response'
      * @param int|null $fieldId Formie field ID
-     * @return array{labels: array<string>, data: array<int>}
+     * @return array{labels: array<string>, data: array<int>, chartType: string}
      * @since 5.8.0
      */
-    public function getNpsDistribution(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
+    public function getRatingDistribution(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent', ?int $fieldId = null): array
     {
-        $empty = ['labels' => [], 'data' => []];
+        $empty = ['labels' => [], 'data' => [], 'chartType' => 'doughnut'];
 
         if (!PluginHelper::isPluginEnabled('formie-rating-field')) {
             return $empty;
@@ -1061,7 +1129,7 @@ class AnalyticsService extends Component
             return $empty;
         }
 
-        $stats = $this->getNpsStats($campaignId, $siteId, $dateRange, $dateBasis, $fieldId);
+        $stats = $this->getRatingStats($campaignId, $siteId, $dateRange, $dateBasis, $fieldId);
         if ($stats['totalResponses'] === 0) {
             return $empty;
         }
@@ -1078,19 +1146,24 @@ class AnalyticsService extends Component
                     (int)($stats['passives'] ?? 0),
                     (int)($stats['detractors'] ?? 0),
                 ],
+                'chartType' => 'doughnut',
             ];
         }
 
-        // Star/emoji: distribution map
+        // Star/Emoji: build a full integer range from minValue to maxValue,
+        // filling missing buckets with 0 so every possible value appears in the chart.
         $distribution = $stats['distribution'] ?? [];
+        $min = (int)($stats['minValue'] ?? 1);
+        $max = (int)($stats['maxValue'] ?? 5);
+
         $labels = [];
         $data = [];
-        foreach ($distribution as $value => $count) {
-            $labels[] = (string)$value;
-            $data[] = (int)$count;
+        for ($v = $min; $v <= $max; $v++) {
+            $labels[] = (string)$v;
+            $data[] = (int)($distribution[$v] ?? 0);
         }
 
-        return ['labels' => $labels, 'data' => $data];
+        return ['labels' => $labels, 'data' => $data, 'chartType' => 'bar'];
     }
 
     /**

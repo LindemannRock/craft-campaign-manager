@@ -86,11 +86,12 @@ class AnalyticsController extends Controller
         // Pass display-friendly siteId (string/int) for template filters/JS, not the array
         $displaySiteId = is_array($effectiveSiteId) ? 'all' : $effectiveSiteId;
 
-        // NPS tab data (only when formie-rating-field is enabled)
+        // Ratings tab data (only when formie-rating-field is enabled)
         $ratingFields = [];
         $ratingFieldId = null;
-        $npsStats = [];
-        $campaignNpsBreakdown = [];
+        $ratingStats = [];
+        $campaignRatingBreakdown = ['fieldType' => null, 'rows' => []];
+        $ratingFieldType = null;
 
         if (PluginHelper::isPluginEnabled('formie-rating-field')) {
             $rawRating = $request->getQueryParam('rating');
@@ -102,8 +103,9 @@ class AnalyticsController extends Controller
                 $ratingFieldId = $ratingFields[0]['fieldId'];
             }
 
-            $npsStats = $analyticsService->getNpsStats($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $ratingFieldId);
-            $campaignNpsBreakdown = $analyticsService->getCampaignNpsBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $ratingFieldId);
+            $ratingStats = $analyticsService->getRatingStats($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $ratingFieldId);
+            $campaignRatingBreakdown = $analyticsService->getCampaignRatingBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $ratingFieldId);
+            $ratingFieldType = $ratingStats['fieldType'] ?? null;
         }
 
         return $this->renderTemplate('campaign-manager/analytics/index', [
@@ -119,8 +121,9 @@ class AnalyticsController extends Controller
             'pluginHandle' => CampaignManager::$plugin->id,
             'ratingFields' => $ratingFields,
             'ratingFieldId' => $ratingFieldId,
-            'npsStats' => $npsStats,
-            'campaignNpsBreakdown' => $campaignNpsBreakdown,
+            'ratingStats' => $ratingStats,
+            'campaignRatingBreakdown' => $campaignRatingBreakdown,
+            'ratingFieldType' => $ratingFieldType,
         ]);
     }
 
@@ -137,7 +140,7 @@ class AnalyticsController extends Controller
         $request = Craft::$app->getRequest();
         $type = $request->getBodyParam('type', 'daily');
 
-        $validTypes = ['daily', 'channels', 'engagement', 'funnel', 'nps-distribution', 'nps-trend'];
+        $validTypes = ['daily', 'channels', 'engagement', 'funnel', 'rating-distribution', 'rating-trend'];
         if (!in_array($type, $validTypes, true)) {
             throw new BadRequestHttpException('Invalid data type.');
         }
@@ -160,7 +163,7 @@ class AnalyticsController extends Controller
         // Resolve and validate site ID against editable sites
         $effectiveSiteId = $this->_resolveSiteId($rawSiteId);
 
-        // NPS field ID (optional, for nps-* types)
+        // Rating field ID (optional, for rating-* types)
         $rawFieldId = $request->getBodyParam('fieldId');
         $fieldId = ($rawFieldId !== null && is_numeric($rawFieldId)) ? (int)$rawFieldId : null;
 
@@ -171,8 +174,8 @@ class AnalyticsController extends Controller
             'channels' => $analyticsService->getChannelDistribution($campaignId, $effectiveSiteId, $dateRange),
             'engagement' => $analyticsService->getEngagementOverTime($campaignId, $effectiveSiteId, $dateRange),
             'funnel' => $analyticsService->getConversionFunnel($campaignId, $effectiveSiteId, $dateRange),
-            'nps-distribution' => $analyticsService->getNpsDistribution($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId),
-            'nps-trend' => $analyticsService->getNpsTrend($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId),
+            'rating-distribution' => $analyticsService->getRatingDistribution($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId),
+            'rating-trend' => $analyticsService->getRatingTrend($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId),
         };
 
         return $this->asJson([
@@ -200,7 +203,7 @@ class AnalyticsController extends Controller
 
         // Read and validate export scope
         $scope = $request->getBodyParam('scope', 'campaigns');
-        if (!in_array($scope, ['campaigns', 'nps'], true)) {
+        if (!in_array($scope, ['campaigns', 'ratings'], true)) {
             $scope = 'campaigns';
         }
 
@@ -222,8 +225,8 @@ class AnalyticsController extends Controller
         $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
 
-        if ($scope === 'nps') {
-            return $this->_exportNps($request, $analyticsService, $settings, $campaignId, $effectiveSiteId, $dateRange, $dateRangeLabel, $format, $extension);
+        if ($scope === 'ratings') {
+            return $this->_exportRatings($request, $analyticsService, $settings, $campaignId, $effectiveSiteId, $dateRange, $dateRangeLabel, $format, $extension);
         }
 
         // Get comprehensive stats for export
@@ -309,7 +312,11 @@ class AnalyticsController extends Controller
     }
 
     /**
-     * Handle NPS-scoped export branch.
+     * Handle ratings-scoped export branch.
+     *
+     * Columns vary by field type:
+     * - NPS:        Campaign, Site, Rating Field, Date Basis, Responses, NPS Score, Promoters, Passives, Detractors
+     * - Star/Emoji: Campaign, Site, Rating Field, Date Basis, Responses, Average, Median, Most Common, Min, Max
      *
      * @param \craft\web\Request $request
      * @param \lindemannrock\campaignmanager\services\AnalyticsService $analyticsService
@@ -323,7 +330,7 @@ class AnalyticsController extends Controller
      * @return Response
      * @throws BadRequestHttpException
      */
-    private function _exportNps(
+    private function _exportRatings(
         \craft\web\Request $request,
         \lindemannrock\campaignmanager\services\AnalyticsService $analyticsService,
         object $settings,
@@ -334,7 +341,7 @@ class AnalyticsController extends Controller
         string $format,
         string $extension,
     ): Response {
-        // Read NPS-specific params
+        // Read ratings-specific params
         $rawFieldId = $request->getBodyParam('fieldId');
         $fieldId = ($rawFieldId !== null && is_numeric($rawFieldId) && (int)$rawFieldId > 0) ? (int)$rawFieldId : null;
 
@@ -345,7 +352,7 @@ class AnalyticsController extends Controller
 
         // Guard: plugin not enabled or no field selected
         if (!PluginHelper::isPluginEnabled('formie-rating-field') || $fieldId === null) {
-            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No NPS data available to export.'));
+            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No ratings data available to export.'));
             return $this->redirect(Craft::$app->getRequest()->getReferrer());
         }
 
@@ -360,17 +367,22 @@ class AnalyticsController extends Controller
         }
 
         if ($ratingFieldInfo === null) {
-            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No NPS data available to export.'));
+            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No ratings data available to export.'));
             return $this->redirect(Craft::$app->getRequest()->getReferrer());
         }
 
-        // Fetch data
-        $campaignNpsBreakdown = $analyticsService->getCampaignNpsBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId);
+        // Fetch data — new shape: {fieldType, rows}
+        $breakdownResult = $analyticsService->getCampaignRatingBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId);
+        $fieldType = $breakdownResult['fieldType'];
+        $breakdownRows = $breakdownResult['rows'];
 
-        if (empty($campaignNpsBreakdown)) {
-            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No NPS data available to export.'));
+        if (empty($breakdownRows)) {
+            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No ratings data available to export.'));
             return $this->redirect(Craft::$app->getRequest()->getReferrer());
         }
+
+        // Fetch overall stats for min/max on Star/Emoji exports
+        $overallStats = $analyticsService->getRatingStats($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId);
 
         $dateBasisLabel = $dateBasis === 'response'
             ? Craft::t('campaign-manager', 'Response date')
@@ -378,39 +390,73 @@ class AnalyticsController extends Controller
 
         $ratingFieldLabel = $ratingFieldInfo['label'];
 
+        // Determine if this is an NPS field
+        $isNps = $fieldType === \lindemannrock\formieratingfield\fields\Rating::RATING_TYPE_NPS;
+
         // Build rows
         $rows = [];
-        foreach ($campaignNpsBreakdown as $data) {
+        foreach ($breakdownRows as $data) {
             $site = $data['siteId'] ? Craft::$app->getSites()->getSiteById($data['siteId']) : null;
             $hasResponses = $data['totalResponses'] > 0;
 
-            $rows[] = [
-                'campaign' => $data['campaignName'],
-                'site' => $site?->name ?? '—',
-                'ratingField' => $ratingFieldLabel,
-                'dateBasis' => $dateBasisLabel,
-                'responses' => $data['totalResponses'],
-                'npsScore' => $hasResponses ? ($data['npsScore'] !== null ? $data['npsScore'] : '—') : '—',
-                'promoters' => $hasResponses ? $data['promoters'] : '—',
-                'passives' => $hasResponses ? $data['passives'] : '—',
-                'detractors' => $hasResponses ? $data['detractors'] : '—',
+            if ($isNps) {
+                $rows[] = [
+                    'campaign' => $data['campaignName'],
+                    'site' => $site?->name ?? '—',
+                    'ratingField' => $ratingFieldLabel,
+                    'dateBasis' => $dateBasisLabel,
+                    'responses' => $data['totalResponses'],
+                    'npsScore' => $hasResponses ? ($data['npsScore'] !== null ? $data['npsScore'] : '—') : '—',
+                    'promoters' => $hasResponses ? $data['promoters'] : '—',
+                    'passives' => $hasResponses ? $data['passives'] : '—',
+                    'detractors' => $hasResponses ? $data['detractors'] : '—',
+                ];
+            } else {
+                $rows[] = [
+                    'campaign' => $data['campaignName'],
+                    'site' => $site?->name ?? '—',
+                    'ratingField' => $ratingFieldLabel,
+                    'dateBasis' => $dateBasisLabel,
+                    'responses' => $data['totalResponses'],
+                    'average' => $hasResponses ? round((float)($data['average'] ?? 0), 2) : '—',
+                    'median' => $hasResponses ? $data['median'] : '—',
+                    'mode' => $hasResponses ? ($data['mode'] ?? '—') : '—',
+                    'min' => $overallStats['minValue'] ?? '—',
+                    'max' => $overallStats['maxValue'] ?? '—',
+                ];
+            }
+        }
+
+        // Build headers by type
+        if ($isNps) {
+            $headers = [
+                Craft::t('campaign-manager', 'Campaign'),
+                Craft::t('campaign-manager', 'Site'),
+                Craft::t('campaign-manager', 'Rating Field'),
+                Craft::t('campaign-manager', 'Date Basis'),
+                Craft::t('campaign-manager', 'Responses'),
+                Craft::t('campaign-manager', 'NPS Score'),
+                Craft::t('campaign-manager', 'Promoters'),
+                Craft::t('campaign-manager', 'Passives'),
+                Craft::t('campaign-manager', 'Detractors'),
+            ];
+        } else {
+            $headers = [
+                Craft::t('campaign-manager', 'Campaign'),
+                Craft::t('campaign-manager', 'Site'),
+                Craft::t('campaign-manager', 'Rating Field'),
+                Craft::t('campaign-manager', 'Date Basis'),
+                Craft::t('campaign-manager', 'Responses'),
+                Craft::t('campaign-manager', 'Average'),
+                Craft::t('campaign-manager', 'Median'),
+                Craft::t('campaign-manager', 'Most Common'),
+                Craft::t('campaign-manager', 'Min'),
+                Craft::t('campaign-manager', 'Max'),
             ];
         }
 
-        $headers = [
-            Craft::t('campaign-manager', 'Campaign'),
-            Craft::t('campaign-manager', 'Site'),
-            Craft::t('campaign-manager', 'Rating Field'),
-            Craft::t('campaign-manager', 'Date Basis'),
-            Craft::t('campaign-manager', 'Responses'),
-            Craft::t('campaign-manager', 'NPS Score'),
-            Craft::t('campaign-manager', 'Promoters'),
-            Craft::t('campaign-manager', 'Passives'),
-            Craft::t('campaign-manager', 'Detractors'),
-        ];
-
-        // Build filename: campaign-nps-[campaignSlug?]-[siteHandle?]-{fieldHandle}-{dateRange}-{dateBasis}-{timestamp}.csv
-        $filenameParts = ['nps'];
+        // Build filename: ratings-[campaignSlug?]-[siteHandle?]-{fieldHandle}-{dateRange}-{dateBasis}-{timestamp}
+        $filenameParts = ['ratings'];
 
         if (is_int($campaignId)) {
             $campaign = CampaignManager::$plugin->campaigns->getCampaignById($campaignId);
@@ -439,7 +485,7 @@ class AnalyticsController extends Controller
             'csv' => ExportHelper::toCsv($rows, $headers, $filename),
             'json' => ExportHelper::toJson($rows, $filename),
             'xlsx', 'excel' => ExportHelper::toExcel($rows, $headers, $filename, [], [
-                'sheetTitle' => 'NPS',
+                'sheetTitle' => 'Ratings',
             ]),
             default => throw new BadRequestHttpException("Unknown export format: {$format}"),
         };

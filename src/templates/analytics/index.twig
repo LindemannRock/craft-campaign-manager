@@ -18,7 +18,7 @@
 } %}
 {% if craft.app.plugins.isPluginEnabled('formie-rating-field') %}
     {% set _tabs = _tabs|merge({
-        nps: { label: 'NPS'|t('campaign-manager') }
+        ratings: { label: 'Ratings'|t('campaign-manager') }
     }) %}
 {% endif %}
 
@@ -89,10 +89,10 @@
         {% include 'campaign-manager/analytics/_partials/conversion' %}
     </div>
 
-    {# NPS Tab #}
+    {# Ratings Tab #}
     {% if craft.app.plugins.isPluginEnabled('formie-rating-field') %}
-        <div id="nps" class="lr-tab-content hidden">
-            {% include 'campaign-manager/analytics/_partials/nps' %}
+        <div id="ratings" class="lr-tab-content hidden">
+            {% include 'campaign-manager/analytics/_partials/ratings' %}
         </div>
     {% endif %}
 {% endblock %}
@@ -110,14 +110,15 @@
     noChannel: 'No channel data available for the selected filters.'|t('campaign-manager'),
     noEngagement: 'No engagement data available for the selected filters.'|t('campaign-manager'),
     noFunnel: 'No funnel data available for the selected filters.'|t('campaign-manager'),
-    noNpsDistribution: 'No NPS distribution data available for the selected filters.'|t('campaign-manager'),
-    noNpsTrend: 'No NPS trend data available for the selected filters.'|t('campaign-manager'),
+    noRatingDistribution: 'No rating distribution data available for the selected filters.'|t('campaign-manager'),
+    noRatingTrend: 'No rating trend data available for the selected filters.'|t('campaign-manager'),
     recipientsLabel: 'Recipients Added'|t('campaign-manager'),
     responsesLabel: 'Responses'|t('campaign-manager'),
     emailOpensLabel: 'Email Opens'|t('campaign-manager'),
     smsOpensLabel: 'SMS Opens'|t('campaign-manager'),
     countLabel: 'Count'|t('campaign-manager'),
     npsScoreLabel: 'NPS Score'|t('campaign-manager'),
+    averageLabel: 'Average'|t('campaign-manager'),
     promotersLabel: 'Promoters'|t('campaign-manager'),
     passivesLabel: 'Passives'|t('campaign-manager'),
     detractorsLabel: 'Detractors'|t('campaign-manager'),
@@ -134,6 +135,8 @@
         campaign: campaignId,
         fieldId: ratingFieldId ?? '',
     },
+    dateBasis: dateBasis ?? 'sent',
+    ratingFieldType: ratingFieldType ?? null,
     strings: campaignStrings,
 } %}
 

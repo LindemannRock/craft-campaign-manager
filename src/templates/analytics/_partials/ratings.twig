@@ -1,0 +1,293 @@
+{# Ratings Tab - Rating field analytics (NPS, Star, Emoji) #}
+
+{% if ratingFields|length > 0 %}
+    {# Rating field picker + date basis picker #}
+    <div class="lr-mb-24" style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-end;">
+        {# Rating Field picker (only when 2+ fields available; single field shown as static text) #}
+        {% if ratingFields|length > 1 %}
+            <div>
+                <label style="display: block; margin-bottom: 6px;"><strong>{{ 'Rating Field'|t('campaign-manager') }}</strong></label>
+                {% set currentField = ratingFields|filter(f => f.fieldId == ratingFieldId)|first %}
+                {# Field type indicator label #}
+                {% if ratingFieldType == 'star' %}
+                    {% set _fieldTypeLabel = 'Star Rating'|t('campaign-manager') %}
+                {% elseif ratingFieldType == 'emoji' %}
+                    {% set _fieldTypeLabel = 'Emoji Rating'|t('campaign-manager') %}
+                {% elseif ratingFieldType == 'nps' %}
+                    {% set _fieldTypeLabel = 'NPS'|t('campaign-manager') %}
+                {% else %}
+                    {% set _fieldTypeLabel = null %}
+                {% endif %}
+                <div class="btngroup">
+                    <button type="button" class="btn menubtn ratings-picker-btn" title="{{ currentField ? currentField.label ~ ' (' ~ currentField.formTitle ~ ')' : '' }}">
+                        {{ currentField ? currentField.shortLabel ~ ' (' ~ currentField.formTitle ~ ')' : 'Select a rating field'|t('campaign-manager') }}{% if _fieldTypeLabel %} <span class="lr-text-muted">({{ _fieldTypeLabel }})</span>{% endif %}
+                    </button>
+                    <div class="menu">
+                        <ul>
+                            {% for rf in ratingFields %}
+                                <li>
+                                    <a href="#"
+                                       data-value="{{ rf.fieldId }}"
+                                       data-param="rating"
+                                       class="lr-custom-filter-option {{ ratingFieldId == rf.fieldId ? 'sel' : '' }}"
+                                       title="{{ rf.label }} ({{ rf.formTitle }})">
+                                        {{ rf.shortLabel }} ({{ rf.formTitle }})
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div>
+                {# Field type indicator label for single-field display #}
+                {% if ratingFieldType == 'star' %}
+                    {% set _fieldTypeLabel = 'Star Rating'|t('campaign-manager') %}
+                {% elseif ratingFieldType == 'emoji' %}
+                    {% set _fieldTypeLabel = 'Emoji Rating'|t('campaign-manager') %}
+                {% elseif ratingFieldType == 'nps' %}
+                    {% set _fieldTypeLabel = 'NPS'|t('campaign-manager') %}
+                {% else %}
+                    {% set _fieldTypeLabel = null %}
+                {% endif %}
+                <p class="lr-text-muted" style="margin: 0;" title="{{ ratingFields[0].label }} ({{ ratingFields[0].formTitle }})">
+                    <strong>{{ 'Rating Field'|t('campaign-manager') }}:</strong> {{ ratingFields[0].shortLabel }} ({{ ratingFields[0].formTitle }}){% if _fieldTypeLabel %} <span>({{ _fieldTypeLabel }})</span>{% endif %}
+                </p>
+            </div>
+        {% endif %}
+
+        {# Date basis picker #}
+        <div>
+            <label style="display: block; margin-bottom: 6px;"><strong>{{ 'Date based on'|t('campaign-manager') }}</strong></label>
+            <div class="btngroup">
+                <button type="button" class="btn menubtn ratings-picker-btn">
+                    {{ dateBasis == 'response' ? 'Response date'|t('campaign-manager') : 'Send activity'|t('campaign-manager') }}
+                </button>
+                <div class="menu">
+                    <ul>
+                        <li>
+                            <a href="#"
+                               data-value="sent"
+                               data-param="dateBasis"
+                               class="lr-custom-filter-option {{ dateBasis == 'sent' ? 'sel' : '' }}">
+                                {{ 'Send activity'|t('campaign-manager') }}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#"
+                               data-value="response"
+                               data-param="dateBasis"
+                               class="lr-custom-filter-option {{ dateBasis == 'response' ? 'sel' : '' }}">
+                                {{ 'Response date'|t('campaign-manager') }}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Initialize menu buttons for the ratings tab pickers (base only inits #toolbar / #action-button) #}
+    {% js %}
+        (function(){
+            function initRatingsMenus() {
+                document.querySelectorAll('.ratings-picker-btn').forEach(function(btn){
+                    if (btn.dataset.ratingsMenuReady) return;
+                    btn.dataset.ratingsMenuReady = '1';
+                    if (typeof Craft !== 'undefined' && Craft.MenuBtn) {
+                        new Craft.MenuBtn(btn);
+                    } else if (typeof Garnish !== 'undefined' && Garnish.MenuBtn) {
+                        new Garnish.MenuBtn(btn);
+                    }
+                });
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initRatingsMenus);
+            } else {
+                initRatingsMenus();
+            }
+            // Re-init after AJAX content replace
+            document.addEventListener('lr:analyticsInit', initRatingsMenus);
+        })();
+    {% endjs %}
+{% else %}
+    {% include 'lindemannrock-base/_components/info-box' with {
+        type: 'warning',
+        message: 'No rating fields found for this selection.'|t('campaign-manager'),
+        margin: 'bottom',
+    } %}
+{% endif %}
+
+{% if ratingFields|length > 0 %}
+
+    {# Stat boxes — branch by field type #}
+    <div class="lr-unified-cards">
+        {% if ratingFieldType == 'nps' %}
+            {# NPS: NPS Score, Promoters, Passives, Detractors, Responses #}
+            {% if ratingStats.totalResponses > 0 and ratingStats.npsScore is defined %}
+                {% set npsValue = ratingStats.npsScore %}
+                {% set npsDisplay = (npsValue == npsValue|round(0)) ? npsValue|number_format(0) : npsValue|number_format(1) %}
+                {% set npsColorClass = npsValue >= 50 ? 'lr-text-green' : (npsValue >= 0 ? 'lr-text-yellow' : 'lr-text-red') %}
+                {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                    value: npsDisplay,
+                    description: 'NPS Score'|t('campaign-manager'),
+                    align: 'center',
+                    valueClass: npsColorClass,
+                } only %}
+            {% else %}
+                {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                    value: '—',
+                    description: 'NPS Score'|t('campaign-manager'),
+                    align: 'center',
+                } only %}
+            {% endif %}
+
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: ratingStats.promoters ?? 0,
+                description: 'Promoters'|t('campaign-manager') ~ (ratingStats.totalResponses > 0 and ratingStats.promotersPercentage is defined ? ' (' ~ ratingStats.promotersPercentage ~ '%)' : ''),
+                align: 'center',
+            } only %}
+
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: ratingStats.passives ?? 0,
+                description: 'Passives'|t('campaign-manager') ~ (ratingStats.totalResponses > 0 and ratingStats.passivesPercentage is defined ? ' (' ~ ratingStats.passivesPercentage ~ '%)' : ''),
+                align: 'center',
+            } only %}
+
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: ratingStats.detractors ?? 0,
+                description: 'Detractors'|t('campaign-manager') ~ (ratingStats.totalResponses > 0 and ratingStats.detractorsPercentage is defined ? ' (' ~ ratingStats.detractorsPercentage ~ '%)' : ''),
+                align: 'center',
+            } only %}
+
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: ratingStats.totalResponses ?? 0,
+                description: 'Responses'|t('campaign-manager'),
+                align: 'center',
+            } only %}
+
+        {% else %}
+            {# Star / Emoji: Average Rating, Total Responses, Median, Most Common #}
+            {% set avgValue = ratingStats.average ?? 0 %}
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: ratingStats.totalResponses > 0 ? avgValue|number_format(1) : '—',
+                description: 'Average Rating'|t('campaign-manager'),
+                align: 'center',
+            } only %}
+
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: ratingStats.totalResponses ?? 0,
+                description: 'Responses'|t('campaign-manager'),
+                align: 'center',
+            } only %}
+
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: ratingStats.totalResponses > 0 ? (ratingStats.median ?? '—') : '—',
+                description: 'Median'|t('campaign-manager'),
+                align: 'center',
+            } only %}
+
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: ratingStats.totalResponses > 0 ? (ratingStats.mode ?? '—') : '—',
+                description: 'Most Common'|t('campaign-manager'),
+                align: 'center',
+            } only %}
+        {% endif %}
+    </div>
+
+    {% if ratingStats.totalResponses > 0 %}
+
+        {# Charts row #}
+        <div class="lr-analytics-charts">
+            {# Distribution chart (doughnut for NPS, bar for Star/Emoji) #}
+            <div class="lr-chart-container">
+                {% if ratingFieldType == 'nps' %}
+                    <h3>{{ 'NPS Distribution'|t('campaign-manager') }}</h3>
+                {% else %}
+                    <h3>{{ 'Rating Distribution'|t('campaign-manager') }}</h3>
+                {% endif %}
+                <div class="lr-chart-height-250">
+                    <canvas id="rating-distribution-chart"></canvas>
+                </div>
+            </div>
+
+            {# Trend line chart #}
+            <div class="lr-chart-container">
+                {% if ratingFieldType == 'nps' %}
+                    <h3>{{ 'NPS over time'|t('campaign-manager') }}</h3>
+                {% else %}
+                    <h3>{{ 'Trend Over Time'|t('campaign-manager') }}</h3>
+                {% endif %}
+                <div class="lr-chart-height-250">
+                    <canvas id="rating-trend-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {# Per-campaign ratings table #}
+        {% if campaignRatingBreakdown.rows|length > 0 %}
+            <div class="lr-chart-container lr-mt-24">
+                <h3>{{ 'Campaign Performance'|t('campaign-manager') }}</h3>
+                <div class="lr-table-scroll">
+                    <table class="data fullwidth">
+                        <thead>
+                            <tr>
+                                <th>{{ 'Campaign'|t('campaign-manager') }}</th>
+                                <th>{{ 'Site'|t('campaign-manager') }}</th>
+                                <th class="lr-text-end">{{ 'Responses'|t('campaign-manager') }}</th>
+                                {% if ratingFieldType == 'nps' %}
+                                    <th class="lr-text-end">{{ 'NPS Score'|t('campaign-manager') }}</th>
+                                    <th class="lr-text-end">{{ 'Promoters'|t('campaign-manager') }}</th>
+                                    <th class="lr-text-end">{{ 'Passives'|t('campaign-manager') }}</th>
+                                    <th class="lr-text-end">{{ 'Detractors'|t('campaign-manager') }}</th>
+                                {% else %}
+                                    <th class="lr-text-end">{{ 'Average'|t('campaign-manager') }}</th>
+                                    <th class="lr-text-end">{{ 'Median'|t('campaign-manager') }}</th>
+                                    <th class="lr-text-end">{{ 'Most Common'|t('campaign-manager') }}</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in campaignRatingBreakdown.rows %}
+                                {% set rowSite = row.siteId ? craft.app.sites.getSiteById(row.siteId) : null %}
+                                <tr>
+                                    <td><strong>{{ row.campaignName }}</strong></td>
+                                    <td>{{ rowSite ? rowSite.name : '—' }}</td>
+                                    <td class="lr-text-end">{{ row.totalResponses|number_format }}</td>
+                                    {% if ratingFieldType == 'nps' %}
+                                        <td class="lr-text-end">
+                                            {% if row.npsScore is not null %}
+                                                {% set rowNpsDisplay = (row.npsScore == row.npsScore|round(0)) ? row.npsScore|number_format(0) : row.npsScore|number_format(1) %}
+                                                {% set rowNpsClass = row.npsScore >= 50 ? 'lr-text-green' : (row.npsScore >= 0 ? 'lr-text-yellow' : 'lr-text-red') %}
+                                                <span class="{{ rowNpsClass }}"><strong>{{ rowNpsDisplay }}</strong></span>
+                                            {% else %}
+                                                <span class="lr-text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="lr-text-end">{{ row.totalResponses > 0 ? row.promoters|number_format : '—' }}</td>
+                                        <td class="lr-text-end">{{ row.totalResponses > 0 ? row.passives|number_format : '—' }}</td>
+                                        <td class="lr-text-end">{{ row.totalResponses > 0 ? row.detractors|number_format : '—' }}</td>
+                                    {% else %}
+                                        <td class="lr-text-end">{{ row.totalResponses > 0 ? row.average|number_format(1) : '—' }}</td>
+                                        <td class="lr-text-end">{{ row.totalResponses > 0 ? row.median : '—' }}</td>
+                                        <td class="lr-text-end">{{ row.totalResponses > 0 ? (row.mode ?? '—') : '—' }}</td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+
+    {% else %}
+        {# Zero state — fields exist but no responses yet #}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            type: 'info',
+            message: 'No data available'|t('campaign-manager'),
+            margin: 'top',
+        } %}
+    {% endif %}
+
+{% endif %}

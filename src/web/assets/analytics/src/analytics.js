@@ -61,8 +61,8 @@
                 extraParams.fieldId = extraFilters.fieldId;
             }
 
-            // dateBasis is NPS-scoped: read from URL so NPS charts always use the
-            // correct value even though it's no longer in the global customFilters.
+            // dateBasis is ratings-scoped: read from URL so rating charts always use
+            // the correct value even though it's no longer in the global customFilters.
             const npsDateBasis = new URLSearchParams(window.location.search).get('dateBasis') || 'sent';
 
             window.lrLoadChartData('daily', function(data) {
@@ -124,34 +124,34 @@
                 renderFunnelChart(data);
             }, extraParams);
 
-            // NPS charts (only rendered if canvas elements exist)
-            if (document.getElementById('nps-distribution-chart')) {
-                window.lrLoadChartData('nps-distribution', function(data) {
+            // Rating charts (only rendered if canvas elements exist)
+            if (document.getElementById('rating-distribution-chart')) {
+                window.lrLoadChartData('rating-distribution', function(data) {
                     if (!data || !data.labels || !data.data) {
-                        renderEmptyState('nps-distribution-chart', strings.noNpsDistribution || 'No NPS distribution data available.', prefix);
+                        renderEmptyState('rating-distribution-chart', strings.noRatingDistribution || 'No rating distribution data available.', prefix);
                         return;
                     }
                     const hasData = Array.isArray(data.data) && data.data.some(v => Number(v) > 0);
                     if (!hasData) {
-                        renderEmptyState('nps-distribution-chart', strings.noNpsDistribution || 'No NPS distribution data available.', prefix);
+                        renderEmptyState('rating-distribution-chart', strings.noRatingDistribution || 'No rating distribution data available.', prefix);
                         return;
                     }
-                    renderNpsDistributionChart(data);
+                    renderRatingDistributionChart(data);
                 }, Object.assign({}, extraParams, { dateBasis: npsDateBasis }));
             }
 
-            if (document.getElementById('nps-trend-chart')) {
-                window.lrLoadChartData('nps-trend', function(data) {
+            if (document.getElementById('rating-trend-chart')) {
+                window.lrLoadChartData('rating-trend', function(data) {
                     if (!data || !data.labels) {
-                        renderEmptyState('nps-trend-chart', strings.noNpsTrend || 'No NPS trend data available.', prefix);
+                        renderEmptyState('rating-trend-chart', strings.noRatingTrend || 'No rating trend data available.', prefix);
                         return;
                     }
-                    const hasData = Array.isArray(data.npsScore) && data.npsScore.some(v => v !== null);
+                    const hasData = Array.isArray(data.value) && data.value.some(v => v !== null);
                     if (!hasData) {
-                        renderEmptyState('nps-trend-chart', strings.noNpsTrend || 'No NPS trend data available.', prefix);
+                        renderEmptyState('rating-trend-chart', strings.noRatingTrend || 'No rating trend data available.', prefix);
                         return;
                     }
-                    renderNpsTrendChart(data);
+                    renderRatingTrendChart(data);
                 }, Object.assign({}, extraParams, { dateBasis: npsDateBasis }));
             }
         }
@@ -251,31 +251,63 @@
             });
         }
 
-        function renderNpsDistributionChart(data) {
-            const canvas = document.getElementById('nps-distribution-chart');
+        function renderRatingDistributionChart(data) {
+            const canvas = document.getElementById('rating-distribution-chart');
             if (!canvas) return;
             resetChartState(canvas);
 
-            window.lrCreateChart('nps-distribution-chart', 'doughnut', {
-                labels: data.labels,
-                datasets: [{
-                    data: data.data,
-                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
-                }]
-            });
+            // chartType is provided by the service: 'doughnut' for NPS, 'bar' for Star/Emoji
+            const chartType = data.chartType || 'doughnut';
+            const isBar = chartType === 'bar';
+
+            if (isBar) {
+                window.lrCreateChart('rating-distribution-chart', 'bar', {
+                    labels: data.labels,
+                    datasets: [{
+                        label: strings.countLabel || 'Count',
+                        data: data.data,
+                        backgroundColor: '#0d78f2'
+                    }]
+                }, {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                });
+            } else {
+                window.lrCreateChart('rating-distribution-chart', 'doughnut', {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.data,
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                    }]
+                });
+            }
         }
 
-        function renderNpsTrendChart(data) {
-            const canvas = document.getElementById('nps-trend-chart');
+        function renderRatingTrendChart(data) {
+            const canvas = document.getElementById('rating-trend-chart');
             if (!canvas) return;
             resetChartState(canvas);
 
-            window.lrCreateChart('nps-trend-chart', 'line', {
+            // scaleMin/scaleMax are provided by the service
+            // NPS: -100 to 100; Star/Emoji: field's minValue to maxValue
+            const scaleMin = typeof data.scaleMin === 'number' ? data.scaleMin : -100;
+            const scaleMax = typeof data.scaleMax === 'number' ? data.scaleMax : 100;
+
+            // Label: use npsScoreLabel for NPS scale (-100 to 100), averageLabel otherwise
+            const isNpsScale = scaleMin === -100 && scaleMax === 100;
+            const trendLabel = isNpsScale
+                ? (strings.npsScoreLabel || 'NPS Score')
+                : (strings.averageLabel || 'Average');
+
+            window.lrCreateChart('rating-trend-chart', 'line', {
                 labels: data.labels,
                 datasets: [
                     {
-                        label: strings.npsScoreLabel || 'NPS Score',
-                        data: data.npsScore,
+                        label: trendLabel,
+                        data: data.value,
                         borderColor: '#0d78f2',
                         backgroundColor: 'rgba(13, 120, 242, 0.1)',
                         tension: 0.3,
@@ -288,9 +320,9 @@
                 plugins: { legend: { position: 'top' } },
                 scales: {
                     y: {
-                        min: -100,
-                        max: 100,
-                        ticks: { stepSize: 50 }
+                        min: scaleMin,
+                        max: scaleMax,
+                        ticks: { stepSize: isNpsScale ? 50 : 1 }
                     }
                 }
             });
@@ -300,12 +332,12 @@
             if (!window._lrExportConfigs) return;
             var hash = (window.location.hash || '').replace(/^#/, '');
             var search = new URLSearchParams(window.location.search || '');
-            var isNps = hash === 'nps';
+            var isRatings = hash === 'ratings';
             Object.keys(window._lrExportConfigs).forEach(function(id) {
                 var cfg = window._lrExportConfigs[id];
                 if (!cfg || !cfg.params) return;
-                if (isNps) {
-                    cfg.params.scope = 'nps';
+                if (isRatings) {
+                    cfg.params.scope = 'ratings';
                     cfg.params.fieldId = search.get('rating') || '';
                     cfg.params.dateBasis = search.get('dateBasis') || 'sent';
                 } else {
