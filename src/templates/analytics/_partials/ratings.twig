@@ -182,17 +182,11 @@
             } only %}
 
         {% else %}
-            {# Star / Emoji: Average Rating, Total Responses, Median, Most Common #}
+            {# Star / Emoji: Average Rating, Median, Most Common, Responses #}
             {% set avgValue = ratingStats.average ?? 0 %}
             {% include 'lindemannrock-base/_components/cards/unified-card' with {
                 value: ratingStats.totalResponses > 0 ? avgValue|number_format(1) : '—',
                 description: 'Average Rating'|t('campaign-manager'),
-                align: 'center',
-            } only %}
-
-            {% include 'lindemannrock-base/_components/cards/unified-card' with {
-                value: ratingStats.totalResponses ?? 0,
-                description: 'Responses'|t('campaign-manager'),
                 align: 'center',
             } only %}
 
@@ -205,6 +199,12 @@
             {% include 'lindemannrock-base/_components/cards/unified-card' with {
                 value: ratingStats.totalResponses > 0 ? (ratingStats.mode ?? '—') : '—',
                 description: 'Most Common'|t('campaign-manager'),
+                align: 'center',
+            } only %}
+
+            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                value: ratingStats.totalResponses ?? 0,
+                description: 'Responses'|t('campaign-manager'),
                 align: 'center',
             } only %}
         {% endif %}
