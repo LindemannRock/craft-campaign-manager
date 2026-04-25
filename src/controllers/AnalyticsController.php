@@ -198,6 +198,12 @@ class AnalyticsController extends Controller
         $campaignId = $request->getBodyParam('campaign', 'all');
         $rawSiteId = $request->getBodyParam('siteId', 'all');
 
+        // Read and validate export scope
+        $scope = $request->getBodyParam('scope', 'campaigns');
+        if (!in_array($scope, ['campaigns', 'nps'], true)) {
+            $scope = 'campaigns';
+        }
+
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
             throw new BadRequestHttpException("Export format '{$format}' is not enabled.");
@@ -212,6 +218,13 @@ class AnalyticsController extends Controller
         $effectiveSiteId = $this->_resolveSiteId($rawSiteId);
 
         $analyticsService = CampaignManager::$plugin->analytics;
+        $settings = CampaignManager::$plugin->getSettings();
+        $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
+        $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
+
+        if ($scope === 'nps') {
+            return $this->_exportNps($request, $analyticsService, $settings, $campaignId, $effectiveSiteId, $dateRange, $dateRangeLabel, $format, $extension);
+        }
 
         // Get comprehensive stats for export
         $overviewStats = $analyticsService->getOverviewStats($campaignId, $effectiveSiteId, $dateRange);
@@ -263,9 +276,6 @@ class AnalyticsController extends Controller
         ];
 
         // Build filename
-        $settings = CampaignManager::$plugin->getSettings();
-        $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
         $filenameParts = ['analytics'];
 
         if (is_int($campaignId)) {
@@ -293,6 +303,143 @@ class AnalyticsController extends Controller
             'json' => ExportHelper::toJson($rows, $filename),
             'xlsx', 'excel' => ExportHelper::toExcel($rows, $headers, $filename, [], [
                 'sheetTitle' => 'Analytics',
+            ]),
+            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
+        };
+    }
+
+    /**
+     * Handle NPS-scoped export branch.
+     *
+     * @param \craft\web\Request $request
+     * @param \lindemannrock\campaignmanager\services\AnalyticsService $analyticsService
+     * @param object $settings
+     * @param int|string $campaignId
+     * @param int|array<int> $effectiveSiteId
+     * @param string $dateRange
+     * @param string $dateRangeLabel
+     * @param string $format
+     * @param string $extension
+     * @return Response
+     * @throws BadRequestHttpException
+     */
+    private function _exportNps(
+        \craft\web\Request $request,
+        \lindemannrock\campaignmanager\services\AnalyticsService $analyticsService,
+        object $settings,
+        int|string $campaignId,
+        int|array $effectiveSiteId,
+        string $dateRange,
+        string $dateRangeLabel,
+        string $format,
+        string $extension,
+    ): Response {
+        // Read NPS-specific params
+        $rawFieldId = $request->getBodyParam('fieldId');
+        $fieldId = ($rawFieldId !== null && is_numeric($rawFieldId) && (int)$rawFieldId > 0) ? (int)$rawFieldId : null;
+
+        $dateBasis = $request->getBodyParam('dateBasis', 'sent');
+        if (!in_array($dateBasis, ['sent', 'response'], true)) {
+            $dateBasis = 'sent';
+        }
+
+        // Guard: plugin not enabled or no field selected
+        if (!PluginHelper::isPluginEnabled('formie-rating-field') || $fieldId === null) {
+            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No NPS data available to export.'));
+            return $this->redirect(Craft::$app->getRequest()->getReferrer());
+        }
+
+        // Resolve rating field metadata
+        $ratingFields = $analyticsService->getRatingFieldsInScope($campaignId, $effectiveSiteId, $dateRange, $dateBasis);
+        $ratingFieldInfo = null;
+        foreach ($ratingFields as $rf) {
+            if ($rf['fieldId'] === $fieldId) {
+                $ratingFieldInfo = $rf;
+                break;
+            }
+        }
+
+        if ($ratingFieldInfo === null) {
+            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No NPS data available to export.'));
+            return $this->redirect(Craft::$app->getRequest()->getReferrer());
+        }
+
+        // Fetch data
+        $campaignNpsBreakdown = $analyticsService->getCampaignNpsBreakdown($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId);
+
+        if (empty($campaignNpsBreakdown)) {
+            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'No NPS data available to export.'));
+            return $this->redirect(Craft::$app->getRequest()->getReferrer());
+        }
+
+        $dateBasisLabel = $dateBasis === 'response'
+            ? Craft::t('campaign-manager', 'Response date')
+            : Craft::t('campaign-manager', 'Send activity');
+
+        $ratingFieldLabel = $ratingFieldInfo['label'];
+
+        // Build rows
+        $rows = [];
+        foreach ($campaignNpsBreakdown as $data) {
+            $site = $data['siteId'] ? Craft::$app->getSites()->getSiteById($data['siteId']) : null;
+            $hasResponses = $data['totalResponses'] > 0;
+
+            $rows[] = [
+                'campaign' => $data['campaignName'],
+                'site' => $site?->name ?? '—',
+                'ratingField' => $ratingFieldLabel,
+                'dateBasis' => $dateBasisLabel,
+                'responses' => $data['totalResponses'],
+                'npsScore' => $hasResponses ? ($data['npsScore'] !== null ? $data['npsScore'] : '—') : '—',
+                'promoters' => $hasResponses ? $data['promoters'] : '—',
+                'passives' => $hasResponses ? $data['passives'] : '—',
+                'detractors' => $hasResponses ? $data['detractors'] : '—',
+            ];
+        }
+
+        $headers = [
+            Craft::t('campaign-manager', 'Campaign'),
+            Craft::t('campaign-manager', 'Site'),
+            Craft::t('campaign-manager', 'Rating Field'),
+            Craft::t('campaign-manager', 'Date Basis'),
+            Craft::t('campaign-manager', 'Responses'),
+            Craft::t('campaign-manager', 'NPS Score'),
+            Craft::t('campaign-manager', 'Promoters'),
+            Craft::t('campaign-manager', 'Passives'),
+            Craft::t('campaign-manager', 'Detractors'),
+        ];
+
+        // Build filename: campaign-nps-[campaignSlug?]-[siteHandle?]-{fieldHandle}-{dateRange}-{dateBasis}-{timestamp}.csv
+        $filenameParts = ['nps'];
+
+        if (is_int($campaignId)) {
+            $campaign = CampaignManager::$plugin->campaigns->getCampaignById($campaignId);
+            if ($campaign) {
+                $campaignSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($campaign->title ?? 'campaign'));
+                $filenameParts[] = $campaignSlug;
+            }
+        }
+
+        if (is_int($effectiveSiteId)) {
+            $site = Craft::$app->getSites()->getSiteById($effectiveSiteId);
+            if ($site) {
+                $siteHandle = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
+                $filenameParts[] = $siteHandle;
+            }
+        }
+
+        $fieldHandleSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($ratingFieldInfo['handle']));
+        $filenameParts[] = $fieldHandleSlug;
+        $filenameParts[] = $dateRangeLabel;
+        $filenameParts[] = $dateBasis;
+
+        $filename = ExportHelper::filename($settings, $filenameParts, $extension);
+
+        return match ($format) {
+            'csv' => ExportHelper::toCsv($rows, $headers, $filename),
+            'json' => ExportHelper::toJson($rows, $filename),
+            'xlsx', 'excel' => ExportHelper::toExcel($rows, $headers, $filename, [], [
+                'sheetTitle' => 'NPS',
             ]),
             default => throw new BadRequestHttpException("Unknown export format: {$format}"),
         };

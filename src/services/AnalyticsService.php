@@ -605,6 +605,24 @@ class AnalyticsService extends Component
     }
 
     /**
+     * Normalize a siteId filter into a flat list of site IDs.
+     *
+     * @param int|string|array<int> $siteId
+     * @return array<int>
+     */
+    private function _resolveSiteIdList(int|string|array $siteId): array
+    {
+        if (is_array($siteId)) {
+            return array_values(array_map('intval', $siteId));
+        }
+        if ($siteId === 'all' || $siteId === '') {
+            return Craft::$app->getSites()->getEditableSiteIds();
+        }
+
+        return [(int)$siteId];
+    }
+
+    /**
      * Build a local-date SQL expression for the given column.
      *
      * @param string $column
@@ -632,18 +650,20 @@ class AnalyticsService extends Component
             return [];
         }
 
-        // Get all campaigns in scope (iterate site-localized versions so rating fields
-        // on campaigns that exist only in non-current sites are still detected).
-        $campaignQuery = Campaign::find()->status(null);
-        if ($siteId !== 'all') {
-            $campaignQuery->siteId($siteId);
-        } else {
-            $campaignQuery->siteId('*');
+        // Iterate sites explicitly so we get one row per (campaign, site).
+        // Craft's element query defaults to "unique by element ID" when id() is set,
+        // which would hide site-localized duplicates of a single campaign.
+        $siteIds = $this->_resolveSiteIdList($siteId);
+        $campaigns = [];
+        foreach ($siteIds as $sid) {
+            $q = Campaign::find()->status(null)->siteId($sid);
+            if ($campaignId !== 'all') {
+                $q->id($campaignId);
+            }
+            foreach ($q->all() as $c) {
+                $campaigns[] = $c;
+            }
         }
-        if ($campaignId !== 'all') {
-            $campaignQuery->id($campaignId);
-        }
-        $campaigns = $campaignQuery->all();
 
         $fields = [];
         $seenFieldIds = [];
@@ -785,16 +805,19 @@ class AnalyticsService extends Component
             return [];
         }
 
-        $campaignQuery = Campaign::find()->status(null);
-        if ($siteId !== 'all') {
-            $campaignQuery->siteId($siteId);
-        } else {
-            $campaignQuery->siteId('*');
+        // Iterate sites explicitly so we get one row per (campaign, site) — see
+        // matching note in getRatingFieldsInScope().
+        $siteIds = $this->_resolveSiteIdList($siteId);
+        $campaigns = [];
+        foreach ($siteIds as $sid) {
+            $q = Campaign::find()->status(null)->siteId($sid);
+            if ($campaignId !== 'all') {
+                $q->id($campaignId);
+            }
+            foreach ($q->all() as $c) {
+                $campaigns[] = $c;
+            }
         }
-        if ($campaignId !== 'all') {
-            $campaignQuery->id($campaignId);
-        }
-        $campaigns = $campaignQuery->all();
 
         $result = [];
 
