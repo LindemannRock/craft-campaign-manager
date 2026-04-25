@@ -43,8 +43,9 @@ This plugin is in active development and not yet available on the Craft Plugin S
   - Engagement tracking over time
   - Conversion funnel visualization
   - Campaign performance comparison
-  - Export analytics to CSV/JSON/Excel
-  - Filter by campaign, site, and date range
+  - **Ratings tab** (when `formie-rating-field` is enabled): per-campaign NPS / Star / Emoji rating analytics with rating field picker, distribution chart (donut for NPS, bar for star/emoji), trend chart, and per-campaign breakdown table
+  - **Multi-section export**: Excel (multi-sheet: Summary / Per Campaign / Raw Responses), CSV (ZIP of per-section CSVs), JSON (nested with all sections); Raw Responses includes per-recipient detail (campaign, site, send/response dates, rating value)
+  - Filter by campaign, site, and date range; Ratings tab also supports a **"Date based on"** filter (Send activity vs. Response date)
 - **Survey Response Tracking**:
   - Link Formie submissions to recipients
   - Track survey completion rates
@@ -303,27 +304,19 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
 
 ## Console Commands
 
-```bash
-# Run all campaigns
-./craft campaign-manager/campaigns/run-all
-
-# Run specific campaign
-./craft campaign-manager/campaigns/run --campaign=123
-```
+Campaigns are run through the Control Panel or via the queue worker. There are no dedicated CLI commands for this plugin at this time.
 
 ## Permissions
 
 ### Campaign Permissions
-- **Manage campaigns**
-  - View campaigns
+- **Manage campaigns** (grants campaign list access)
   - Create campaigns
   - Edit campaigns
   - Delete campaigns
   - Run campaigns
 
 ### Recipient Permissions
-- **Manage recipients**
-  - View recipients
+- **Manage recipients** (grants recipient list access)
   - Add recipients
   - Import recipients
   - Export recipients
@@ -335,7 +328,11 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
 
 ### Logs Permissions
 - **View logs**
-  - Download logs
+  - View system logs
+    - Download system logs
+  - View activity logs
+    - Download activity logs
+    - Clear activity logs
 
 ### Settings Permissions
 - **Manage settings**
