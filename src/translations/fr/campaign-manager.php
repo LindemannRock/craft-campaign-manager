@@ -516,6 +516,8 @@ return [
     'NPS Trend' => 'Tendance NPS',
     'NPS over time' => 'NPS dans le temps',
     'Rating Field' => 'Champ de notation',
+    'Date Basis' => 'Base de date',
+    'No NPS data available to export.' => 'Aucune donnée NPS disponible pour l\'exportation.',
     'No rating fields found for this selection.' => 'Aucun champ de notation trouvé pour cette sélection.',
     'Select a rating field' => 'Sélectionner un champ de notation',
     'No NPS distribution data available for the selected filters.' => 'Aucune donnée de distribution NPS disponible pour les filtres sélectionnés.',

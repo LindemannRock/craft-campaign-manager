@@ -508,6 +508,8 @@ return [
     'NPS Trend' => 'NPS Trend',
     'NPS over time' => 'NPS over time',
     'Rating Field' => 'Rating Field',
+    'Date Basis' => 'Date Basis',
+    'No NPS data available to export.' => 'No NPS data available to export.',
     'No rating fields found for this selection.' => 'No rating fields found for this selection.',
     'Select a rating field' => 'Select a rating field',
     'No NPS distribution data available for the selected filters.' => 'No NPS distribution data available for the selected filters.',

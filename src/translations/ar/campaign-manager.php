@@ -516,6 +516,8 @@ return [
     'NPS Trend' => 'اتجاه NPS',
     'NPS over time' => 'NPS عبر الزمن',
     'Rating Field' => 'حقل التقييم',
+    'Date Basis' => 'أساس التاريخ',
+    'No NPS data available to export.' => 'لا تتوفر بيانات NPS للتصدير.',
     'No rating fields found for this selection.' => 'لم يتم العثور على حقول تقييم لهذا الاختيار.',
     'Select a rating field' => 'تحديد حقل تقييم',
     'No NPS distribution data available for the selected filters.' => 'لا تتوفر بيانات توزيع NPS للفلاتر المحددة.',

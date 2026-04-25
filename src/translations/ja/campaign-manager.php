@@ -516,6 +516,8 @@ return [
     'NPS Trend' => 'NPS トレンド',
     'NPS over time' => '時系列 NPS',
     'Rating Field' => '評価フィールド',
+    'Date Basis' => '日付基準',
+    'No NPS data available to export.' => 'エクスポートできる NPS データがありません。',
     'No rating fields found for this selection.' => 'この選択に評価フィールドが見つかりません。',
     'Select a rating field' => '評価フィールドを選択してください',
     'No NPS distribution data available for the selected filters.' => '選択したフィルターに利用可能な NPS 分布データがありません。',

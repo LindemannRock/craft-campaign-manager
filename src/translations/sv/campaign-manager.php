@@ -516,6 +516,8 @@ return [
     'NPS Trend' => 'NPS-trend',
     'NPS over time' => 'NPS över tid',
     'Rating Field' => 'Betygsfält',
+    'Date Basis' => 'Datumbas',
+    'No NPS data available to export.' => 'Inga NPS-data tillgängliga för export.',
     'No rating fields found for this selection.' => 'Inga betygsfält hittades för detta urval.',
     'Select a rating field' => 'Välj ett betygsfält',
     'No NPS distribution data available for the selected filters.' => 'Inga NPS-fördelningsdata tillgängliga för de valda filtren.',

@@ -516,6 +516,8 @@ return [
     'NPS Trend' => 'NPS-trend',
     'NPS over time' => 'NPS in de tijd',
     'Rating Field' => 'Beoordelingsveld',
+    'Date Basis' => 'Datumbasis',
+    'No NPS data available to export.' => 'Geen NPS-gegevens beschikbaar om te exporteren.',
     'No rating fields found for this selection.' => 'Geen beoordelingsvelden gevonden voor deze selectie.',
     'Select a rating field' => 'Selecteer een beoordelingsveld',
     'No NPS distribution data available for the selected filters.' => 'Geen NPS-verdelingsgegevens beschikbaar voor de geselecteerde filters.',
