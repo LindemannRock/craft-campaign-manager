@@ -416,10 +416,13 @@ return [
     'Delivery' => 'Consegna',
     'Engagement' => 'Coinvolgimento',
     'Conversion' => 'Conversione',
+    'Ratings' => 'Valutazioni',
     'No activity data available for the selected filters.' => 'Nessun dato di attività disponibile per i filtri selezionati.',
     'No channel data available for the selected filters.' => 'Nessun dato di canale disponibile per i filtri selezionati.',
     'No engagement data available for the selected filters.' => 'Nessun dato di coinvolgimento disponibile per i filtri selezionati.',
     'No funnel data available for the selected filters.' => 'Nessun dato di funnel disponibile per i filtri selezionati.',
+    'No rating distribution data available for the selected filters.' => 'Nessun dato di distribuzione valutazioni disponibile per i filtri selezionati.',
+    'No rating trend data available for the selected filters.' => 'Nessun dato di andamento valutazioni disponibile per i filtri selezionati.',
     'Recipients Added' => 'Destinatari aggiunti',
     'Responses' => 'Risposte',
     'Email Opens' => 'Aperture email',
@@ -506,7 +509,7 @@ return [
     'Send activity' => 'Attività di invio',
     'Response date' => 'Data di risposta',
 
-    // Analytics: NPS
+    // Analytics: NPS (keep for NPS-type rendering)
     'NPS' => 'NPS',
     'NPS Score' => 'Punteggio NPS',
     'Promoters' => 'Promotori',
@@ -515,11 +518,21 @@ return [
     'NPS Distribution' => 'Distribuzione NPS',
     'NPS Trend' => 'Andamento NPS',
     'NPS over time' => 'NPS nel tempo',
+
+    // Analytics: Ratings
     'Rating Field' => 'Campo di valutazione',
     'Date Basis' => 'Base data',
-    'No NPS data available to export.' => 'Nessun dato NPS disponibile per l\'esportazione.',
+    'No ratings data available to export.' => 'Nessun dato di valutazioni disponibile per l\'esportazione.',
     'No rating fields found for this selection.' => 'Nessun campo di valutazione trovato per questa selezione.',
     'Select a rating field' => 'Seleziona un campo di valutazione',
-    'No NPS distribution data available for the selected filters.' => 'Nessun dato di distribuzione NPS disponibile per i filtri selezionati.',
-    'No NPS trend data available for the selected filters.' => 'Nessun dato di andamento NPS disponibile per i filtri selezionati.',
+    'Average Rating' => 'Valutazione media',
+    'Average' => 'Media',
+    'Median' => 'Mediana',
+    'Most Common' => 'Più frequente',
+    'Min' => 'Min',
+    'Max' => 'Max',
+    'Star Rating' => 'Valutazione a stelle',
+    'Emoji Rating' => 'Valutazione con emoji',
+    'Rating Distribution' => 'Distribuzione valutazioni',
+    'Trend Over Time' => 'Andamento nel tempo',
 ];

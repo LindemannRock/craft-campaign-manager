@@ -416,10 +416,13 @@ return [
     'Delivery' => 'Leverans',
     'Engagement' => 'Engagemang',
     'Conversion' => 'Konvertering',
+    'Ratings' => 'Betyg',
     'No activity data available for the selected filters.' => 'Inga aktivitetsdata tillgängliga för de valda filtren.',
     'No channel data available for the selected filters.' => 'Inga kanaldata tillgängliga för de valda filtren.',
     'No engagement data available for the selected filters.' => 'Inga engagemangsdata tillgängliga för de valda filtren.',
     'No funnel data available for the selected filters.' => 'Inga trattdata tillgängliga för de valda filtren.',
+    'No rating distribution data available for the selected filters.' => 'Inga betygsfördelningsdata tillgängliga för de valda filtren.',
+    'No rating trend data available for the selected filters.' => 'Inga betygstrenddata tillgängliga för de valda filtren.',
     'Recipients Added' => 'Tillagda mottagare',
     'Responses' => 'Svar',
     'Email Opens' => 'E-postöppningar',
@@ -506,7 +509,7 @@ return [
     'Send activity' => 'Sändningsaktivitet',
     'Response date' => 'Svarsdatum',
 
-    // Analytics: NPS
+    // Analytics: NPS (keep for NPS-type rendering)
     'NPS' => 'NPS',
     'NPS Score' => 'NPS-poäng',
     'Promoters' => 'Förespråkare',
@@ -515,11 +518,21 @@ return [
     'NPS Distribution' => 'NPS-fördelning',
     'NPS Trend' => 'NPS-trend',
     'NPS over time' => 'NPS över tid',
+
+    // Analytics: Ratings
     'Rating Field' => 'Betygsfält',
     'Date Basis' => 'Datumbas',
-    'No NPS data available to export.' => 'Inga NPS-data tillgängliga för export.',
+    'No ratings data available to export.' => 'Inga betygsdata tillgängliga för export.',
     'No rating fields found for this selection.' => 'Inga betygsfält hittades för detta urval.',
     'Select a rating field' => 'Välj ett betygsfält',
-    'No NPS distribution data available for the selected filters.' => 'Inga NPS-fördelningsdata tillgängliga för de valda filtren.',
-    'No NPS trend data available for the selected filters.' => 'Inga NPS-trenddata tillgängliga för de valda filtren.',
+    'Average Rating' => 'Genomsnittsbetyg',
+    'Average' => 'Genomsnitt',
+    'Median' => 'Median',
+    'Most Common' => 'Vanligast',
+    'Min' => 'Min',
+    'Max' => 'Max',
+    'Star Rating' => 'Stjärnbetyg',
+    'Emoji Rating' => 'Emoji-betyg',
+    'Rating Distribution' => 'Betygsfördelning',
+    'Trend Over Time' => 'Trend över tid',
 ];

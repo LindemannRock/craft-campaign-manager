@@ -416,10 +416,13 @@ return [
     'Delivery' => 'التسليم',
     'Engagement' => 'التفاعل',
     'Conversion' => 'التحويل',
+    'Ratings' => 'التقييمات',
     'No activity data available for the selected filters.' => 'لا تتوفر بيانات نشاط للفلاتر المحددة.',
     'No channel data available for the selected filters.' => 'لا تتوفر بيانات قنوات للفلاتر المحددة.',
     'No engagement data available for the selected filters.' => 'لا تتوفر بيانات تفاعل للفلاتر المحددة.',
     'No funnel data available for the selected filters.' => 'لا تتوفر بيانات قمع للفلاتر المحددة.',
+    'No rating distribution data available for the selected filters.' => 'لا تتوفر بيانات توزيع التقييمات للفلاتر المحددة.',
+    'No rating trend data available for the selected filters.' => 'لا تتوفر بيانات اتجاه التقييمات للفلاتر المحددة.',
     'Recipients Added' => 'المستلمون المضافون',
     'Responses' => 'الردود',
     'Email Opens' => 'فتحات البريد الإلكتروني',
@@ -506,7 +509,7 @@ return [
     'Send activity' => 'نشاط الإرسال',
     'Response date' => 'تاريخ الاستجابة',
 
-    // Analytics: NPS
+    // Analytics: NPS (keep for NPS-type rendering)
     'NPS' => 'NPS',
     'NPS Score' => 'نقاط NPS',
     'Promoters' => 'المروّجون',
@@ -515,11 +518,21 @@ return [
     'NPS Distribution' => 'توزيع NPS',
     'NPS Trend' => 'اتجاه NPS',
     'NPS over time' => 'NPS عبر الزمن',
+
+    // Analytics: Ratings
     'Rating Field' => 'حقل التقييم',
     'Date Basis' => 'أساس التاريخ',
-    'No NPS data available to export.' => 'لا تتوفر بيانات NPS للتصدير.',
+    'No ratings data available to export.' => 'لا تتوفر بيانات تقييمات للتصدير.',
     'No rating fields found for this selection.' => 'لم يتم العثور على حقول تقييم لهذا الاختيار.',
     'Select a rating field' => 'تحديد حقل تقييم',
-    'No NPS distribution data available for the selected filters.' => 'لا تتوفر بيانات توزيع NPS للفلاتر المحددة.',
-    'No NPS trend data available for the selected filters.' => 'لا تتوفر بيانات اتجاه NPS للفلاتر المحددة.',
+    'Average Rating' => 'متوسط التقييم',
+    'Average' => 'المتوسط',
+    'Median' => 'الوسيط',
+    'Most Common' => 'الأكثر شيوعاً',
+    'Min' => 'الحد الأدنى',
+    'Max' => 'الحد الأقصى',
+    'Star Rating' => 'تقييم بالنجوم',
+    'Emoji Rating' => 'تقييم بالرموز التعبيرية',
+    'Rating Distribution' => 'توزيع التقييمات',
+    'Trend Over Time' => 'الاتجاه عبر الزمن',
 ];

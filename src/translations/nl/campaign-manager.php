@@ -416,10 +416,13 @@ return [
     'Delivery' => 'Bezorging',
     'Engagement' => 'Betrokkenheid',
     'Conversion' => 'Conversie',
+    'Ratings' => 'Beoordelingen',
     'No activity data available for the selected filters.' => 'Geen activiteitsgegevens beschikbaar voor de geselecteerde filters.',
     'No channel data available for the selected filters.' => 'Geen kanaalgegevens beschikbaar voor de geselecteerde filters.',
     'No engagement data available for the selected filters.' => 'Geen betrokkenheidsgegevens beschikbaar voor de geselecteerde filters.',
     'No funnel data available for the selected filters.' => 'Geen trechtergegevens beschikbaar voor de geselecteerde filters.',
+    'No rating distribution data available for the selected filters.' => 'Geen beoordelingsverdelingsgegevens beschikbaar voor de geselecteerde filters.',
+    'No rating trend data available for the selected filters.' => 'Geen beoordelingstrendgegevens beschikbaar voor de geselecteerde filters.',
     'Recipients Added' => 'Ontvangers toegevoegd',
     'Responses' => 'Reacties',
     'Email Opens' => 'E-mail geopend',
@@ -506,7 +509,7 @@ return [
     'Send activity' => 'Verzendactiviteit',
     'Response date' => 'Reactiedatum',
 
-    // Analytics: NPS
+    // Analytics: NPS (keep for NPS-type rendering)
     'NPS' => 'NPS',
     'NPS Score' => 'NPS-score',
     'Promoters' => 'Promotors',
@@ -515,11 +518,21 @@ return [
     'NPS Distribution' => 'NPS-verdeling',
     'NPS Trend' => 'NPS-trend',
     'NPS over time' => 'NPS in de tijd',
+
+    // Analytics: Ratings
     'Rating Field' => 'Beoordelingsveld',
     'Date Basis' => 'Datumbasis',
-    'No NPS data available to export.' => 'Geen NPS-gegevens beschikbaar om te exporteren.',
+    'No ratings data available to export.' => 'Geen beoordelingsgegevens beschikbaar om te exporteren.',
     'No rating fields found for this selection.' => 'Geen beoordelingsvelden gevonden voor deze selectie.',
     'Select a rating field' => 'Selecteer een beoordelingsveld',
-    'No NPS distribution data available for the selected filters.' => 'Geen NPS-verdelingsgegevens beschikbaar voor de geselecteerde filters.',
-    'No NPS trend data available for the selected filters.' => 'Geen NPS-trendgegevens beschikbaar voor de geselecteerde filters.',
+    'Average Rating' => 'Gemiddelde beoordeling',
+    'Average' => 'Gemiddelde',
+    'Median' => 'Mediaan',
+    'Most Common' => 'Meest voorkomend',
+    'Min' => 'Min',
+    'Max' => 'Max',
+    'Star Rating' => 'Sterrenbeoordeling',
+    'Emoji Rating' => 'Emoji-beoordeling',
+    'Rating Distribution' => 'Beoordelingsverdeling',
+    'Trend Over Time' => 'Trend in de tijd',
 ];

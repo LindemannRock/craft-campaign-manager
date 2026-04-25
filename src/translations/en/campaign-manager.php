@@ -412,10 +412,13 @@ return [
     'Delivery' => 'Delivery',
     'Engagement' => 'Engagement',
     'Conversion' => 'Conversion',
+    'Ratings' => 'Ratings',
     'No activity data available for the selected filters.' => 'No activity data available for the selected filters.',
     'No channel data available for the selected filters.' => 'No channel data available for the selected filters.',
     'No engagement data available for the selected filters.' => 'No engagement data available for the selected filters.',
     'No funnel data available for the selected filters.' => 'No funnel data available for the selected filters.',
+    'No rating distribution data available for the selected filters.' => 'No rating distribution data available for the selected filters.',
+    'No rating trend data available for the selected filters.' => 'No rating trend data available for the selected filters.',
     'Recipients Added' => 'Recipients Added',
     'Email Opens' => 'Email Opens',
     'SMS Opens' => 'SMS Opens',
@@ -498,7 +501,7 @@ return [
     'Send activity' => 'Send activity',
     'Response date' => 'Response date',
 
-    // Analytics: NPS
+    // Analytics: NPS (keep for NPS-type rendering)
     'NPS' => 'NPS',
     'NPS Score' => 'NPS Score',
     'Promoters' => 'Promoters',
@@ -507,11 +510,21 @@ return [
     'NPS Distribution' => 'NPS Distribution',
     'NPS Trend' => 'NPS Trend',
     'NPS over time' => 'NPS over time',
+
+    // Analytics: Ratings
     'Rating Field' => 'Rating Field',
     'Date Basis' => 'Date Basis',
-    'No NPS data available to export.' => 'No NPS data available to export.',
+    'No ratings data available to export.' => 'No ratings data available to export.',
     'No rating fields found for this selection.' => 'No rating fields found for this selection.',
     'Select a rating field' => 'Select a rating field',
-    'No NPS distribution data available for the selected filters.' => 'No NPS distribution data available for the selected filters.',
-    'No NPS trend data available for the selected filters.' => 'No NPS trend data available for the selected filters.',
+    'Average Rating' => 'Average Rating',
+    'Average' => 'Average',
+    'Median' => 'Median',
+    'Most Common' => 'Most Common',
+    'Min' => 'Min',
+    'Max' => 'Max',
+    'Star Rating' => 'Star Rating',
+    'Emoji Rating' => 'Emoji Rating',
+    'Rating Distribution' => 'Rating Distribution',
+    'Trend Over Time' => 'Trend Over Time',
 ];

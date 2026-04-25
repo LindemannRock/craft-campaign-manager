@@ -416,10 +416,13 @@ return [
     'Delivery' => '配信',
     'Engagement' => 'エンゲージメント',
     'Conversion' => 'コンバージョン',
+    'Ratings' => 'レーティング',
     'No activity data available for the selected filters.' => '選択したフィルターで利用可能なアクティビティデータがありません。',
     'No channel data available for the selected filters.' => '選択したフィルターで利用可能なチャネルデータがありません。',
     'No engagement data available for the selected filters.' => '選択したフィルターで利用可能なエンゲージメントデータがありません。',
     'No funnel data available for the selected filters.' => '選択したフィルターで利用可能なファネルデータがありません。',
+    'No rating distribution data available for the selected filters.' => '選択したフィルターで利用可能なレーティング分布データがありません。',
+    'No rating trend data available for the selected filters.' => '選択したフィルターで利用可能なレーティングトレンドデータがありません。',
     'Recipients Added' => '追加された受信者',
     'Responses' => '回答',
     'Email Opens' => 'Email 開封数',
@@ -506,7 +509,7 @@ return [
     'Send activity' => '送信アクティビティ',
     'Response date' => 'レスポンス日',
 
-    // Analytics: NPS
+    // Analytics: NPS (keep for NPS-type rendering)
     'NPS' => 'NPS',
     'NPS Score' => 'NPS スコア',
     'Promoters' => 'プロモーター',
@@ -515,11 +518,21 @@ return [
     'NPS Distribution' => 'NPS 分布',
     'NPS Trend' => 'NPS トレンド',
     'NPS over time' => '時系列 NPS',
+
+    // Analytics: Ratings
     'Rating Field' => '評価フィールド',
     'Date Basis' => '日付基準',
-    'No NPS data available to export.' => 'エクスポートできる NPS データがありません。',
+    'No ratings data available to export.' => 'エクスポートできるレーティングデータがありません。',
     'No rating fields found for this selection.' => 'この選択に評価フィールドが見つかりません。',
     'Select a rating field' => '評価フィールドを選択してください',
-    'No NPS distribution data available for the selected filters.' => '選択したフィルターに利用可能な NPS 分布データがありません。',
-    'No NPS trend data available for the selected filters.' => '選択したフィルターに利用可能な NPS トレンドデータがありません。',
+    'Average Rating' => '平均レーティング',
+    'Average' => '平均',
+    'Median' => '中央値',
+    'Most Common' => '最頻値',
+    'Min' => '最小',
+    'Max' => '最大',
+    'Star Rating' => 'スター評価',
+    'Emoji Rating' => '絵文字評価',
+    'Rating Distribution' => 'レーティング分布',
+    'Trend Over Time' => '時系列トレンド',
 ];

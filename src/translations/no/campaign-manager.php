@@ -416,10 +416,13 @@ return [
     'Delivery' => 'Levering',
     'Engagement' => 'Engasjement',
     'Conversion' => 'Konvertering',
+    'Ratings' => 'Vurderinger',
     'No activity data available for the selected filters.' => 'Ingen aktivitetsdata tilgjengelig for de valgte filtrene.',
     'No channel data available for the selected filters.' => 'Ingen kanaldata tilgjengelig for de valgte filtrene.',
     'No engagement data available for the selected filters.' => 'Ingen engasjementsdata tilgjengelig for de valgte filtrene.',
     'No funnel data available for the selected filters.' => 'Ingen traktdata tilgjengelig for de valgte filtrene.',
+    'No rating distribution data available for the selected filters.' => 'Ingen vurderingsfordelingsdata tilgjengelig for de valgte filtrene.',
+    'No rating trend data available for the selected filters.' => 'Ingen vurderingstrenddata tilgjengelig for de valgte filtrene.',
     'Recipients Added' => 'Mottakere lagt til',
     'Responses' => 'Svar',
     'Email Opens' => 'E-poståpninger',
@@ -506,7 +509,7 @@ return [
     'Send activity' => 'Sendeaktivitet',
     'Response date' => 'Svarsdato',
 
-    // Analytics: NPS
+    // Analytics: NPS (keep for NPS-type rendering)
     'NPS' => 'NPS',
     'NPS Score' => 'NPS-score',
     'Promoters' => 'Forkjempere',
@@ -515,11 +518,21 @@ return [
     'NPS Distribution' => 'NPS-fordeling',
     'NPS Trend' => 'NPS-trend',
     'NPS over time' => 'NPS over tid',
+
+    // Analytics: Ratings
     'Rating Field' => 'Vurderingsfelt',
     'Date Basis' => 'Datogrunnlag',
-    'No NPS data available to export.' => 'Ingen NPS-data tilgjengelig for eksport.',
+    'No ratings data available to export.' => 'Ingen vurderingsdata tilgjengelig for eksport.',
     'No rating fields found for this selection.' => 'Ingen vurderingsfelter funnet for dette utvalget.',
     'Select a rating field' => 'Velg et vurderingsfelt',
-    'No NPS distribution data available for the selected filters.' => 'Ingen NPS-fordelingsdata tilgjengelig for de valgte filtrene.',
-    'No NPS trend data available for the selected filters.' => 'Ingen NPS-trenddata tilgjengelig for de valgte filtrene.',
+    'Average Rating' => 'Gjennomsnittsvurdering',
+    'Average' => 'Gjennomsnitt',
+    'Median' => 'Median',
+    'Most Common' => 'Vanligst',
+    'Min' => 'Min',
+    'Max' => 'Maks',
+    'Star Rating' => 'Stjernevurdering',
+    'Emoji Rating' => 'Emoji-vurdering',
+    'Rating Distribution' => 'Vurderingsfordeling',
+    'Trend Over Time' => 'Trend over tid',
 ];
