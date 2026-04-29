@@ -211,7 +211,7 @@ return [
 
     // Settings: Interface
     'Interface Settings' => 'Grænsefladeindstillinger',
-    'Interface' => 'Grænseflade',
+    'Interface' => 'Brugerflade',
     'Items Per Page' => 'Elementer pr. side',
     'Number of items to display per page in lists.' => 'Antal elementer der vises pr. side i lister.',
     'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>itemsPerPage</code> i <code>config/campaign-manager.php</code>.',
@@ -379,7 +379,7 @@ return [
     'No SMS provider configured. Phone numbers will be skipped during import.' => 'Ingen SMS-udbyder konfigureret. Telefonnumre springes over under import.',
     'Default Site' => 'Standardwebsted',
     'Used as fallback when the Site column is not mapped, or when a row has an empty/invalid site value.' => 'Bruges som reserve, når kolumnen Site ikke er tilknyttet, eller når en række har en tom/ugyldig webstedsværdi.',
-    'Cancel' => 'Annullér',
+    'Cancel' => 'Annuller',
     'Preview Import' => 'Forhåndsvis import',
     'Send Invitations' => 'Send invitationer',
     'Queue invitation sending after import.' => 'Sæt afsendelse af invitationer i kø efter import.',

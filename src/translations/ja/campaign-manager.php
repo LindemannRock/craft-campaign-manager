@@ -165,7 +165,7 @@ return [
     // Settings: General
     'General Settings' => '一般設定',
     'General' => '一般',
-    'Plugin Name' => 'Plugin 名',
+    'Plugin Name' => 'プラグイン名',
     'The display name for this plugin in the control panel.' => 'コントロールパネルでのこの Plugin の表示名です。',
     'This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>pluginName</code> 設定で上書きされています。',
     'Default Provider' => 'デフォルトプロバイダー',

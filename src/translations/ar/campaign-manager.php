@@ -165,7 +165,7 @@ return [
     // Settings: General
     'General Settings' => 'الإعدادات العامة',
     'General' => 'عام',
-    'Plugin Name' => 'اسم Plugin',
+    'Plugin Name' => 'اسم الإضافة',
     'The display name for this plugin in the control panel.' => 'اسم العرض لهذا Plugin في لوحة التحكم.',
     'This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>pluginName</code> في <code>config/campaign-manager.php</code>.',
     'Default Provider' => 'المزوّد الافتراضي',
@@ -212,7 +212,7 @@ return [
     // Settings: Interface
     'Interface Settings' => 'إعدادات الواجهة',
     'Interface' => 'الواجهة',
-    'Items Per Page' => 'العناصر لكل صفحة',
+    'Items Per Page' => 'العناصر في الصفحة',
     'Number of items to display per page in lists.' => 'عدد العناصر المعروضة في كل صفحة في القوائم.',
     'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>itemsPerPage</code> في <code>config/campaign-manager.php</code>.',
 

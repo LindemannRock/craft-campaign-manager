@@ -211,7 +211,7 @@ return [
 
     // Settings: Interface
     'Interface Settings' => 'Interface-Einstellungen',
-    'Interface' => 'Interface',
+    'Interface' => 'Oberfläche',
     'Items Per Page' => 'Einträge pro Seite',
     'Number of items to display per page in lists.' => 'Anzahl der in Listen pro Seite anzuzeigenden Einträge.',
     'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.' => 'Dies wird durch die Einstellung <code>itemsPerPage</code> in <code>config/campaign-manager.php</code> überschrieben.',

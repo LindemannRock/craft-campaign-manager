@@ -165,7 +165,7 @@ return [
     // Settings: General
     'General Settings' => 'Allmänna inställningar',
     'General' => 'Allmänt',
-    'Plugin Name' => 'Pluginnamn',
+    'Plugin Name' => 'Plugin-namn',
     'The display name for this plugin in the control panel.' => 'Visningsnamnet för det här pluginet i kontrollpanelen.',
     'This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>.' => 'Detta åsidosätts av inställningen <code>pluginName</code> i <code>config/campaign-manager.php</code>.',
     'Default Provider' => 'Standardleverantör',
@@ -212,7 +212,7 @@ return [
     // Settings: Interface
     'Interface Settings' => 'Gränssnittsinställningar',
     'Interface' => 'Gränssnitt',
-    'Items Per Page' => 'Poster per sida',
+    'Items Per Page' => 'Objekt per sida',
     'Number of items to display per page in lists.' => 'Antal poster att visa per sida i listor.',
     'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.' => 'Detta åsidosätts av inställningen <code>itemsPerPage</code> i <code>config/campaign-manager.php</code>.',
 

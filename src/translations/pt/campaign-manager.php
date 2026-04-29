@@ -20,7 +20,7 @@ return [
     'Logs' => 'Logs',
     'System' => 'Sistema',
     'Activity' => 'Atividade',
-    'Settings' => 'Configurações',
+    'Settings' => 'Definições',
 
     // Permissions
     'Manage campaigns' => 'Gerenciar campanhas',
@@ -285,7 +285,7 @@ return [
     'Date Range' => 'Intervalo de datas',
     'Search recipients...' => 'Pesquisar destinatários...',
     'Contact' => 'Contato',
-    'Status' => 'Status',
+    'Status' => 'Estado',
     'Response' => 'Resposta',
     'No recipients found.' => 'Nenhum destinatário encontrado.',
     'recipient' => 'destinatário',
