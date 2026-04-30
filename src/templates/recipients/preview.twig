@@ -41,7 +41,7 @@
 ]) %}
 
 {% block content %}
-    <h2 style="margin-top: 0;">{{ 'Import Preview'|t('campaign-manager') }}</h2>
+    <h2 class="first">{{ 'Import Preview'|t('campaign-manager') }}</h2>
 
     <div class="lr-unified-cards cols-4" style="margin: 30px 0;">
         {% include 'lindemannrock-base/_components/cards/unified-card' with {
@@ -181,7 +181,7 @@
         {{ hiddenInput('campaignId', campaignId) }}
 
         <div style="background: #f7f7f7; padding: 20px; border-radius: 4px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">{{ 'Ready to Import'|t('campaign-manager') }}</h3>
+            <h3 class="first">{{ 'Ready to Import'|t('campaign-manager') }}</h3>
             <p>
                 {% if summary.validRows > 0 %}
                     {{ 'Click the button below to import {count} valid recipient(s).'|t('campaign-manager', {count: summary.validRows}) }}
