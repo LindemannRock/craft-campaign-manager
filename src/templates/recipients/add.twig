@@ -72,8 +72,6 @@
     {% endif %}
 
     {% if not campaignDisabled %}
-    <form method="post" accept-charset="UTF-8">
-        {{ csrfInput() }}
         {{ actionInput('campaign-manager/recipients/add') }}
         {{ redirectInput('campaign-manager/campaigns/' ~ campaignId ~ '/recipients?site=' ~ site.handle) }}
         {{ hiddenInput('campaignId', campaignId) }}
@@ -268,7 +266,6 @@
             errors: recipient ? recipient.getErrors('siteId') : null,
             required: true
         }) }}
-    </form>
     {% endif %}
 {% endblock %}
 
