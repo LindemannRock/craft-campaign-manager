@@ -23,7 +23,7 @@ use yii\base\Behavior;
  *
  * @author    LindemannRock
  * @package   CampaignManager
- * @since     3.0.0
+ * @since     5.0.0
  *
  * @property string $campaignType
  * @property int|null $formId
@@ -83,8 +83,6 @@ class CampaignBehavior extends Behavior
 
     /**
      * Get the Campaign record
-     *
-     * @since 5.0.0
      */
     public function getCampaignManagerRecord(): ?CampaignRecord
     {
@@ -102,8 +100,6 @@ class CampaignBehavior extends Behavior
 
     /**
      * Get the Campaign content record for current site
-     *
-     * @since 5.0.0
      */
     public function getCampaignContentRecord(): ?CampaignContentRecord
     {
@@ -121,8 +117,6 @@ class CampaignBehavior extends Behavior
 
     /**
      * Load the Campaign record
-     *
-     * @since 5.0.0
      */
     public function loadCampaignRecord(?CampaignRecord $record = null): void
     {
@@ -145,7 +139,6 @@ class CampaignBehavior extends Behavior
      *
      * @param array<string, mixed>|null $attributes
      * @throws Exception
-     * @since 5.0.0
      */
     public function saveCampaignRecord(?array $attributes = null): void
     {
@@ -227,7 +220,6 @@ class CampaignBehavior extends Behavior
      * Set Campaign record attributes
      *
      * @param array<string, mixed> $attributes
-     * @since 5.0.0
      */
     public function setCampaignRecordAttributes(array $attributes): void
     {
@@ -265,7 +257,6 @@ class CampaignBehavior extends Behavior
     // Getters and setters
 
     /**
-     * @since 5.0.0
      */
     public function getCampaignType(): ?string
     {
@@ -273,7 +264,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function setCampaignType(?string $value): void
     {
@@ -282,7 +272,6 @@ class CampaignBehavior extends Behavior
 
     /**
      * @return RecipientRecord[]
-     * @since 5.0.0
      */
     public function getRecipients(): array
     {
@@ -295,7 +284,6 @@ class CampaignBehavior extends Behavior
 
     /**
      * @return RecipientRecord[]
-     * @since 5.0.0
      */
     public function getRecipientsBySiteId(int $siteId): array
     {
@@ -307,7 +295,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getRecipientCount(): int
     {
@@ -319,7 +306,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getRecipientCountBySiteId(int $siteId): int
     {
@@ -331,7 +317,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getFormId(): ?int
     {
@@ -339,7 +324,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function setFormId(?int $value): void
     {
@@ -348,7 +332,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getInvitationDelayPeriod(): ?string
     {
@@ -356,7 +339,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function setInvitationDelayPeriod(?string $value): void
     {
@@ -364,7 +346,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getInvitationExpiryPeriod(): ?string
     {
@@ -372,7 +353,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function setInvitationExpiryPeriod(?string $value): void
     {
@@ -380,7 +360,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getSenderId(): ?string
     {
@@ -388,7 +367,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getEmailInvitationSubject(): ?string
     {
@@ -396,7 +374,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getEmailInvitationMessage(): ?string
     {
@@ -404,7 +381,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function setEmailInvitationMessage(?string $value): void
     {
@@ -412,7 +388,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getSmsInvitationMessage(): ?string
     {
@@ -420,7 +395,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function setSmsInvitationMessage(?string $value): void
     {
@@ -428,7 +402,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getSubmissionCount(): int
     {
@@ -444,7 +417,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getSentCount(): int
     {
@@ -460,7 +432,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getSentCountBySiteId(int $siteId): int
     {
@@ -473,7 +444,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getSmsOpenedCount(): int
     {
@@ -489,7 +459,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getSmsOpenedCountBySiteId(int $siteId): int
     {
@@ -502,7 +471,6 @@ class CampaignBehavior extends Behavior
     }
 
     /**
-     * @since 5.0.0
      */
     public function getForm(): ?Form
     {

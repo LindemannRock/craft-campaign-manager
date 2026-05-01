@@ -16,7 +16,7 @@ use craft\base\ElementAction;
  *
  * @author    LindemannRock
  * @package   CampaignManager
- * @since     5.1.0
+ * @since     5.4.0
  */
 class ImportRecipientsAction extends ElementAction
 {

@@ -24,7 +24,7 @@ use yii\web\Response;
  *
  * @author    LindemannRock
  * @package   CampaignManager
- * @since     5.1.0
+ * @since     5.2.0
  */
 class AnalyticsController extends Controller
 {

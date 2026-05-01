@@ -17,7 +17,7 @@ use Twig\Extension\GlobalsInterface;
  *
  * @author    LindemannRock
  * @package   CampaignManager
- * @since     3.0.0
+ * @since     5.0.0
  */
 class Extension extends AbstractExtension implements GlobalsInterface
 {

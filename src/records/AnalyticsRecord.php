@@ -15,7 +15,7 @@ namespace lindemannrock\campaignmanager\records;
  *
  * @author    LindemannRock
  * @package   CampaignManager
- * @since     5.1.0
+ * @since     5.2.0
  *
  * @property int $id
  * @property int $campaignId

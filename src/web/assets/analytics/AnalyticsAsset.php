@@ -15,7 +15,7 @@ use craft\web\AssetBundle;
  *
  * Provides Campaign Manager analytics wiring for cp-analytics pages.
  *
- * @since 5.29.0
+ * @since 5.4.0
  */
 class AnalyticsAsset extends AssetBundle
 {

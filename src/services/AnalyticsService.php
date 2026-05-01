@@ -31,7 +31,7 @@ use verbb\formie\elements\Submission;
  *
  * @author    LindemannRock
  * @package   CampaignManager
- * @since     5.1.0
+ * @since     5.2.0
  */
 class AnalyticsService extends Component
 {
