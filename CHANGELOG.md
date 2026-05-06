@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.8.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.1...v5.8.2) (2026-05-06)
+
+
+### Bug Fixes
+
+* **recipients:** remove unnecessary form tags in add recipient template ([a64e719](https://github.com/LindemannRock/craft-campaign-manager/commit/a64e71908d05706146cb8c29d84e4526a49984c5))
+* **translations:** correct translations for various languages ([264bb02](https://github.com/LindemannRock/craft-campaign-manager/commit/264bb0285219e447197940f26f2fab2e14c9d217))
+
 ## [5.8.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.0...v5.8.1) (2026-04-25)
 
 
