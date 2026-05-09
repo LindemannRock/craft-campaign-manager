@@ -1,6 +1,6 @@
 {
     "name": "lindemannrock/craft-campaign-manager",
-    "description": "Campaign management with SMS, email, and WhatsApp invitations",
+    "description": "Campaign management for Craft CMS surveys with SMS and email invitations, recipient tracking, and analytics.",
     "type": "craft-plugin",
     "version": "5.9.0",
     "keywords": [
@@ -9,10 +9,11 @@
         "craftcms",
         "craft-plugin",
         "campaigns",
+        "surveys",
         "sms",
         "email",
-        "whatsapp",
-        "invitations"
+        "invitations",
+        "analytics"
     ],
     "license": "proprietary",
     "authors": [

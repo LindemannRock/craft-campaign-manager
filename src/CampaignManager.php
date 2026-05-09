@@ -2,7 +2,7 @@
 /**
  * Campaign Manager plugin for Craft CMS 5.x
  *
- * Campaign management with SMS, email, and WhatsApp invitations
+ * Campaign management for Craft CMS surveys with SMS and email invitations
  *
  * @link      https://lindemannrock.com
  * @copyright Copyright (c) 2026 LindemannRock
