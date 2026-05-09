@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.10.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.1...v5.10.2) (2026-05-09)
+
+
+### Bug Fixes
+
+* **analytics:** update date range retrieval and improve chart initialization ([e1cceb9](https://github.com/LindemannRock/craft-campaign-manager/commit/e1cceb999c41da1e9261eaf6c5df77afa640dfe3))
+
 ## [5.10.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.0...v5.10.1) (2026-05-09)
 
 
