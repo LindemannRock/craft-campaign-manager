@@ -308,6 +308,67 @@ class CampaignsController extends Controller
     }
 
     /**
+     * Render the Analytics or Responses tab content for a campaign.
+     *
+     * Returns just the partial HTML — used by the campaign edit page to
+     * lazy-load expensive tab content via AJAX after the page renders.
+     *
+     * @since 5.10.0
+     */
+    public function actionRenderTab(): Response
+    {
+        $this->requireLogin();
+
+        $request = Craft::$app->getRequest();
+        $campaignId = (int)$request->getRequiredQueryParam('campaignId');
+        $tab = (string)$request->getRequiredQueryParam('tab');
+
+        if (!in_array($tab, ['analytics', 'responses'], true)) {
+            throw new \yii\web\BadRequestHttpException('Invalid tab.');
+        }
+
+        // Permission gate matches the parent campaign edit page tabs
+        if ($tab === 'analytics') {
+            $this->requirePermission('campaignManager:viewAnalytics');
+        } else {
+            $this->requirePermission('campaignManager:manageRecipients');
+        }
+
+        $siteHandle = $request->getQueryParam('site');
+        $site = $siteHandle
+            ? Craft::$app->getSites()->getSiteByHandle($siteHandle)
+            : Craft::$app->getSites()->getCurrentSite();
+
+        if (!$site) {
+            throw new NotFoundHttpException('Site not found.');
+        }
+
+        $campaign = Campaign::find()
+            ->id($campaignId)
+            ->siteId($site->id)
+            ->status(null)
+            ->one();
+
+        if (!$campaign) {
+            throw new NotFoundHttpException('Campaign not found.');
+        }
+
+        $plugin = CampaignManager::$plugin;
+        $html = Craft::$app->getView()->renderTemplate(
+            'campaign-manager/campaigns/_partials/' . $tab,
+            [
+                'campaign' => $campaign,
+                'currentSite' => $site,
+                'plugin' => $plugin,
+                'settings' => $plugin->getSettings(),
+                'pluginHandle' => $plugin->id,
+            ],
+        );
+
+        return $this->asJson(['html' => $html]);
+    }
+
+    /**
      * Run all campaigns or a specific campaign (queued)
      */
     public function actionRunAll(): Response

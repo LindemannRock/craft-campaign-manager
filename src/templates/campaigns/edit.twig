@@ -492,18 +492,182 @@
         {% endif %}
     </div>
 
+    {#
+     # ANALYTICS / RESPONSES TABS
+     #
+     # On first page load, render empty placeholders + spinner — partials are
+     # fetched lazily via AJAX after the edit form is interactive (avoids blocking
+     # TTFB on heavy analytics queries when user only wants to edit settings).
+     #
+     # On AJAX requests (?ajax=1), render partials inline. This is what lets the
+     # base analytics-panel's own filter AJAX work natively: it fetches the page
+     # URL with ?ajax=1, finds its panel by ID in the response, and swaps it in
+     # place — overlay loader, content stays visible, no flash.
+     #}
+    {% set isPanelAjax = craft.app.request.getQueryParam('ajax') == '1' %}
+
     {# ==================== ANALYTICS TAB ==================== #}
     {% if campaign.id and currentUser.can('campaignManager:viewAnalytics') %}
-        <div id="analytics" class="hidden">
-            {% include 'campaign-manager/campaigns/_partials/analytics' %}
-        </div>
+        {% if isPanelAjax %}
+            <div id="analytics" class="hidden">
+                {% include 'campaign-manager/campaigns/_partials/analytics' %}
+            </div>
+        {% else %}
+            <div id="analytics"
+                 class="lr-tab-lazy hidden"
+                 data-tab-name="analytics"
+                 data-tab-loaded="false">
+                <div class="lr-tab-loading"><div class="spinner"></div></div>
+            </div>
+        {% endif %}
     {% endif %}
 
     {# ==================== RESPONSES TAB ==================== #}
     {% if campaign.id and campaign.formId and currentUser.can('campaignManager:manageRecipients') %}
-        <div id="responses" class="hidden">
-            {% include 'campaign-manager/campaigns/_partials/responses' %}
-        </div>
+        {% if isPanelAjax %}
+            <div id="responses" class="hidden">
+                {% include 'campaign-manager/campaigns/_partials/responses' %}
+            </div>
+        {% else %}
+            <div id="responses"
+                 class="lr-tab-lazy hidden"
+                 data-tab-name="responses"
+                 data-tab-loaded="false">
+                <div class="lr-tab-loading"><div class="spinner"></div></div>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {# Lazy-load tab content on first activation #}
+    {% if campaign.id and not isPanelAjax %}
+        {# Pre-register base assets so styles + Chart.js are on the page before AJAX-loaded tab content runs #}
+        {% do view.registerAssetBundle('lindemannrock\\base\\web\\assets\\components\\ComponentsAsset') %}
+        {% if currentUser.can('campaignManager:viewAnalytics') %}
+            {% do view.registerAssetBundle('lindemannrock\\base\\web\\assets\\analytics\\AnalyticsAsset') %}
+        {% endif %}
+
+        {% set tabLoadEndpoint = actionUrl('campaign-manager/campaigns/render-tab') %}
+        {% set tabLoadParams = {
+            campaignId: campaign.id,
+            site: currentSite.handle,
+        } %}
+        <style>
+            .lr-tab-loading {
+                display: flex;
+                justify-content: center;
+                padding: 48px 24px;
+            }
+            .lr-tab-error {
+                padding: 24px;
+                color: #b91c1c;
+            }
+            .lr-tab-lazy[data-tab-loaded="true"] .lr-tab-loading {
+                display: none;
+            }
+        </style>
+        <script>
+            (function() {
+                var endpoint = {{ tabLoadEndpoint|json_encode|raw }};
+                var baseParams = {{ tabLoadParams|json_encode|raw }};
+                var errorMsg = {{ 'Failed to load tab content.'|t('campaign-manager')|json_encode|raw }};
+
+                // innerHTML doesn't execute <script> tags — re-attach as live elements so they run.
+                function executeScripts(container) {
+                    container.querySelectorAll('script').forEach(function(oldScript) {
+                        var newScript = document.createElement('script');
+                        if (oldScript.src) {
+                            newScript.src = oldScript.src;
+                        } else {
+                            newScript.textContent = oldScript.textContent;
+                        }
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+                }
+
+                function loadTab(panel) {
+                    if (panel.dataset.tabLoaded === 'true' || panel.dataset.tabLoading === 'true') {
+                        return;
+                    }
+                    panel.dataset.tabLoading = 'true';
+
+                    var params = new URLSearchParams(window.location.search);
+                    Object.keys(baseParams).forEach(function(key) {
+                        params.set(key, baseParams[key]);
+                    });
+                    params.set('tab', panel.dataset.tabName);
+
+                    var url = endpoint + (endpoint.indexOf('?') === -1 ? '?' : '&') + params.toString();
+
+                    fetch(url, {
+                        credentials: 'same-origin',
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    })
+                        .then(function(res) {
+                            if (!res.ok) throw new Error('HTTP ' + res.status);
+                            return res.json();
+                        })
+                        .then(function(data) {
+                            panel.innerHTML = data.html || '';
+                            executeScripts(panel);
+
+                            // Re-init Craft menu buttons in the new content (used by filters)
+                            panel.querySelectorAll('.menubtn').forEach(function(btn) {
+                                if (typeof Craft !== 'undefined' && Craft.MenuBtn) {
+                                    new Craft.MenuBtn(btn);
+                                } else if (typeof Garnish !== 'undefined' && Garnish.MenuBtn) {
+                                    new Garnish.MenuBtn(btn);
+                                }
+                            });
+
+                            // The base analytics-panel registers its lr:panelChartsReady listener on
+                            // DOMContentLoaded — which has already fired by now. Dispatch it ourselves
+                            // once Chart.js is confirmed loaded so the partial's chart init runs.
+                            if (typeof Chart !== 'undefined') {
+                                document.dispatchEvent(new CustomEvent('lr:panelChartsReady'));
+                            }
+
+                            panel.dataset.tabLoaded = 'true';
+                            panel.dispatchEvent(new CustomEvent('lr:tabLoaded', { bubbles: true }));
+                        })
+                        .catch(function(err) {
+                            console.error('Tab load failed:', err);
+                            panel.innerHTML = '<div class="lr-tab-error">' + errorMsg + '</div>';
+                        })
+                        .finally(function() {
+                            delete panel.dataset.tabLoading;
+                        });
+                }
+
+                function activateFromHash() {
+                    var hash = (window.location.hash || '').replace(/^#/, '');
+                    if (!hash) return;
+                    var panel = document.getElementById(hash);
+                    if (panel && panel.classList.contains('lr-tab-lazy')) {
+                        loadTab(panel);
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Listen for tab clicks (Craft's tab UI shows the panel via hash navigation
+                    // which fires hashchange; we also bind clicks for reliability)
+                    document.querySelectorAll('a[href^="#analytics"], a[href^="#responses"]').forEach(function(link) {
+                        link.addEventListener('click', function() {
+                            var targetId = link.getAttribute('href').replace(/^#/, '');
+                            var panel = document.getElementById(targetId);
+                            if (panel && panel.classList.contains('lr-tab-lazy')) {
+                                loadTab(panel);
+                            }
+                        });
+                    });
+
+                    // If page loads with #analytics or #responses, fire immediately
+                    activateFromHash();
+                });
+
+                // Browser-driven hash navigation (back/forward)
+                window.addEventListener('hashchange', activateFromHash);
+            })();
+        </script>
     {% endif %}
 {% endblock %}
 
