@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.10.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.0...v5.10.1) (2026-05-09)
+
+
+### Bug Fixes
+
+* **campaigns:** ensure Chart.js is available before dispatching event ([4224510](https://github.com/LindemannRock/craft-campaign-manager/commit/4224510dca80eb10d63ea19dd5c48864f7be7a0b))
+
 ## [5.10.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.9.1...v5.10.0) (2026-05-09)
 
 
