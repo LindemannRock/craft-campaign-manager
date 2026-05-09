@@ -622,8 +622,18 @@
                             // The base analytics-panel registers its lr:panelChartsReady listener on
                             // DOMContentLoaded — which has already fired by now. Dispatch it ourselves
                             // once Chart.js is confirmed loaded so the partial's chart init runs.
+                            // On first visit Chart.js may still be loading (async asset bundle), so
+                            // poll briefly until it's available before dispatching.
                             if (typeof Chart !== 'undefined') {
                                 document.dispatchEvent(new CustomEvent('lr:panelChartsReady'));
+                            } else {
+                                var chartCheck = setInterval(function() {
+                                    if (typeof Chart !== 'undefined') {
+                                        clearInterval(chartCheck);
+                                        document.dispatchEvent(new CustomEvent('lr:panelChartsReady'));
+                                    }
+                                }, 50);
+                                setTimeout(function() { clearInterval(chartCheck); }, 5000);
                             }
 
                             panel.dataset.tabLoaded = 'true';
