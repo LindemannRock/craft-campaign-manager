@@ -336,64 +336,179 @@ class RecipientsService extends Component
     /**
      * Get recipients with form submissions for a campaign
      *
+     * Submissions are batch-loaded in a single query to avoid N+1. When no date
+     * filter is active, pagination is applied at the SQL level for optimal performance.
+     *
      * @param int $campaignId Campaign ID
      * @param int|null $siteId Site ID (null for all sites)
      * @param string $dateRange Date range filter (all, today, yesterday, last7days, last30days, last90days)
      * @param array<int>|null $editableSiteIds Restrict to these site IDs when siteId is null
+     * @param int|null $limit Maximum number of recipients to return (null for no limit)
+     * @param int|null $offset Number of matching recipients to skip before returning results
      * @return array<RecipientRecord> Recipients with submissions attached
      * @since 5.1.0
      */
-    public function getWithSubmissions(int $campaignId, ?int $siteId = null, string $dateRange = 'all', ?array $editableSiteIds = null): array
-    {
+    public function getWithSubmissions(
+        int $campaignId,
+        ?int $siteId = null,
+        string $dateRange = 'all',
+        ?array $editableSiteIds = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): array {
+        $query = $this->buildRecipientWithSubmissionQuery($campaignId, $siteId, $editableSiteIds);
+
+        // Fast path: no date filter — paginate at SQL level
+        if ($dateRange === 'all') {
+            if ($limit !== null) {
+                $query->limit($limit);
+            }
+            if ($offset !== null) {
+                $query->offset($offset);
+            }
+            /** @var RecipientRecord[] $recipients */
+            $recipients = $query->all();
+
+            return $this->attachSubmissions($recipients);
+        }
+
+        // Date-filtered path: filter is on submission.dateCreated, so we must
+        // load all candidates, attach submissions, then filter and paginate in PHP
+        /** @var RecipientRecord[] $recipients */
+        $recipients = $query->all();
+        if (empty($recipients)) {
+            return [];
+        }
+
+        $recipients = $this->attachSubmissions($recipients);
+
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $startDate = $bounds['start'];
+        $endDate = $bounds['end'];
+
+        $matched = 0;
+        $filteredRecipients = [];
+        foreach ($recipients as $recipient) {
+            $submission = $recipient->submission;
+
+            // Filter by submission date when both filter and submission are present.
+            // Orphan recipients (submission missing) are kept to preserve visibility.
+            if ($startDate !== null && $submission !== null) {
+                $submissionDate = $submission->dateCreated;
+                if ($endDate !== null) {
+                    if ($submissionDate < $startDate || $submissionDate >= $endDate) {
+                        continue;
+                    }
+                } elseif ($submissionDate < $startDate) {
+                    continue;
+                }
+            }
+
+            // Skip matches before $offset
+            if ($offset !== null && $matched < $offset) {
+                $matched++;
+                continue;
+            }
+            $matched++;
+
+            $filteredRecipients[] = $recipient;
+
+            if ($limit !== null && count($filteredRecipients) >= $limit) {
+                break;
+            }
+        }
+
+        return $filteredRecipients;
+    }
+
+    /**
+     * Count recipients with form submissions for a campaign
+     *
+     * Used for pagination totals. Without a date filter this runs as a single
+     * COUNT(*) query. With a date filter it must apply the same filter logic
+     * as getWithSubmissions() to stay consistent.
+     *
+     * @param int $campaignId Campaign ID
+     * @param int|null $siteId Site ID (null for all sites)
+     * @param string $dateRange Date range filter
+     * @param array<int>|null $editableSiteIds Restrict to these site IDs when siteId is null
+     * @since 5.10.0
+     */
+    public function countWithSubmissions(
+        int $campaignId,
+        ?int $siteId = null,
+        string $dateRange = 'all',
+        ?array $editableSiteIds = null,
+    ): int {
+        $query = $this->buildRecipientWithSubmissionQuery($campaignId, $siteId, $editableSiteIds);
+
+        if ($dateRange === 'all') {
+            return (int)$query->count();
+        }
+
+        // Date-filtered count must mirror getWithSubmissions() semantics —
+        // delegate so the two stay in sync.
+        return count($this->getWithSubmissions($campaignId, $siteId, $dateRange, $editableSiteIds));
+    }
+
+    /**
+     * Build the base query for recipients with submissions.
+     *
+     * @param array<int>|null $editableSiteIds
+     */
+    private function buildRecipientWithSubmissionQuery(
+        int $campaignId,
+        ?int $siteId,
+        ?array $editableSiteIds,
+    ): ActiveQuery {
         $query = RecipientRecord::find()
             ->where(['campaignId' => $campaignId])
             ->andWhere(['not', ['submissionId' => null]])
             ->orderBy(['dateUpdated' => SORT_DESC]);
 
-        // Filter by site if specified, otherwise scope to editable sites
         if ($siteId !== null) {
             $query->andWhere(['siteId' => $siteId]);
         } elseif ($editableSiteIds !== null) {
             $query->andWhere(['siteId' => $editableSiteIds]);
         }
 
-        /** @var RecipientRecord[] $recipients */
-        $recipients = $query->all();
+        return $query;
+    }
 
-        // Calculate date range bounds
-        $startDate = null;
-        $endDate = null;
-
-        if ($dateRange !== 'all') {
-            $bounds = DateRangeHelper::getBounds($dateRange);
-            $startDate = $bounds['start'];
-            $endDate = $bounds['end'];
+    /**
+     * Attach Formie submissions to recipients in a single batch query.
+     *
+     * @param array<RecipientRecord> $recipients
+     * @return array<RecipientRecord>
+     */
+    private function attachSubmissions(array $recipients): array
+    {
+        if (empty($recipients)) {
+            return [];
         }
 
-        // Eager load submissions and filter by date range
-        $filteredRecipients = [];
+        $submissionIds = [];
         foreach ($recipients as $recipient) {
-            if ($recipient->submissionId) {
-                /** @var Submission|null $submission */
-                $submission = Submission::find()->id($recipient->submissionId)->one();
-                $recipient->submission = $submission;
-
-                // Filter by date range if applicable
-                if ($startDate !== null && $submission) {
-                    $submissionDate = $submission->dateCreated;
-                    if ($endDate !== null) {
-                        if ($submissionDate >= $startDate && $submissionDate < $endDate) {
-                            $filteredRecipients[] = $recipient;
-                        }
-                    } elseif ($submissionDate >= $startDate) {
-                        $filteredRecipients[] = $recipient;
-                    }
-                } else {
-                    $filteredRecipients[] = $recipient;
-                }
+            if ($recipient->submissionId !== null) {
+                $submissionIds[] = $recipient->submissionId;
             }
         }
 
-        return $filteredRecipients;
+        if (empty($submissionIds)) {
+            return $recipients;
+        }
+
+        /** @var Submission[] $submissions */
+        $submissions = Submission::find()->id($submissionIds)->all();
+        $submissionsById = [];
+        foreach ($submissions as $submission) {
+            $submissionsById[$submission->id] = $submission;
+        }
+
+        foreach ($recipients as $recipient) {
+            $recipient->submission = $submissionsById[$recipient->submissionId] ?? null;
+        }
+
+        return $recipients;
     }
 }

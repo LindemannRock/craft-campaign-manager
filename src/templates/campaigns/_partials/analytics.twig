@@ -86,7 +86,7 @@
             </div>
 
             {# Recent Responses #}
-            {% set recentResponses = craft.campaignManager.recipients.getWithSubmissions(campaign.id, null, dateRange, craft.app.sites.getEditableSiteIds())|slice(0, 10) %}
+            {% set recentResponses = craft.campaignManager.recipients.getWithSubmissions(campaign.id, null, dateRange, craft.app.sites.getEditableSiteIds(), 10) %}
             {% if recentResponses|length %}
                 <div class="lr-chart-container lr-mt-24">
                     <h3>{{ 'Recent Responses'|t('campaign-manager') }}</h3>
@@ -171,7 +171,7 @@ document.addEventListener('lr:panelChartsReady', function() {
     window.lrCreateChart('campaign-channel-chart', 'doughnut', {
         labels: ['{{ "SMS"|t('campaign-manager')|e('js') }}', '{{ "Email"|t('campaign-manager')|e('js') }}'],
         datasets: [{
-            data: [{{ stats.smsSent ?? 0 }}, {{ stats.emailSent ?? 0 }}],
+            data: [{{ stats.smsSent ?? 0 }}, {{ stats.emailsSent ?? 0 }}],
             backgroundColor: ['#10b981', '#3b82f6']
         }]
     }, {

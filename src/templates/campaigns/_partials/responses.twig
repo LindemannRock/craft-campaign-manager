@@ -20,10 +20,26 @@
 {# Date range options #}
 {% set dateRangeOptions = lrDateRangeOptions() %}
 
-{# Get recipients with submissions (scoped to editable sites) #}
+{# Resolve site scope for service calls #}
 {% set filterSiteId = siteFilter != 'all' ? siteFilter|number : null %}
 {% set editableSiteIds = craft.app.sites.getEditableSiteIds() %}
-{% set recipients = craft.campaignManager.recipients.getWithSubmissions(campaign.id, filterSiteId, dateRange, editableSiteIds) %}
+
+{# Pagination — clamp page to [1, totalPages], compute offset #}
+{% set perPage = settings.itemsPerPage ?? 50 %}
+{% set totalResponses = craft.campaignManager.recipients.countWithSubmissions(campaign.id, filterSiteId, dateRange, editableSiteIds) %}
+{% set totalPages = totalResponses > 0 ? ((totalResponses + perPage - 1) // perPage) : 1 %}
+{% set requestedPage = craft.app.request.getQueryParam('page') %}
+{% if requestedPage is not numeric or requestedPage < 1 %}{% set requestedPage = 1 %}{% endif %}
+{% set page = requestedPage > totalPages ? totalPages : requestedPage %}
+{% set offset = (page - 1) * perPage %}
+
+{# Filter URL prefix — preserves filters but resets page to 1 when filters change #}
+{% set baseUrl = craft.app.request.url|split('?')|first %}
+{% set filterQuery = 'site=' ~ currentSiteHandle ~ '&siteFilter=' ~ siteFilter ~ '&dateRange=' ~ dateRange %}
+{% set pageQuery = filterQuery ~ '&page=' %}
+
+{# Fetch the page of recipients #}
+{% set recipients = craft.campaignManager.recipients.getWithSubmissions(campaign.id, filterSiteId, dateRange, editableSiteIds, perPage, offset) %}
 
 {# Get the Formie form and its fields #}
 {% set form = craft.formie.forms.id(campaign.formId).one() %}
@@ -129,6 +145,27 @@
     .field-value.empty {
         color: #9ca3af;
         font-style: italic;
+    }
+    .responses-pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+        padding-top: 16px;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .responses-pagination-info {
+        font-size: 13px;
+    }
+    .responses-pagination-links {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .responses-pagination-current {
+        font-size: 13px;
+        padding: 0 8px;
     }
 </style>
 
@@ -283,6 +320,42 @@
                 </tbody>
             </table>
         </div>
+
+        {# Pagination #}
+        {% if totalPages > 1 %}
+            {% set rangeStart = offset + 1 %}
+            {% set rangeEnd = min(offset + perPage, totalResponses) %}
+            <div class="responses-pagination">
+                <div class="responses-pagination-info light">
+                    {{ 'Showing {start}–{end} of {total}'|t('campaign-manager', {
+                        start: rangeStart|number_format,
+                        end: rangeEnd|number_format,
+                        total: totalResponses|number_format,
+                    }) }}
+                </div>
+                <div class="responses-pagination-links">
+                    {% if page > 1 %}
+                        <a class="btn" href="{{ baseUrl }}?{{ pageQuery }}{{ page - 1 }}#responses">
+                            {{ 'Previous'|t('app') }}
+                        </a>
+                    {% else %}
+                        <span class="btn disabled">{{ 'Previous'|t('app') }}</span>
+                    {% endif %}
+
+                    <span class="responses-pagination-current">
+                        {{ 'Page {page} of {total}'|t('campaign-manager', {page: page, total: totalPages}) }}
+                    </span>
+
+                    {% if page < totalPages %}
+                        <a class="btn" href="{{ baseUrl }}?{{ pageQuery }}{{ page + 1 }}#responses">
+                            {{ 'Next'|t('app') }}
+                        </a>
+                    {% else %}
+                        <span class="btn disabled">{{ 'Next'|t('app') }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
 
     {% else %}
         {# Toolbar with filters (even when no responses) #}
