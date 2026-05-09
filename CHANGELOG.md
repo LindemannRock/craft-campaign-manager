@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.9.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.2...v5.9.0) (2026-05-09)
+
+
+### Features
+
+* add issue templates for bug reports, feature requests, and questions ([70b7e8b](https://github.com/LindemannRock/craft-campaign-manager/commit/70b7e8b6960e560eb80495cad683c1df553ad4d8))
+
 ## [5.8.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.1...v5.8.2) (2026-05-06)
 
 
