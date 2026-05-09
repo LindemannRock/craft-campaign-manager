@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.10.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.9.1...v5.10.0) (2026-05-09)
+
+
+### Features
+
+* **campaigns:** add lazy-loading for analytics and responses tabs in campaign edit page ([2e13cdd](https://github.com/LindemannRock/craft-campaign-manager/commit/2e13cdd7dbcb22463ce215223e58b09ae19857b4))
+* **recipients:** add pagination and limit options for recipient queries ([a780221](https://github.com/LindemannRock/craft-campaign-manager/commit/a780221ee666058be292765ed6e4f4c630f37a4a))
+
 ## [5.9.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.9.0...v5.9.1) (2026-05-09)
 
 
