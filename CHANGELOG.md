@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.9.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.9.0...v5.9.1) (2026-05-09)
+
+
+### Bug Fixes
+
+* update plugin description and keywords for clarity ([d10169a](https://github.com/LindemannRock/craft-campaign-manager/commit/d10169a6d37970cfcaf772340e5e2b041b6dfc27))
+
 ## [5.9.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.2...v5.9.0) (2026-05-09)
 
 
