@@ -8,8 +8,8 @@
  # - currentSite: The current site
  #}
 
-{# Get date range from URL #}
-{% set dateRange = craft.app.request.getQueryParam('dateRange') ?? craft.app.request.getQueryParam('range') ?? 'last30days' %}
+{# Get date range from URL, falling back to the plugin's configured default #}
+{% set dateRange = craft.app.request.getQueryParam('dateRange') ?? craft.app.request.getQueryParam('range') ?? lrDefaultDateRange('campaign-manager') %}
 
 {# Get analytics data for this campaign #}
 {% set stats = craft.campaignManager.analytics.getCampaignStats(campaign.id, null, dateRange) %}
@@ -123,6 +123,60 @@
                     </div>
                 </div>
             {% endif %}
+
+            {# Chart initialization - lives INSIDE the panel so it's swapped along with the
+               canvases when the base analytics-panel does its own date-filter AJAX. If this
+               sat outside the embed, the date filter would render new canvases but no listener
+               would be attached to draw into them. #}
+            {% if stats.totalRecipients > 0 %}
+                <script>
+                document.addEventListener('lr:panelChartsReady', function() {
+                    // Daily Trend Chart
+                    window.lrCreateChart('campaign-daily-chart', 'line', {
+                        labels: {{ dailyData.labels|json_encode|raw }},
+                        datasets: [
+                            {
+                                label: '{{ "Sent"|t('campaign-manager')|e('js') }}',
+                                data: {{ dailyData.sent|json_encode|raw }},
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: '{{ "Opened"|t('campaign-manager')|e('js') }}',
+                                data: {{ dailyData.opened|json_encode|raw }},
+                                borderColor: '#8b5cf6',
+                                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: '{{ "Responses"|t('campaign-manager')|e('js') }}',
+                                data: {{ dailyData.submissions|json_encode|raw }},
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }
+                        ]
+                    });
+
+                    // Channel Breakdown Chart
+                    window.lrCreateChart('campaign-channel-chart', 'doughnut', {
+                        labels: ['{{ "SMS"|t('campaign-manager')|e('js') }}', '{{ "Email"|t('campaign-manager')|e('js') }}'],
+                        datasets: [{
+                            data: [{{ stats.smsSent ?? 0 }}, {{ stats.emailsSent ?? 0 }}],
+                            backgroundColor: ['#10b981', '#3b82f6']
+                        }]
+                    }, {
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    });
+                });
+                </script>
+            {% endif %}
         {% else %}
             <div class="lr-analytics-empty">
                 <p>{{ 'No data available yet.'|t('campaign-manager') }}</p>
@@ -131,54 +185,3 @@
         {% endif %}
     {% endblock %}
 {% endembed %}
-
-{# Chart initialization - uses lrCreateChart from AnalyticsAsset #}
-{% if stats.totalRecipients > 0 %}
-<script>
-document.addEventListener('lr:panelChartsReady', function() {
-    // Daily Trend Chart
-    window.lrCreateChart('campaign-daily-chart', 'line', {
-        labels: {{ dailyData.labels|json_encode|raw }},
-        datasets: [
-            {
-                label: '{{ "Sent"|t('campaign-manager')|e('js') }}',
-                data: {{ dailyData.sent|json_encode|raw }},
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                tension: 0.3,
-                fill: true
-            },
-            {
-                label: '{{ "Opened"|t('campaign-manager')|e('js') }}',
-                data: {{ dailyData.opened|json_encode|raw }},
-                borderColor: '#8b5cf6',
-                backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                tension: 0.3,
-                fill: true
-            },
-            {
-                label: '{{ "Responses"|t('campaign-manager')|e('js') }}',
-                data: {{ dailyData.submissions|json_encode|raw }},
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.3,
-                fill: true
-            }
-        ]
-    });
-
-    // Channel Breakdown Chart
-    window.lrCreateChart('campaign-channel-chart', 'doughnut', {
-        labels: ['{{ "SMS"|t('campaign-manager')|e('js') }}', '{{ "Email"|t('campaign-manager')|e('js') }}'],
-        datasets: [{
-            data: [{{ stats.smsSent ?? 0 }}, {{ stats.emailsSent ?? 0 }}],
-            backgroundColor: ['#10b981', '#3b82f6']
-        }]
-    }, {
-        plugins: {
-            legend: { position: 'bottom' }
-        }
-    });
-});
-</script>
-{% endif %}

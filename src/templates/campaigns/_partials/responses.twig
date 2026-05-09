@@ -6,8 +6,8 @@
  # - currentSite: The current site
  #}
 
-{# Get filters from URL #}
-{% set dateRange = craft.app.request.getQueryParam('dateRange') ?? 'all' %}
+{# Get filters from URL, falling back to the plugin's configured default #}
+{% set dateRange = craft.app.request.getQueryParam('dateRange') ?? lrDefaultDateRange('campaign-manager') %}
 {% set siteFilter = craft.app.request.getQueryParam('siteFilter') ?? 'all' %}
 {% set currentSiteHandle = craft.app.request.getQueryParam('site') ?? craft.app.sites.currentSite.handle %}
 
