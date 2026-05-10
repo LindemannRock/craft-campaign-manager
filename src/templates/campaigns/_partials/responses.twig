@@ -36,8 +36,8 @@
 {# Filter URL prefix — preserves filters but resets page to 1 when filters change.
    parentUrl is passed when this partial is rendered via the lazy-load AJAX endpoint;
    without it, request.url would return the action endpoint URL and links would point
-   to the wrong place. #}
-{% set baseUrl = parentUrl ?? (craft.app.request.url|split('?')|first) %}
+   to the wrong place. Always strip query string — the partial appends its own. #}
+{% set baseUrl = (parentUrl ?? craft.app.request.url)|split('?')|first %}
 {% set filterQuery = 'site=' ~ currentSiteHandle ~ '&siteFilter=' ~ siteFilter ~ '&dateRange=' ~ dateRange %}
 {% set pageQuery = filterQuery ~ '&page=' %}
 
