@@ -33,8 +33,11 @@
 {% set page = requestedPage > totalPages ? totalPages : requestedPage %}
 {% set offset = (page - 1) * perPage %}
 
-{# Filter URL prefix — preserves filters but resets page to 1 when filters change #}
-{% set baseUrl = craft.app.request.url|split('?')|first %}
+{# Filter URL prefix — preserves filters but resets page to 1 when filters change.
+   parentUrl is passed when this partial is rendered via the lazy-load AJAX endpoint;
+   without it, request.url would return the action endpoint URL and links would point
+   to the wrong place. #}
+{% set baseUrl = parentUrl ?? (craft.app.request.url|split('?')|first) %}
 {% set filterQuery = 'site=' ~ currentSiteHandle ~ '&siteFilter=' ~ siteFilter ~ '&dateRange=' ~ dateRange %}
 {% set pageQuery = filterQuery ~ '&page=' %}
 
@@ -190,7 +193,7 @@
                             {% for option in siteFilterOptions %}
                                 <li>
                                     <a class="{{ siteFilter == option.value or (siteFilter == 'all' and option.value == 'all') ? 'sel' : '' }}"
-                                       href="{{ craft.app.request.url|split('?')|first }}?site={{ currentSiteHandle }}&siteFilter={{ option.value }}&dateRange={{ dateRange }}#responses">
+                                       href="{{ baseUrl }}?site={{ currentSiteHandle }}&siteFilter={{ option.value }}&dateRange={{ dateRange }}#responses">
                                         {{ option.label }}
                                     </a>
                                 </li>
@@ -213,7 +216,7 @@
                             {% for option in dateRangeOptions %}
                                 <li>
                                     <a class="{{ dateRange == option.value ? 'sel' : '' }}"
-                                       href="{{ craft.app.request.url|split('?')|first }}?site={{ currentSiteHandle }}&siteFilter={{ siteFilter }}&dateRange={{ option.value }}#responses">
+                                       href="{{ baseUrl }}?site={{ currentSiteHandle }}&siteFilter={{ siteFilter }}&dateRange={{ option.value }}#responses">
                                         {{ option.label }}
                                     </a>
                                 </li>
@@ -374,7 +377,7 @@
                         {% for option in siteFilterOptions %}
                             <li>
                                 <a class="{{ siteFilter == option.value or (siteFilter == 'all' and option.value == 'all') ? 'sel' : '' }}"
-                                   href="{{ craft.app.request.url|split('?')|first }}?site={{ currentSiteHandle }}&siteFilter={{ option.value }}&dateRange={{ dateRange }}#responses">
+                                   href="{{ baseUrl }}?site={{ currentSiteHandle }}&siteFilter={{ option.value }}&dateRange={{ dateRange }}#responses">
                                     {{ option.label }}
                                 </a>
                             </li>
@@ -397,7 +400,7 @@
                         {% for option in dateRangeOptions %}
                             <li>
                                 <a class="{{ dateRange == option.value ? 'sel' : '' }}"
-                                   href="{{ craft.app.request.url|split('?')|first }}?site={{ currentSiteHandle }}&siteFilter={{ siteFilter }}&dateRange={{ option.value }}#responses">
+                                   href="{{ baseUrl }}?site={{ currentSiteHandle }}&siteFilter={{ siteFilter }}&dateRange={{ option.value }}#responses">
                                     {{ option.label }}
                                 </a>
                             </li>

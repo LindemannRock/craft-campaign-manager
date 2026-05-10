@@ -353,6 +353,15 @@ class CampaignsController extends Controller
             throw new NotFoundHttpException('Campaign not found.');
         }
 
+        // Build the campaign edit page URL so filter/pagination links inside the
+        // partial point to the correct page. Without this, craft.app.request.url
+        // inside the partial would return THIS action endpoint and pagination
+        // would navigate to the action route, throwing a missing-param error.
+        $parentUrl = \craft\helpers\UrlHelper::cpUrl(
+            'campaign-manager/campaigns/' . $campaignId,
+            ['site' => $site->handle],
+        );
+
         $plugin = CampaignManager::$plugin;
         $html = Craft::$app->getView()->renderTemplate(
             'campaign-manager/campaigns/_partials/' . $tab,
@@ -362,6 +371,7 @@ class CampaignsController extends Controller
                 'plugin' => $plugin,
                 'settings' => $plugin->getSettings(),
                 'pluginHandle' => $plugin->id,
+                'parentUrl' => $parentUrl,
             ],
         );
 
