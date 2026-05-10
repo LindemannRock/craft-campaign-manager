@@ -418,21 +418,23 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle expand/collapse
-    document.querySelectorAll('.responses-table .main-row').forEach(function(row) {
-        row.addEventListener('click', function(e) {
-            // Don't toggle if clicking a link
-            if (e.target.closest('a')) return;
-
-            const targetId = this.dataset.target;
-            const detailsRow = document.getElementById(targetId);
-
-            if (detailsRow) {
-                this.classList.toggle('expanded');
-                detailsRow.classList.toggle('visible');
-            }
-        });
+// Run inline (no DOMContentLoaded wrapper) — this script is re-executed every
+// time the partial is loaded via AJAX, by which point DOMContentLoaded has
+// already fired and the wrapped callback would never run.
+(function() {
+    var table = document.querySelector('.responses-table');
+    if (!table) return;
+    // Event delegation so it survives content swaps (filter / pagination changes)
+    table.addEventListener('click', function(e) {
+        if (e.target.closest('a')) return;
+        var row = e.target.closest('.main-row');
+        if (!row) return;
+        var targetId = row.dataset.target;
+        var detailsRow = document.getElementById(targetId);
+        if (detailsRow) {
+            row.classList.toggle('expanded');
+            detailsRow.classList.toggle('visible');
+        }
     });
-});
+})();
 </script>
