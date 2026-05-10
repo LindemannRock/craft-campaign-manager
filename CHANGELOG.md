@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.10.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.2...v5.10.3) (2026-05-10)
+
+
+### Bug Fixes
+
+* **campaigns:** correct pagination links in campaign edit page ([1b69461](https://github.com/LindemannRock/craft-campaign-manager/commit/1b69461d59f86d343bcfd47862ecf8159eb025ba))
+* **responses:** correct base URL handling in filter URL prefix ([f8ee7e5](https://github.com/LindemannRock/craft-campaign-manager/commit/f8ee7e567e8232e97f960acf2db6f3e7a25c7b16))
+* **responses:** update event handling for responses table to support AJAX loading ([9207983](https://github.com/LindemannRock/craft-campaign-manager/commit/920798372edab16987a390f77ebc3f052aa1e1af))
+
 ## [5.10.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.1...v5.10.2) (2026-05-09)
 
 
