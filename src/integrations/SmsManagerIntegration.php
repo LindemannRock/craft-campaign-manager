@@ -8,15 +8,24 @@
 
 namespace lindemannrock\campaignmanager\integrations;
 
+use Craft;
 use craft\helpers\UrlHelper;
+use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\smsmanager\integrations\IntegrationInterface;
+use lindemannrock\smsmanager\SmsManager;
 use verbb\formie\elements\Form;
 
 /**
  * SMS Manager Integration
  *
- * Reports Survey Campaigns usage to SMS Manager.
+ * Reports Campaign Manager usage to SMS Manager so the delete guard in
+ * `ProvidersService::deleteProvider()` / `SenderIdsService::deleteSenderId()`
+ * blocks deletion of any provider or sender that this plugin is using.
+ *
+ * Usage sources covered:
+ *  - Per-campaign assignment (`CampaignRecord.senderId`)
+ *  - Plugin-default settings (`defaultProviderHandle`, `defaultSenderIdHandle`)
  *
  * @author    LindemannRock
  * @package   CampaignManager
@@ -29,9 +38,24 @@ class SmsManagerIntegration implements IntegrationInterface
      */
     public function getProviderUsages(int $providerId): array
     {
-        // Survey Campaigns doesn't store provider ID directly,
-        // it uses sender ID which is linked to a provider
-        return [];
+        $usages = [];
+
+        // Plugin-default provider — resolve the configured handle and
+        // compare IDs. Config-only providers have id=null so they'll never
+        // match a real DB-backed providerId (and config-only providers
+        // can't be deleted from the CP anyway).
+        $settings = CampaignManager::$plugin->getSettings();
+        if (!empty($settings->defaultProviderHandle)) {
+            $provider = SmsManager::$plugin->providers->getProviderByHandle($settings->defaultProviderHandle);
+            if ($provider && (int) $provider->id === $providerId) {
+                $usages[] = [
+                    'label' => Craft::t('campaign-manager', 'Plugin Default Provider'),
+                    'editUrl' => UrlHelper::cpUrl('campaign-manager/settings'),
+                ];
+            }
+        }
+
+        return $usages;
     }
 
     /**
@@ -41,14 +65,12 @@ class SmsManagerIntegration implements IntegrationInterface
     {
         $usages = [];
 
-        // Find all campaigns that use this sender ID
         /** @var CampaignRecord[] $campaigns */
         $campaigns = CampaignRecord::find()
             ->where(['senderId' => $senderIdId])
             ->all();
 
         foreach ($campaigns as $campaign) {
-            // Get the form name for a better label
             $label = 'Campaign #' . $campaign->id;
             if ($campaign->formId) {
                 $form = Form::find()->id($campaign->formId)->one();
@@ -61,6 +83,19 @@ class SmsManagerIntegration implements IntegrationInterface
                 'label' => $label,
                 'editUrl' => UrlHelper::cpUrl('survey-campaigns/campaigns/' . $campaign->id),
             ];
+        }
+
+        // Plugin-default sender — resolve the configured handle and compare
+        // IDs. Same null-id safety as getProviderUsages() above.
+        $settings = CampaignManager::$plugin->getSettings();
+        if (!empty($settings->defaultSenderIdHandle)) {
+            $senderId = SmsManager::$plugin->senderIds->getSenderIdByHandle($settings->defaultSenderIdHandle);
+            if ($senderId && (int) $senderId->id === $senderIdId) {
+                $usages[] = [
+                    'label' => Craft::t('campaign-manager', 'Plugin Default Sender ID'),
+                    'editUrl' => UrlHelper::cpUrl('campaign-manager/settings'),
+                ];
+            }
         }
 
         return $usages;

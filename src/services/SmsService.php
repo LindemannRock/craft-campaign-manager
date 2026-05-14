@@ -38,65 +38,54 @@ class SmsService extends Component
     }
 
     /**
-     * Send an SMS via SMS Manager
+     * Send an SMS via SMS Manager.
+     *
+     * Routes through `SmsManager::sendWithHandle()` so the call works for
+     * both DB-backed and config-only sender IDs (config-only senders have
+     * `id = null`, which the older ID-based path would silently drop onto
+     * the default sender — see SMS Manager audit findings 7.1 / 8.1).
+     *
+     * Provider is derived from the sender's `providerHandle` inside SMS
+     * Manager; the `$providerHandle` parameter here is retained for
+     * backwards compatibility with existing call sites but is no longer
+     * consulted at dispatch time.
      *
      * @param string $to Recipient phone number
      * @param string $message Message content
      * @param string|null $language Message language ('en' or 'ar')
-     * @param string|null $providerHandle Optional provider handle (uses default from settings if null)
-     * @param string|null $senderIdHandle Optional sender ID handle (uses default from settings if null)
+     * @param string|null $providerHandle Accepted for back-compat; ignored. Provider is derived from the sender ID's `providerHandle`.
+     * @param string|null $senderIdHandle Sender ID handle (uses plugin's `defaultSenderIdHandle` setting if null)
      * @return bool
      */
     public function sendSms(
         string $to,
         string $message,
         ?string $language = 'en',
+        /** @noinspection PhpUnusedParameterInspection */
         ?string $providerHandle = null,
         ?string $senderIdHandle = null,
     ): bool {
-        // Check if SMS Manager is available
+        unset($providerHandle); // Intentionally unused — see method docblock.
+
         if (!$this->isSmsManagerAvailable()) {
             $this->logError('SMS Manager plugin is not installed or enabled');
             return false;
         }
 
-        $settings = CampaignManager::$plugin->getSettings();
-
-        // Get provider handle from settings if not provided
-        if ($providerHandle === null) {
-            $providerHandle = $settings->defaultProviderHandle;
-        }
-
-        // Get sender ID handle from settings if not provided
         if ($senderIdHandle === null) {
-            $senderIdHandle = $settings->defaultSenderIdHandle;
+            $senderIdHandle = CampaignManager::$plugin->getSettings()->defaultSenderIdHandle;
         }
 
-        // Resolve sender ID to get the actual ID for sending
-        $senderIdId = null;
-        if ($senderIdHandle) {
-            $senderId = SmsManager::$plugin->senderIds->getSenderIdByHandle($senderIdHandle);
-            if ($senderId) {
-                $senderIdId = $senderId->id;
-            }
+        if (empty($senderIdHandle)) {
+            $this->logError('No sender ID handle resolved for SMS send — set defaultSenderIdHandle in Campaign Manager settings, or pass an explicit handle.');
+            return false;
         }
 
-        // Resolve provider ID
-        $providerId = null;
-        if ($providerHandle) {
-            $provider = SmsManager::$plugin->providers->getProviderByHandle($providerHandle);
-            if ($provider) {
-                $providerId = $provider->id;
-            }
-        }
-
-        // Send via SMS Manager
-        return SmsManager::$plugin->sms->send(
+        return SmsManager::$plugin->sms->sendWithHandle(
             to: $to,
             message: $message,
+            senderIdHandle: $senderIdHandle,
             language: $language ?? 'en',
-            providerId: $providerId,
-            senderIdId: $senderIdId,
             sourcePlugin: CampaignManager::$plugin->id,
         );
     }
