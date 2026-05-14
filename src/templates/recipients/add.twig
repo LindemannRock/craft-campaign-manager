@@ -101,8 +101,10 @@
             required: false
         }) }}
 
-        {# SMS field with country code selector #}
-        {% set providerHandle = campaign.providerHandle ?? settings.defaultProviderHandle %}
+        {# SMS field with country code selector. Same fallback chain as
+           recipients/map.twig: campaign's stored providerHandle (auto-synced
+           from senderId), then the SMS Manager default sender's provider. #}
+        {% set providerHandle = campaign.providerHandle ?: craft.campaignManager.sms.getResolvedDefaultSenderProvider() %}
         {% set allowedCountries = providerHandle ? craft.campaignManager.sms.getAllowedCountries(providerHandle) : [] %}
         {% set isAllCountries = allowedCountries == ['*'] %}
 

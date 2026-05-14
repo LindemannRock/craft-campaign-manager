@@ -284,7 +284,13 @@
         <h2>{{ 'SMS Settings'|t('campaign-manager') }}</h2>
 
         {% if craft.campaignManager.sms.isSmsManagerAvailable() %}
-            {# Build allowed countries and provider names by provider for JS #}
+            {# Single Sender ID dropdown with `<optgroup>` provider groupings.
+               `CampaignRecord::beforeValidate()` auto-syncs `providerHandle`
+               from the chosen sender so recipients pages keep working. #}
+
+            {# Build sender→provider + country lookup maps for the JS-side
+               country preview update on dropdown change. #}
+            {% set senderToProvider = {} %}
             {% set countriesByProvider = {} %}
             {% set providerNames = {} %}
             {% set countryNames = {} %}
@@ -292,142 +298,119 @@
                 {% set countries = craft.campaignManager.sms.getAllowedCountries(provider.handle) %}
                 {% set countriesByProvider = countriesByProvider|merge({(provider.handle): countries}) %}
                 {% set providerNames = providerNames|merge({(provider.handle): provider.name}) %}
-                {# Build country names lookup #}
                 {% for code in countries %}
                     {% if code != '*' and countryNames[code] is not defined %}
                         {% set countryNames = countryNames|merge({(code): lrCountryName(code)}) %}
                     {% endif %}
                 {% endfor %}
+                {% for sender in craft.campaignManager.sms.getAvailableSenderIds(provider.handle) %}
+                    {% set senderToProvider = senderToProvider|merge({(sender.handle): provider.handle}) %}
+                {% endfor %}
             {% endfor %}
 
-            {# Provider - use ?: to also handle empty strings #}
-            {% set currentProviderHandle = campaign.providerHandle ?: settings.defaultProviderHandle %}
-            {{ forms.selectField({
-                label: 'Provider'|t('campaign-manager'),
-                instructions: 'The SMS provider to use for this campaign.'|t('campaign-manager'),
-                id: 'providerHandle',
-                name: 'providerHandle',
-                value: currentProviderHandle,
-                options: providerOptions,
-                errors: campaign.getErrors('providerHandle'),
-            }) }}
+            {# Provider that the "Use SMS Manager default" sentinel currently
+               resolves to. Used for the country preview when the campaign's
+               saved sender is the sentinel (`''`). #}
+            {% set defaultSenderProviderHandle = craft.campaignManager.sms.getResolvedDefaultSenderProvider() %}
 
-            {# Sender ID - use ?: to also handle empty strings #}
+            {# Pre-select: prefer the campaign's own senderId; if it's null
+               (new campaign), fall through to the plugin's default sender. #}
             {% set currentSenderIdHandle = campaign.senderId ?: settings.defaultSenderIdHandle %}
             {{ forms.selectField({
                 label: 'Sender ID'|t('campaign-manager'),
-                instructions: 'The sender ID to display when sending SMS for this campaign.'|t('campaign-manager'),
+                instructions: 'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this campaign to that sender regardless of future default changes.'|t('campaign-manager'),
                 id: 'senderId',
                 name: 'senderId',
                 value: currentSenderIdHandle,
                 options: senderIdOptions,
                 errors: campaign.getErrors('senderId'),
-                disabled: not currentProviderHandle,
             }) }}
 
-            {# Show current provider's allowed countries #}
-            {% set currentProvider = null %}
-            {% for provider in craft.campaignManager.sms.getAvailableProviders() %}
-                {% if provider.handle == currentProviderHandle %}
-                    {% set currentProvider = provider %}
-                {% endif %}
-            {% endfor %}
-            {% set currentCountries = currentProviderHandle ? craft.campaignManager.sms.getAllowedCountries(currentProviderHandle) : [] %}
+            {# Country preview — resolve provider from the pre-selected sender. #}
+            {% if currentSenderIdHandle is same as('') %}
+                {% set previewProviderHandle = defaultSenderProviderHandle %}
+            {% elseif currentSenderIdHandle %}
+                {% set previewProviderHandle = senderToProvider[currentSenderIdHandle] ?? null %}
+            {% else %}
+                {% set previewProviderHandle = null %}
+            {% endif %}
+
+            {% set previewProvider = null %}
+            {% if previewProviderHandle %}
+                {% for provider in craft.campaignManager.sms.getAvailableProviders() %}
+                    {% if provider.handle == previewProviderHandle %}
+                        {% set previewProvider = provider %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% set previewCountries = previewProviderHandle ? (countriesByProvider[previewProviderHandle] ?? []) : [] %}
             {% set formattedCountries = [] %}
-            {% for code in currentCountries %}
+            {% for code in previewCountries %}
                 {% if code != '*' %}
                     {% set formattedCountries = formattedCountries|merge([lrCountryName(code) ~ ' (' ~ code ~ ')']) %}
                 {% endif %}
             {% endfor %}
-            {% set countryMessage = currentCountries == ['*'] ? 'Allowed countries for <strong>' ~ (currentProvider.name ?? '') ~ '</strong>: All countries.' : 'Allowed countries for <strong>' ~ (currentProvider.name ?? '') ~ '</strong>: ' ~ formattedCountries|join(', ') ~ '.' %}
+            {% set countryMessage = previewCountries == ['*']
+                ? 'Allowed countries for <strong>' ~ (previewProvider.name ?? '') ~ '</strong>: All countries.'
+                : 'Allowed countries for <strong>' ~ (previewProvider.name ?? '') ~ '</strong>: ' ~ formattedCountries|join(', ') ~ '.' %}
             {% include 'lindemannrock-base/_components/info-box' with {
                 message: countryMessage,
                 type: 'info',
                 margin: 'top',
                 boxId: 'campaign-provider-countries-box',
                 messageId: 'campaign-provider-countries-message',
-                hidden: not currentProviderHandle,
+                hidden: not previewProviderHandle,
             } %}
 
             {% js %}
                 (function() {
-                    var senderIdsByProvider = {{ senderIdsByProvider|json_encode|raw }};
+                    var senderToProvider = {{ senderToProvider|json_encode|raw }};
                     var countriesByProvider = {{ countriesByProvider|json_encode|raw }};
                     var providerNames = {{ providerNames|json_encode|raw }};
                     var countryNames = {{ countryNames|json_encode|raw }};
-                    var providerSelect = document.getElementById('providerHandle');
+                    var defaultSenderProviderHandle = '{{ (defaultSenderProviderHandle ?? '')|e('js') }}';
                     var senderIdSelect = document.getElementById('senderId');
-                    var senderIdField = senderIdSelect.closest('.field');
-                    var senderIdInput = senderIdSelect.closest('.input');
                     var countriesBox = document.getElementById('campaign-provider-countries-box');
                     var countriesMessage = document.getElementById('campaign-provider-countries-message');
-                    var currentSenderIdValue = '{{ campaign.senderId|e('js') }}';
 
                     function formatCountry(code) {
                         var name = countryNames[code] || code;
                         return name + ' (' + code + ')';
                     }
 
-                    function updateSenderIdOptions() {
-                        var providerHandle = providerSelect.value;
-                        var options = senderIdsByProvider[providerHandle] || [];
-
-                        // Clear existing options
-                        senderIdSelect.innerHTML = '';
-
-                        // Add placeholder
-                        var placeholder = document.createElement('option');
-                        placeholder.value = '';
-                        placeholder.textContent = providerHandle ? '{{ "Select a sender ID..."|t('campaign-manager')|e('js') }}' : '{{ "Select a provider first..."|t('campaign-manager')|e('js') }}';
-                        senderIdSelect.appendChild(placeholder);
-
-                        // Add sender ID options
-                        options.forEach(function(opt) {
-                            var option = document.createElement('option');
-                            option.value = opt.value;
-                            option.textContent = opt.label;
-                            if (opt.value === currentSenderIdValue) {
-                                option.selected = true;
-                            }
-                            senderIdSelect.appendChild(option);
-                        });
-
-                        // Enable/disable based on provider selection
-                        var isDisabled = !providerHandle;
-                        senderIdSelect.disabled = isDisabled;
-                        if (senderIdInput) {
-                            senderIdInput.classList.toggle('disabled', isDisabled);
+                    function resolveProviderForSender(senderHandle) {
+                        if (senderHandle === '') {
+                            // "Use SMS Manager default" sentinel.
+                            return defaultSenderProviderHandle;
                         }
-                        if (senderIdField) {
-                            senderIdField.classList.toggle('disabled', isDisabled);
-                        }
-
-                        // Update countries info box
-                        if (countriesBox && countriesMessage) {
-                            if (providerHandle) {
-                                var countries = countriesByProvider[providerHandle] || [];
-                                var providerName = providerNames[providerHandle] || providerHandle;
-                                var message;
-                                if (countries.length === 1 && countries[0] === '*') {
-                                    message = '{{ "Allowed countries for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>: {{ "All countries."|t('campaign-manager')|e('js') }}';
-                                } else if (countries.length > 0) {
-                                    var formatted = countries.map(formatCountry).join(', ');
-                                    message = '{{ "Allowed countries for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>: ' + formatted + '.';
-                                } else {
-                                    message = '{{ "No country restrictions for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>.';
-                                }
-                                countriesMessage.innerHTML = message;
-                                countriesBox.style.display = '';
-                            } else {
-                                countriesBox.style.display = 'none';
-                            }
-                        }
+                        return senderToProvider[senderHandle] || '';
                     }
 
-                    providerSelect.addEventListener('change', function() {
-                        currentSenderIdValue = ''; // Reset when provider changes
-                        updateSenderIdOptions();
-                    });
+                    function updateCountries() {
+                        if (!countriesBox || !countriesMessage) {
+                            return;
+                        }
+                        var providerHandle = resolveProviderForSender(senderIdSelect.value);
+                        if (!providerHandle) {
+                            countriesBox.style.display = 'none';
+                            return;
+                        }
+                        var countries = countriesByProvider[providerHandle] || [];
+                        var providerName = providerNames[providerHandle] || providerHandle;
+                        var message;
+                        if (countries.length === 1 && countries[0] === '*') {
+                            message = '{{ "Allowed countries for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>: {{ "All countries."|t('campaign-manager')|e('js') }}';
+                        } else if (countries.length > 0) {
+                            var formatted = countries.map(formatCountry).join(', ');
+                            message = '{{ "Allowed countries for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>: ' + formatted + '.';
+                        } else {
+                            message = '{{ "No country restrictions for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>.';
+                        }
+                        countriesMessage.innerHTML = message;
+                        countriesBox.style.display = '';
+                    }
+
+                    senderIdSelect.addEventListener('change', updateCountries);
                 })();
             {% endjs %}
         {% else %}

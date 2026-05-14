@@ -11,6 +11,7 @@ namespace lindemannrock\campaignmanager\records;
 use craft\base\ElementInterface;
 use craft\db\ActiveRecord;
 use craft\records\Element;
+use lindemannrock\smsmanager\SmsManager;
 use verbb\formie\elements\Form;
 use verbb\formie\Formie;
 use yii\db\ActiveQueryInterface;
@@ -43,6 +44,39 @@ class CampaignRecord extends ActiveRecord
     public static function tableName(): string
     {
         return '{{%campaignmanager_campaigns}}';
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * Derives `providerHandle` from the chosen `senderId` (which stores a
+     * sender handle, not an int — the field is misleadingly named for
+     * historical reasons). The campaign edit UI exposes only the Sender
+     * ID dropdown with optgroups; the provider is implicit via the
+     * chosen sender's `providerHandle`. Keeping the field auto-synced
+     * lets recipients pages (`recipients/map.twig`, `recipients/add.twig`)
+     * continue using `campaign.providerHandle` for country filtering
+     * without change.
+     *
+     * - `senderId = '<handle>'` → derive provider from that sender
+     * - `senderId = ''` (Use SMS Manager default) → null the provider too;
+     *   recipients pages fall back to
+     *   `SmsService::getResolvedDefaultSenderProvider()` which resolves
+     *   SMS Manager's currently-configured default sender's provider.
+     * - `senderId = null` → null the provider.
+     */
+    public function beforeValidate(): bool
+    {
+        if (!empty($this->senderId)) {
+            $sender = SmsManager::$plugin->senderIds->getSenderIdByHandle((string) $this->senderId);
+            $this->providerHandle = ($sender && $sender->providerHandle)
+                ? (string) $sender->providerHandle
+                : null;
+        } else {
+            $this->providerHandle = null;
+        }
+
+        return parent::beforeValidate();
     }
 
     /**

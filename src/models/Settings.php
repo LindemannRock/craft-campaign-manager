@@ -61,12 +61,12 @@ class Settings extends Model
     public ?int $defaultSenderIdId = null;
 
     /**
-     * @var string|null Default SMS Manager provider handle
-     */
-    public ?string $defaultProviderHandle = null;
-
-    /**
-     * @var string|null Default SMS Manager sender ID handle
+     * @var string|null Default SMS Manager sender ID handle.
+     *
+     * Single source of truth for the campaign-manager-wide SMS routing
+     * default. The provider is implicit via this sender's `providerHandle`
+     * — the per-campaign `senderId` field and the `defaultSenderIdHandle`
+     * here both feed into `sendWithHandle()` at dispatch.
      */
     public ?string $defaultSenderIdHandle = null;
 
@@ -166,7 +166,6 @@ class Settings extends Model
             'pluginName',
             'invitationRoute',
             'invitationTemplate',
-            'defaultProviderHandle',
             'defaultSenderIdHandle',
             'logLevel',
         ];
@@ -245,7 +244,7 @@ class Settings extends Model
             ['invitationRoute', 'validateInvitationRoute'],
             ['invitationTemplate', 'string'],
             ['defaultSenderIdId', 'integer'],
-            [['defaultProviderHandle', 'defaultSenderIdHandle'], 'string', 'max' => 64],
+            ['defaultSenderIdHandle', 'string', 'max' => 64],
             [['logLevel'], 'in', 'range' => ['debug', 'info', 'warning', 'error']],
             ['itemsPerPage', 'required'],
             ['itemsPerPage', 'integer', 'min' => 10, 'max' => 500],

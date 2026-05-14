@@ -25,7 +25,8 @@ use verbb\formie\elements\Form;
  *
  * Usage sources covered:
  *  - Per-campaign assignment (`CampaignRecord.senderId`)
- *  - Plugin-default settings (`defaultProviderHandle`, `defaultSenderIdHandle`)
+ *  - Plugin-default sender (`Settings.defaultSenderIdHandle`)
+ *  - The provider implicit in that default sender (covers provider deletion)
  *
  * @author    LindemannRock
  * @package   CampaignManager
@@ -40,18 +41,23 @@ class SmsManagerIntegration implements IntegrationInterface
     {
         $usages = [];
 
-        // Plugin-default provider — resolve the configured handle and
-        // compare IDs. Config-only providers have id=null so they'll never
-        // match a real DB-backed providerId (and config-only providers
-        // can't be deleted from the CP anyway).
+        // Provider is implicit via the plugin-default sender. Look the
+        // sender up, check whether its `providerHandle` resolves to this
+        // provider — if so, deleting the provider would orphan the default
+        // sender, so report it as a usage. Config-only senders/providers
+        // (where `id` is null) can't match a DB-backed `$providerId` and
+        // also can't be deleted via CP anyway.
         $settings = CampaignManager::$plugin->getSettings();
-        if (!empty($settings->defaultProviderHandle)) {
-            $provider = SmsManager::$plugin->providers->getProviderByHandle($settings->defaultProviderHandle);
-            if ($provider && (int) $provider->id === $providerId) {
-                $usages[] = [
-                    'label' => Craft::t('campaign-manager', 'Plugin Default Provider'),
-                    'editUrl' => UrlHelper::cpUrl('campaign-manager/settings'),
-                ];
+        if (!empty($settings->defaultSenderIdHandle)) {
+            $sender = SmsManager::$plugin->senderIds->getSenderIdByHandle($settings->defaultSenderIdHandle);
+            if ($sender && $sender->providerHandle) {
+                $provider = SmsManager::$plugin->providers->getProviderByHandle($sender->providerHandle);
+                if ($provider && (int) $provider->id === $providerId) {
+                    $usages[] = [
+                        'label' => Craft::t('campaign-manager', 'Plugin Default Sender ID provider'),
+                        'editUrl' => UrlHelper::cpUrl('campaign-manager/settings'),
+                    ];
+                }
             }
         }
 

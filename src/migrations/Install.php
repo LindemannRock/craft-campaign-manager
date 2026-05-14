@@ -56,7 +56,6 @@ class Install extends Migration
             'invitationRoute' => $this->string()->defaultValue('campaign-manager/invitation'),
             'invitationTemplate' => $this->string(),
             'defaultSenderIdId' => $this->integer(),
-            'defaultProviderHandle' => $this->string(64),
             'defaultSenderIdHandle' => $this->string(64),
             'campaignTypeOptions' => $this->text(),
             'itemsPerPage' => $this->integer()->defaultValue(50),

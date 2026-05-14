@@ -94,7 +94,7 @@ class SettingsController extends Controller
         $nullableIntFields = ['defaultSenderIdId'];
 
         // Fields that should be nullable strings (empty string = null)
-        $nullableStringFields = ['defaultProviderHandle', 'defaultSenderIdHandle'];
+        $nullableStringFields = ['defaultSenderIdHandle'];
 
         // Update settings with posted values
         foreach ($postedSettings as $key => $value) {
@@ -162,7 +162,6 @@ class SettingsController extends Controller
         return match ($section) {
             'general' => [
                 'pluginName',
-                'defaultProviderHandle',
                 'defaultSenderIdHandle',
                 'invitationRoute',
                 'invitationTemplate',

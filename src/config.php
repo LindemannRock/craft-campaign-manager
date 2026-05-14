@@ -112,16 +112,15 @@ return [
         // ========================================
 
         /**
-         * Default SMS Manager provider handle
-         * Must match a provider handle from SMS Manager
-         * Default: null (uses SMS Manager's default)
-         */
-        // 'defaultProviderHandle' => App::env('CAMPAIGN_SMS_PROVIDER'),
-
-        /**
          * Default SMS Manager sender ID handle
-         * Must match a sender ID handle from SMS Manager
-         * Default: null (uses SMS Manager's default)
+         *
+         * Must match a sender ID handle from SMS Manager. The provider is
+         * implicit via the sender's `providerHandle` — there's no separate
+         * `defaultProviderHandle` setting. Set to empty string `""` to use
+         * SMS Manager's plugin-wide default sender (resolved at dispatch).
+         *
+         * Default: null (no Campaign Manager-level default; the per-campaign
+         * `senderId` field or SMS Manager's own default applies).
          */
         // 'defaultSenderIdHandle' => App::env('CAMPAIGN_SMS_SENDER'),
 
@@ -168,8 +167,7 @@ return [
     // ========================================
     'dev' => [
         'logLevel' => 'debug',
-        // Use test provider in development
-        // 'defaultProviderHandle' => 'dev-provider',
+        // Use a development sender in dev
         // 'defaultSenderIdHandle' => 'dev-sender',
     ],
 
@@ -178,7 +176,6 @@ return [
     // ========================================
     'staging' => [
         'logLevel' => 'info',
-        // 'defaultProviderHandle' => 'staging-provider',
         // 'defaultSenderIdHandle' => 'staging-sender',
     ],
 
@@ -187,7 +184,6 @@ return [
     // ========================================
     'production' => [
         'logLevel' => 'error',
-        // 'defaultProviderHandle' => 'production-provider',
         // 'defaultSenderIdHandle' => 'main-sender',
     ],
 ];

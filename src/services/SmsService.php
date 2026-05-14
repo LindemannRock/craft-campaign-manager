@@ -76,8 +76,18 @@ class SmsService extends Component
             $senderIdHandle = CampaignManager::$plugin->getSettings()->defaultSenderIdHandle;
         }
 
+        // Empty string is the "Use SMS Manager default" sentinel that lives
+        // at every layer of the dispatch chain (per-campaign senderId field,
+        // plugin defaultSenderIdHandle setting). Resolve to SMS Manager's
+        // currently-configured default sender. The 8.2 fail-loud guarantee
+        // surfaces a clear error if no default is configured plugin-wide.
         if (empty($senderIdHandle)) {
-            $this->logError('No sender ID handle resolved for SMS send — set defaultSenderIdHandle in Campaign Manager settings, or pass an explicit handle.');
+            $default = SmsManager::$plugin->senderIds->getDefaultSenderId();
+            $senderIdHandle = $default?->handle;
+        }
+
+        if (empty($senderIdHandle)) {
+            $this->logError('No sender ID handle resolved for SMS send — set a Default Sender ID in Campaign Manager or SMS Manager settings, or pass an explicit handle.');
             return false;
         }
 
@@ -88,6 +98,111 @@ class SmsService extends Component
             language: $language ?? 'en',
             sourcePlugin: CampaignManager::$plugin->id,
         );
+    }
+
+    /**
+     * Resolve SMS Manager's currently-configured default sender to its
+     * provider handle. Powers the country-filter preview on the settings
+     * and campaign-edit pages when the saved sender is the "Use SMS
+     * Manager default" sentinel (`senderIdHandle === ''`) — at that point
+     * dispatch will route through whatever sms-manager has as its default,
+     * and the preview should reflect the actual destination.
+     *
+     * Returns null when SMS Manager has no default configured or when the
+     * default doesn't resolve to an enabled sender.
+     */
+    public function getResolvedDefaultSenderProvider(): ?string
+    {
+        if (!$this->isSmsManagerAvailable()) {
+            return null;
+        }
+        $sender = SmsManager::$plugin->senderIds->getDefaultSenderId();
+        return ($sender && $sender->providerHandle) ? (string) $sender->providerHandle : null;
+    }
+
+    /**
+     * Build the optgroup-structured options array for a single Sender ID
+     * dropdown. Format matches Craft's `forms.selectField` macro: a flat
+     * array of `['label', 'value']` options interspersed with
+     * `['optgroup' => 'Group Label']` markers.
+     *
+     *   [
+     *       ['label' => 'Use SMS Manager default (currently: …)', 'value' => ''],
+     *       ['optgroup' => 'MPP-SMS'],
+     *       ['label' => 'A. Alghanim', 'value' => 'alghanim'],
+     *       …
+     *       ['optgroup' => 'Test Config Provider'],
+     *       ['label' => 'Test Config Sender Dev [Dev]', 'value' => 'dev-test'],
+     *   ]
+     *
+     * Drives the single-dropdown UI on both the plugin settings page and
+     * the per-campaign edit page. Mirrors `formie-sms`'s `buildSenderIdOptions()`
+     * for cross-plugin consistency.
+     *
+     * @return array<int, array{label?: string, value?: string, optgroup?: string}>
+     */
+    public function getSenderIdOptionsWithGroups(): array
+    {
+        $options = [];
+
+        if (!$this->isSmsManagerAvailable()) {
+            return $options;
+        }
+
+        // "Use SMS Manager default" sentinel — only included when sms-manager
+        // actually has a default sender configured. Empty value matches the
+        // dispatch sentinel `senderIdHandle === ''` that resolves at send
+        // time to whatever the live default is.
+        $defaultSender = SmsManager::$plugin->senderIds->getDefaultSenderId();
+        if ($defaultSender) {
+            $defaultLabel = (string) $defaultSender->name;
+            if ($defaultSender->isDev) {
+                $defaultLabel .= ' ' . Craft::t('campaign-manager', '[Dev]');
+            }
+            $options[] = [
+                'value' => '',
+                'label' => Craft::t('campaign-manager', 'Use SMS Manager default (currently: {sender})', [
+                    'sender' => $defaultLabel,
+                ]),
+            ];
+        }
+
+        // Walk providers in their configured display order so the optgroup
+        // order in the dropdown is stable and predictable across renders.
+        $providers = SmsManager::$plugin->providers->getAllProviders(true);
+        $allSenders = SmsManager::$plugin->senderIds->getAllSenderIds(true);
+
+        $sendersByProvider = [];
+        foreach ($allSenders as $sender) {
+            if (!$sender->enabled || !$sender->handle || !$sender->providerHandle) {
+                continue;
+            }
+            $sendersByProvider[$sender->providerHandle][] = $sender;
+        }
+
+        foreach ($providers as $provider) {
+            if (!$provider->enabled || !$provider->handle) {
+                continue;
+            }
+            $providerSenders = $sendersByProvider[$provider->handle] ?? [];
+            if ($providerSenders === []) {
+                continue;
+            }
+
+            $options[] = ['optgroup' => (string) $provider->name];
+            foreach ($providerSenders as $sender) {
+                $label = (string) $sender->name;
+                if ($sender->isDev) {
+                    $label .= ' ' . Craft::t('campaign-manager', '[Dev]');
+                }
+                $options[] = [
+                    'value' => (string) $sender->handle,
+                    'label' => $label,
+                ];
+            }
+        }
+
+        return $options;
     }
 
     /**

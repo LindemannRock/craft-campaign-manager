@@ -104,9 +104,10 @@ class CampaignsController extends Controller
                 $campaign = new Campaign();
                 $campaign->siteId = $siteId;
 
-                // Set defaults from plugin settings for new campaigns
+                // Set defaults from plugin settings for new campaigns.
+                // `providerHandle` is auto-derived from `senderId` in
+                // `CampaignRecord::beforeValidate()` on save.
                 $settings = CampaignManager::$plugin->getSettings();
-                $campaign->providerHandle = $settings->defaultProviderHandle;
                 $campaign->senderId = $settings->defaultSenderIdHandle;
             }
         }
@@ -134,25 +135,20 @@ class CampaignsController extends Controller
             ? $campaign->title
             : Craft::t('campaign-manager', 'New Campaign');
 
-        // Get SMS provider and sender ID options
+        // Single Sender ID dropdown with `<optgroup>` provider groupings —
+        // the provider is implicit via the chosen sender's `providerHandle`,
+        // and `CampaignRecord::beforeValidate()` keeps `campaign.providerHandle`
+        // synced from `campaign.senderId` for downstream consumers
+        // (recipients pages' country-filter logic).
         $smsService = CampaignManager::$plugin->sms;
-        $providerOptions = $smsService->getProviderOptions();
-        $senderIdsByProvider = $smsService->getSenderIdOptionsByProvider();
-
-        // Get current sender ID options based on campaign's provider
-        $currentProviderHandle = $campaign->providerHandle ?? $settings->defaultProviderHandle;
-        $senderIdOptions = $currentProviderHandle
-            ? $smsService->getSenderIdOptions($currentProviderHandle)
-            : [['label' => Craft::t('campaign-manager', 'Select a provider first...'), 'value' => '']];
+        $senderIdOptions = $smsService->getSenderIdOptionsWithGroups();
 
         return $this->renderTemplate('campaign-manager/campaigns/edit', [
             'campaign' => $campaign,
             'title' => $title,
             'formOptions' => $formOptions,
             'campaignTypeOptions' => $campaignTypeOptions,
-            'providerOptions' => $providerOptions,
             'senderIdOptions' => $senderIdOptions,
-            'senderIdsByProvider' => $senderIdsByProvider,
             'pluginHandle' => CampaignManager::$plugin->id,
         ]);
     }
