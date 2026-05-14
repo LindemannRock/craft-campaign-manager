@@ -423,7 +423,7 @@
         {# SMS Invitation Message #}
         {{ forms.textareaField({
             label: 'SMS Invitation Message'|t('campaign-manager'),
-            instructions: 'Use {invitationUrl} to include the invitation link.'|t('campaign-manager'),
+            instructions: 'Use {name} to personalize and {link} to include the invitation URL.'|t('campaign-manager'),
             id: 'smsInvitationMessage',
             name: 'smsInvitationMessage',
             value: campaign.smsInvitationMessage,
@@ -440,6 +440,7 @@
         {# Email Subject #}
         {{ forms.textField({
             label: 'Email Invitation Subject'|t('campaign-manager'),
+            instructions: 'Use {name} to personalize.'|t('campaign-manager'),
             id: 'emailInvitationSubject',
             name: 'emailInvitationSubject',
             value: campaign.emailInvitationSubject,
@@ -451,7 +452,7 @@
         {# Email Invitation Message #}
         {{ forms.textareaField({
             label: 'Email Invitation Message'|t('campaign-manager'),
-            instructions: 'Use {invitationUrl} to include the invitation link. HTML is supported.'|t('campaign-manager'),
+            instructions: 'Use {name} to personalize and {link} to include the invitation URL. HTML is supported.'|t('campaign-manager'),
             id: 'emailInvitationMessage',
             name: 'emailInvitationMessage',
             value: campaign.emailInvitationMessage,

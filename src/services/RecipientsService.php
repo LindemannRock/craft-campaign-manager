@@ -143,6 +143,58 @@ class RecipientsService extends Component
     }
 
     /**
+     * Build the canonical set of template variables for an invitation
+     * message rendered against a recipient. Used by both the SMS path
+     * ({@see parseInvitationMessageForRecipient()}) and the email path
+     * ({@see \lindemannrock\campaignmanager\services\EmailsService}) so
+     * the same `{name}` / `{link}` / `{email}` placeholders work in
+     * every messaging field on the campaign edit page (SMS body, email
+     * subject, email body).
+     *
+     * The aliases exist because several historical conventions are now
+     * in use across the plugin family:
+     *
+     *   - `{name}` / `{link}` — canonical, short, encouraged for new content.
+     *   - `{recipientName}` — camelCase legacy used by earlier
+     *     campaign-manager SMS templates.
+     *   - `{recipient_name}` — snake_case, was email-path-only before this.
+     *   - `{customer_name}` / `{survey_link}` — survey-campaigns naming;
+     *     supported so admins migrating templates from survey-campaigns
+     *     don't have to rewrite every placeholder.
+     *   - `{invitationUrl}` — original verbose name, kept for back-compat
+     *     with existing campaigns.
+     *
+     * Direct properties on `RecipientRecord` (`{email}`, `{sms}`, `{siteId}`,
+     * etc.) also resolve through Craft's `renderObjectTemplate()` — no
+     * need to enumerate them here.
+     *
+     * @return array<string, string>
+     * @since 5.x.0
+     */
+    public function getInvitationTemplateVariables(RecipientRecord $recipient, string $invitationUrl): array
+    {
+        $name = (string) ($recipient->name ?? '');
+
+        return [
+            // Recipient name — all aliases resolve to the same value
+            'name' => $name,
+            'recipientName' => $name,
+            'recipient_name' => $name,
+            'customer_name' => $name,
+
+            // Invitation URL — all aliases resolve to the same value
+            'link' => $invitationUrl,
+            'invitationUrl' => $invitationUrl,
+            'survey_link' => $invitationUrl,
+
+            // Convenience — direct property access also works via
+            // renderObjectTemplate, but listing here makes intent clear
+            // and survives any object-property-access edge cases.
+            'email' => (string) ($recipient->email ?? ''),
+        ];
+    }
+
+    /**
      * Parse an invitation message with recipient data
      */
     public function parseInvitationMessageForRecipient(string $message, RecipientRecord $recipientRecord): string
@@ -165,12 +217,7 @@ class RecipientsService extends Component
             return Craft::$app->view->renderObjectTemplate(
                 $message,
                 $recipientRecord,
-                [
-                    'invitationUrl' => $shortenedUrl,
-                    'link' => $shortenedUrl,
-                    'recipientName' => $recipientRecord->name,
-                    'name' => $recipientRecord->name,
-                ]
+                $this->getInvitationTemplateVariables($recipientRecord, $shortenedUrl)
             );
         } catch (\Throwable $e) {
             $this->logError('Failed to render invitation message template', [

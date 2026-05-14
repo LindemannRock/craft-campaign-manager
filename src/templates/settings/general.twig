@@ -31,10 +31,11 @@
 
     {% if craft.campaignManager.sms.isSmsManagerAvailable() %}
         {# Single Sender ID dropdown with `<optgroup>` provider groupings.
-           The provider is implicit in the sender's `providerHandle` — the
-           `Settings::beforeValidate()` hook auto-syncs `defaultProviderHandle`
-           from this choice so downstream consumers (recipients pages'
-           country-filter logic) keep working without change. #}
+           The provider is implicit in the sender's `providerHandle` —
+           there's no separate provider setting at the plugin level. The
+           country-filter logic on recipients pages derives the provider
+           from the saved sender (or the SMS Manager default sender for
+           the "Use Default" sentinel) at render time. #}
         {% set senderIdOptions = craft.campaignManager.sms.getSenderIdOptionsWithGroups() %}
 
         {# Build sender→provider + per-provider country/name lookup so the JS

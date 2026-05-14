@@ -98,12 +98,16 @@ class EmailsService extends Component
         $site = Craft::$app->getSites()->getSiteById($recipient->siteId);
         $language = $site ? strtolower(substr($site->language, 0, 2)) : 'en';
 
-        $variables = [
-            'recipient_name' => $recipient->name,
-            'invitationUrl' => $shortenedUrl,
-            'survey_link' => $shortenedUrl, // backwards compatibility
-            'defaultLanguage' => $language,
-        ];
+        // Same template variable set as the SMS path (see
+        // `RecipientsService::getInvitationTemplateVariables()`) so admins
+        // can use the same `{name}` / `{link}` / `{email}` placeholders in
+        // SMS body, email subject, and email body without naming drift
+        // between contexts. `{defaultLanguage}` is layout-only — used by
+        // the `_emails/craft/index` HTML template, not the message body.
+        $variables = array_merge(
+            CampaignManager::$plugin->recipients->getInvitationTemplateVariables($recipient, $shortenedUrl),
+            ['defaultLanguage' => $language],
+        );
 
         $email = $recipient->email;
         $view = Craft::$app->getView();

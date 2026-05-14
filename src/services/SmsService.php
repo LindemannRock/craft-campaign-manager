@@ -230,10 +230,18 @@ class SmsService extends Component
     }
 
     /**
-     * Get provider options for select fields
+     * Get provider options for select fields.
      *
      * @param bool $enabledOnly Only return enabled providers
      * @return array Options array suitable for Craft select fields
+     *
+     * @deprecated 5.x.0 — kept as Twig-callable API for back-compat with
+     *   any custom site template still rendering a separate Provider
+     *   dropdown. The plugin's own UI (settings + per-campaign edit) now
+     *   uses {@see getSenderIdOptionsWithGroups()} for a single dropdown
+     *   with `<optgroup>` provider groupings — provider is implicit via
+     *   the chosen sender's `providerHandle`. Removal tracked in
+     *   `.internal/todo.md` (see "Dead SmsService methods").
      */
     public function getProviderOptions(bool $enabledOnly = true): array
     {
@@ -272,11 +280,16 @@ class SmsService extends Component
     }
 
     /**
-     * Get sender ID options for select fields
+     * Get sender ID options for select fields (legacy per-provider variant).
      *
      * @param string|null $providerHandle Optional provider handle to filter by
      * @param bool $enabledOnly Only return enabled sender IDs
      * @return array Options array suitable for Craft select fields
+     *
+     * @deprecated 5.x.0 — replaced by {@see getSenderIdOptionsWithGroups()}
+     *   which returns a single flat optgroup-structured array suitable for
+     *   the new single-dropdown UI. Kept here for back-compat with any
+     *   custom site template that still drives a per-provider sender list.
      */
     public function getSenderIdOptions(?string $providerHandle = null, bool $enabledOnly = true): array
     {
@@ -295,11 +308,17 @@ class SmsService extends Component
     }
 
     /**
-     * Get sender ID options as JSON for JavaScript
+     * Get sender ID options as JSON for JavaScript.
      *
      * Returns all sender IDs grouped by provider handle for client-side filtering.
      *
      * @return array Associative array: providerHandle => [senderIdOptions]
+     *
+     * @deprecated 5.x.0 — replaced by {@see getSenderIdOptionsWithGroups()}.
+     *   The old two-dropdown UI used this map to repopulate the sender list
+     *   when the provider dropdown changed; the new single-dropdown UI
+     *   renders all senders with `<optgroup>` groupings at server-side, so
+     *   no client-side rebuild is needed. Kept for custom-template compat.
      */
     public function getSenderIdOptionsByProvider(): array
     {
