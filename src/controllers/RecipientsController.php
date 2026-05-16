@@ -283,16 +283,30 @@ class RecipientsController extends Controller
         /** @var RecipientRecord[] $recipients */
         $recipients = $query->all();
 
+        // Pre-fetch all referenced campaigns in one query (was per-recipient).
+        // Sites stay inline — getSiteById() is an in-memory hit against Craft's cache.
+        $campaignIds = [];
+        foreach ($recipients as $recipient) {
+            if ($recipient->campaignId) {
+                $campaignIds[(int)$recipient->campaignId] = true;
+            }
+        }
+
+        $campaignMap = [];
+        if ($campaignIds !== []) {
+            $campaigns = \lindemannrock\campaignmanager\elements\Campaign::find()
+                ->id(array_keys($campaignIds))
+                ->status(null)
+                ->all();
+            foreach ($campaigns as $campaignElement) {
+                $campaignMap[$campaignElement->id] = $campaignElement;
+            }
+        }
+
         // Build export rows
         $rows = [];
         foreach ($recipients as $recipient) {
-            // Get campaign name
-            $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
-                ->id($recipient->campaignId)
-                ->status(null)
-                ->one();
-
-            // Get site name
+            $campaign = $campaignMap[$recipient->campaignId] ?? null;
             $site = Craft::$app->getSites()->getSiteById($recipient->siteId);
 
             // Determine status
