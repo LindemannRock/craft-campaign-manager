@@ -51,10 +51,13 @@
                 </tr>
             </thead>
             <tbody>
+                {# Funnel stages count UNIQUE recipients at each step (a recipient
+                   with both email + SMS counts once, not twice — otherwise stages
+                   can exceed Total Recipients). #}
                 {% set stages = [
                     { name: 'Total Recipients'|t('campaign-manager'), count: summaryStats.totalRecipients },
-                    { name: 'Invitations Sent'|t('campaign-manager'), count: summaryStats.totalSent },
-                    { name: 'Opened'|t('campaign-manager'), count: summaryStats.totalOpened },
+                    { name: 'Invitations Sent'|t('campaign-manager'), count: summaryStats.uniqueInvited },
+                    { name: 'Opened'|t('campaign-manager'), count: summaryStats.uniqueOpened },
                     { name: 'Responded'|t('campaign-manager'), count: summaryStats.submissions },
                 ] %}
                 {% set baseline = summaryStats.totalRecipients %}
@@ -67,9 +70,14 @@
                         <td class="lr-text-end">{{ stage.count|number_format }}</td>
                         <td class="lr-text-end">{{ pct }}%</td>
                         <td class="lr-text-end">
-                            <span class="{{ loop.first ? 'lr-text-muted' : 'lr-text-red' }}">
-                                {{ loop.first ? '-' : dropoff ~ '%' }}
-                            </span>
+                            {# Only paint red when there's actual drop-off — 0% is a clean transition, not a problem. #}
+                            {% if loop.first %}
+                                <span class="lr-text-muted">-</span>
+                            {% elseif dropoff > 0 %}
+                                <span class="lr-text-red">{{ dropoff }}%</span>
+                            {% else %}
+                                <span class="lr-text-muted">{{ dropoff }}%</span>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}
