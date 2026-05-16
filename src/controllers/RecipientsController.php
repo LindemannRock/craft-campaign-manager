@@ -1652,8 +1652,16 @@ class RecipientsController extends Controller
             $message .= ' ' . Craft::t('campaign-manager', 'Invitation sending has been queued.');
         }
 
-        if ($failed > 0 && count($errorMessages) <= 10) {
-            Craft::warning('Recipient import errors: ' . implode('; ', $errorMessages), 'campaign-manager');
+        if ($failed > 0) {
+            // Match the "message | {json-context}" format the LoggingTrait emits,
+            // so the plugin log viewer renders the structured context box instead of "No context data available."
+            $context = json_encode([
+                'campaignId' => $campaignId,
+                'imported' => $imported,
+                'failed' => $failed,
+                'errors' => array_slice($errorMessages, 0, 10),
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            Craft::warning('Recipient import had failures | ' . $context, 'campaign-manager');
         }
 
         Craft::$app->getSession()->setNotice($message);
