@@ -11,6 +11,7 @@
 namespace lindemannrock\campaignmanager\controllers;
 
 use Craft;
+use craft\elements\User;
 use craft\web\Controller;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\campaignmanager\elements\Campaign;
@@ -52,40 +53,102 @@ class ActivityLogsController extends Controller
         $query = ActivityLogRecord::find()->orderBy(['dateCreated' => SORT_DESC]);
         $totalCount = $query->count();
 
+        /** @var ActivityLogRecord[] $records */
         $records = $query->offset($offset)->limit($limit)->all();
         $items = [];
 
-        /** @var ActivityLogRecord $record */
-        foreach ($records as $record) {
-            $userName = $record->userId
-                ? Craft::$app->getUsers()->getUserById($record->userId)?->username
-                : null;
+        // Pre-scan records + decoded details to collect every ID we'll need,
+        // then batch-fetch users / campaigns / recipients once. Replaces what
+        // used to be up to ~750 per-page queries with three batched ones.
+        $decodedDetails = [];
+        $userIds = [];
+        $campaignIds = [];
+        $recipientIds = [];
+
+        foreach ($records as $i => $record) {
+            if ($record->userId) {
+                $userIds[(int)$record->userId] = true;
+            }
+            if ($record->campaignId) {
+                $campaignIds[(int)$record->campaignId] = true;
+            }
+            if ($record->recipientId) {
+                $recipientIds[(int)$record->recipientId] = true;
+            }
 
             $details = $record->details ? json_decode($record->details, true) : [];
             if (!is_array($details)) {
                 $details = [];
             }
-            $details = $this->enrichDetails($details);
+            $decodedDetails[$i] = $details;
+
+            if (!empty($details['triggeredByUserId'])) {
+                $userIds[(int)$details['triggeredByUserId']] = true;
+            }
+            if (!empty($details['recipientIds']) && is_array($details['recipientIds'])) {
+                // Cap at 10 per source record — matches the existing limit(10)
+                // that materialized details.recipients (avoids blowing memory
+                // on a "recipients deleted" log that references 10k+ ids).
+                $firstTen = array_slice($details['recipientIds'], 0, 10);
+                foreach ($firstTen as $rid) {
+                    if ((int)$rid > 0) {
+                        $recipientIds[(int)$rid] = true;
+                    }
+                }
+            }
+            if (!empty($details['recipients']) && is_array($details['recipients'])) {
+                foreach ($details['recipients'] as $r) {
+                    if (is_array($r) && !empty($r['campaignId'])) {
+                        $campaignIds[(int)$r['campaignId']] = true;
+                    }
+                }
+            }
+        }
+
+        $userMap = [];
+        if ($userIds !== []) {
+            $users = User::find()->id(array_keys($userIds))->status(null)->all();
+            foreach ($users as $userElement) {
+                $userMap[$userElement->id] = $userElement;
+            }
+        }
+
+        $campaignMap = [];
+        if ($campaignIds !== []) {
+            $campaigns = Campaign::find()->id(array_keys($campaignIds))->status(null)->all();
+            foreach ($campaigns as $campaign) {
+                $campaignMap[$campaign->id] = $campaign;
+            }
+        }
+
+        $recipientMap = [];
+        if ($recipientIds !== []) {
+            /** @var RecipientRecord[] $recipientRecords */
+            $recipientRecords = RecipientRecord::find()->where(['id' => array_keys($recipientIds)])->all();
+            foreach ($recipientRecords as $recipientRecord) {
+                $recipientMap[$recipientRecord->id] = $recipientRecord;
+            }
+        }
+
+        foreach ($records as $i => $record) {
+            $userName = $record->userId && isset($userMap[$record->userId])
+                ? $userMap[$record->userId]->username
+                : null;
+
+            $details = $this->enrichDetails($decodedDetails[$i], $userMap, $campaignMap, $recipientMap);
 
             $campaignName = null;
             $campaignUrl = null;
-            if ($record->campaignId) {
-                $campaign = Campaign::find()
-                    ->id($record->campaignId)
-                    ->status(null)
-                    ->one();
-                if ($campaign) {
-                    $campaignName = $campaign->title;
-                    $campaignUrl = $campaign->getCpEditUrl();
-                }
+            if ($record->campaignId && isset($campaignMap[$record->campaignId])) {
+                $campaign = $campaignMap[$record->campaignId];
+                $campaignName = $campaign->title;
+                $campaignUrl = $campaign->getCpEditUrl();
             }
 
             $recipientLabel = null;
-            if ($record->recipientId) {
-                $recipient = RecipientRecord::findOne($record->recipientId);
-                if ($recipient) {
-                    $recipientLabel = $recipient->name ?: ($recipient->email ?: $recipient->sms);
-                }
+            if ($record->recipientId && isset($recipientMap[$record->recipientId])) {
+                $recipient = $recipientMap[$record->recipientId];
+                $recipientLabel = $recipient->name ?: ($recipient->email ?: $recipient->sms);
             }
             if (!$recipientLabel && !empty($details['count']) && $record->action === 'recipients_deleted') {
                 $recipientLabel = Craft::t('campaign-manager', '{count} recipients', [
@@ -183,17 +246,24 @@ class ActivityLogsController extends Controller
     }
 
     /**
-     * Enrich details with human-friendly context for display
+     * Enrich details with human-friendly context for display.
+     *
+     * Looks up users, campaigns, and recipients from the pre-fetched maps
+     * built by {@see actionIndex()}. Site lookups stay inline because
+     * `getSiteById()` is already an in-memory hit against Craft's site cache.
      *
      * @param array<string, mixed> $details
+     * @param array<int, User> $userMap
+     * @param array<int, Campaign> $campaignMap
+     * @param array<int, RecipientRecord> $recipientMap
      * @return array<string, mixed>
      */
-    private function enrichDetails(array $details): array
+    private function enrichDetails(array $details, array $userMap, array $campaignMap, array $recipientMap): array
     {
         if (!empty($details['triggeredByUserId']) && empty($details['triggeredBy'])) {
             $triggeredByUserId = (int)$details['triggeredByUserId'];
-            if ($triggeredByUserId > 0) {
-                $details['triggeredBy'] = Craft::$app->getUsers()->getUserById($triggeredByUserId)?->username;
+            if ($triggeredByUserId > 0 && isset($userMap[$triggeredByUserId])) {
+                $details['triggeredBy'] = $userMap[$triggeredByUserId]->username;
             }
         }
 
@@ -215,20 +285,17 @@ class ActivityLogsController extends Controller
         }
 
         if (!empty($details['recipientIds']) && is_array($details['recipientIds']) && empty($details['recipients'])) {
-            $recipientIds = array_map('intval', $details['recipientIds']);
+            // Cap at 10 — matches the pre-scan in actionIndex() which only
+            // pre-fetched the first 10 ids per record to bound the batch size.
+            $recipientIds = array_map('intval', array_slice($details['recipientIds'], 0, 10));
             $recipientIds = array_values(array_filter($recipientIds, static fn(int $id): bool => $id > 0));
             if ($recipientIds !== []) {
-                $recipients = RecipientRecord::find()
-                    ->where(['id' => $recipientIds])
-                    ->limit(10)
-                    ->all();
-
                 $details['recipients'] = [];
-                foreach ($recipients as $recipient) {
-                    if (!$recipient instanceof RecipientRecord) {
+                foreach ($recipientIds as $rid) {
+                    if (!isset($recipientMap[$rid])) {
                         continue;
                     }
-
+                    $recipient = $recipientMap[$rid];
                     $details['recipients'][] = [
                         'id' => $recipient->id,
                         'name' => $recipient->name,
@@ -256,7 +323,7 @@ class ActivityLogsController extends Controller
                 if (!empty($recipient['campaignId']) && empty($recipient['campaignName'])) {
                     $campaignId = (int)$recipient['campaignId'];
                     $details['recipients'][$index]['campaignName'] = $details['campaignNames'][$campaignId]
-                        ?? Campaign::find()->id($campaignId)->status(null)->one()?->title;
+                        ?? ($campaignMap[$campaignId]->title ?? null);
                 }
             }
         }
