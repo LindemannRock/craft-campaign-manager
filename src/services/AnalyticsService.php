@@ -92,39 +92,38 @@ class AnalyticsService extends Component
     {
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
-        // Total recipients
-        $totalRecipients = (clone $query)->count();
+        // Run all seven counts in a single aggregate query instead of 7 cloned
+        // `SELECT COUNT(*)` round-trips against the same filtered recipient set.
+        $now = (new \DateTime())->format('Y-m-d H:i:s');
+        $row = (clone $query)
+            ->select([
+                'totalRecipients' => new \yii\db\Expression('COUNT(*)'),
+                'emailsSent' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'smsSent' => new \yii\db\Expression('SUM(CASE WHEN smsSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'emailsOpened' => new \yii\db\Expression('SUM(CASE WHEN emailOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'smsOpened' => new \yii\db\Expression('SUM(CASE WHEN smsOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                // Unique recipients reached / opened — used by the conversion funnel
+                // breakdown. Distinct from the per-channel sums above so a recipient
+                // with both email + SMS isn't counted twice in funnel stages.
+                'uniqueInvited' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL OR smsSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'uniqueOpened' => new \yii\db\Expression('SUM(CASE WHEN emailOpenDate IS NOT NULL OR smsOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'submissions' => new \yii\db\Expression('SUM(CASE WHEN submissionId IS NOT NULL THEN 1 ELSE 0 END)'),
+                'expired' => new \yii\db\Expression(
+                    'SUM(CASE WHEN invitationExpiryDate < :nowExpiry AND submissionId IS NULL THEN 1 ELSE 0 END)',
+                    [':nowExpiry' => $now]
+                ),
+            ])
+            ->one();
 
-        // Emails sent
-        $emailsSent = (clone $query)
-            ->andWhere(['not', ['emailSendDate' => null]])
-            ->count();
-
-        // SMS sent
-        $smsSent = (clone $query)
-            ->andWhere(['not', ['smsSendDate' => null]])
-            ->count();
-
-        // Emails opened
-        $emailsOpened = (clone $query)
-            ->andWhere(['not', ['emailOpenDate' => null]])
-            ->count();
-
-        // SMS opened
-        $smsOpened = (clone $query)
-            ->andWhere(['not', ['smsOpenDate' => null]])
-            ->count();
-
-        // Submissions
-        $submissions = (clone $query)
-            ->andWhere(['not', ['submissionId' => null]])
-            ->count();
-
-        // Expired
-        $expired = (clone $query)
-            ->andWhere(['<', 'invitationExpiryDate', (new \DateTime())->format('Y-m-d H:i:s')])
-            ->andWhere(['submissionId' => null])
-            ->count();
+        $totalRecipients = (int)($row['totalRecipients'] ?? 0);
+        $emailsSent = (int)($row['emailsSent'] ?? 0);
+        $smsSent = (int)($row['smsSent'] ?? 0);
+        $emailsOpened = (int)($row['emailsOpened'] ?? 0);
+        $smsOpened = (int)($row['smsOpened'] ?? 0);
+        $uniqueInvited = (int)($row['uniqueInvited'] ?? 0);
+        $uniqueOpened = (int)($row['uniqueOpened'] ?? 0);
+        $submissions = (int)($row['submissions'] ?? 0);
+        $expired = (int)($row['expired'] ?? 0);
 
         // Calculate rates (capped at 100% to handle edge cases)
         $totalSent = $emailsSent + $smsSent;
@@ -144,6 +143,8 @@ class AnalyticsService extends Component
             'expired' => (int)$expired,
             'totalSent' => $totalSent,
             'totalOpened' => $totalOpened,
+            'uniqueInvited' => $uniqueInvited,
+            'uniqueOpened' => $uniqueOpened,
             'openRate' => $openRate,
             'conversionRate' => $conversionRate,
             'emailOpenRate' => $emailOpenRate,
@@ -372,21 +373,50 @@ class AnalyticsService extends Component
         }
         $campaigns = $campaignQuery->all();
 
+        if ($campaigns === []) {
+            return [];
+        }
+
+        // Collect (campaignId, siteId) pairs we care about, then aggregate all
+        // counts in a single GROUP BY query instead of 2× cloned counts per
+        // campaign (was up to 100 queries on a 50-campaign analytics page).
+        $campaignIds = [];
+        $siteIds = [];
+        foreach ($campaigns as $campaign) {
+            $campaignIds[(int)$campaign->id] = true;
+            $siteIds[(int)$campaign->siteId] = true;
+        }
+
+        $recipientTable = RecipientRecord::tableName();
+        $statsRows = $this->buildRecipientQuery('all', 'all', $dateRange)
+            ->andWhere([$recipientTable . '.campaignId' => array_keys($campaignIds)])
+            ->andWhere([$recipientTable . '.siteId' => array_keys($siteIds)])
+            ->select([
+                'campaignId' => $recipientTable . '.campaignId',
+                'siteId' => $recipientTable . '.siteId',
+                'totalRecipients' => new \yii\db\Expression('COUNT(*)'),
+                'submissions' => new \yii\db\Expression('SUM(CASE WHEN submissionId IS NOT NULL THEN 1 ELSE 0 END)'),
+            ])
+            ->groupBy([$recipientTable . '.campaignId', $recipientTable . '.siteId'])
+            ->all();
+
+        $statsByKey = [];
+        foreach ($statsRows as $row) {
+            $statsByKey[$row['campaignId'] . '-' . $row['siteId']] = $row;
+        }
+
         $result = [];
         foreach ($campaigns as $campaign) {
-            $query = $this->buildRecipientQuery($campaign->id, $campaign->siteId, $dateRange);
-
-            $totalRecipients = (clone $query)->count();
-            $submissions = (clone $query)
-                ->andWhere(['not', ['submissionId' => null]])
-                ->count();
+            $stats = $statsByKey[$campaign->id . '-' . $campaign->siteId] ?? null;
+            $totalRecipients = (int)($stats['totalRecipients'] ?? 0);
+            $submissions = (int)($stats['submissions'] ?? 0);
 
             $result[] = [
                 'campaignId' => $campaign->id,
                 'campaignName' => $campaign->title,
                 'siteId' => $campaign->siteId,
-                'totalRecipients' => (int)$totalRecipients,
-                'submissions' => (int)$submissions,
+                'totalRecipients' => $totalRecipients,
+                'submissions' => $submissions,
                 'conversionRate' => $totalRecipients > 0 ? round(($submissions / $totalRecipients) * 100, 1) : 0,
             ];
         }
