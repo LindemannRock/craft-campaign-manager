@@ -41,17 +41,20 @@
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",
-        "craftcms/phpstan": "dev-main"
+        "craftcms/phpstan": "dev-main",
+        "phpunit/phpunit": "^11.0"
     },
     "autoload": {
         "psr-4": {
-            "lindemannrock\\campaignmanager\\": "src/"
+            "lindemannrock\\campaignmanager\\": "src/",
+            "lindemannrock\\campaignmanager\\tests\\": "tests/"
         }
     },
     "scripts": {
         "phpstan": "phpstan --ansi --memory-limit=1G",
         "check-cs": "ecs check --ansi",
-        "fix-cs": "ecs check --fix --ansi"
+        "fix-cs": "ecs check --fix --ansi",
+        "test": "phpunit --colors=always"
     },
     "extra": {
         "name": "Campaign Manager",
