@@ -13,6 +13,7 @@ use craft\queue\BaseJob;
 use Exception;
 use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\campaignmanager\CampaignManager;
+use lindemannrock\campaignmanager\exceptions\SendBatchFailedException;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -124,8 +125,18 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             'recipientCount' => $totalRecipients,
         ]);
 
+        // Batch-fetch all recipients in one query (was findOne() per iteration)
+        /** @var RecipientRecord[] $recipientRecords */
+        $recipientRecords = RecipientRecord::find()
+            ->where(['id' => $this->recipientIds])
+            ->all();
+        $recipientsById = [];
+        foreach ($recipientRecords as $record) {
+            $recipientsById[$record->id] = $record;
+        }
+
         foreach ($this->recipientIds as $recipientId) {
-            $recipient = RecipientRecord::findOne($recipientId);
+            $recipient = $recipientsById[$recipientId] ?? null;
 
             if (!$recipient) {
                 $this->logWarning('Recipient not found', ['recipientId' => $recipientId]);
@@ -187,13 +198,21 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             $this->setProgress($queue, $processed / $totalRecipients);
         }
 
-        $this->logInfo('Batch complete', [
+        $logContext = [
             'campaignId' => $this->campaignId,
             'siteId' => $this->siteId,
             'smsSent' => $smsSent,
             'emailSent' => $emailSent,
             'errors' => $errors,
-        ]);
+        ];
+
+        if ($smsSent === 0 && $emailSent === 0 && $errors > 0) {
+            $this->logError('Batch failed', $logContext);
+        } elseif ($errors > 0) {
+            $this->logWarning('Batch complete with errors', $logContext);
+        } else {
+            $this->logInfo('Batch complete', $logContext);
+        }
 
         CampaignManager::$plugin->activityLogs->log('invitations_sent_batch', [
             'campaignId' => $this->campaignId,
@@ -210,6 +229,22 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                 'triggeredByUserId' => $this->triggeredByUserId,
             ],
         ]);
+
+        // Surface total send failures to the queue UI. Partial successes (some sent,
+        // some errored) complete normally — re-running would re-send to recipients
+        // who already received their invite. Zero-success batches are almost always
+        // a config/template/provider issue that retrying won't fix.
+        if ($smsSent === 0 && $emailSent === 0 && $errors > 0) {
+            throw new SendBatchFailedException(Craft::t(
+                'campaign-manager',
+                'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.',
+                [
+                    'campaignId' => $this->campaignId,
+                    'errors' => $errors,
+                    'total' => $totalRecipients,
+                ]
+            ));
+        }
     }
 
     /**
@@ -217,6 +252,12 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
      */
     public function canRetry($attempt, $error): bool
     {
+        // Config/template/provider failures won't be fixed by retrying — let the
+        // operator see the failure and address the root cause instead.
+        if ($error instanceof SendBatchFailedException) {
+            return false;
+        }
+
         return ($attempt < 3) && ($error instanceof Exception);
     }
 }
