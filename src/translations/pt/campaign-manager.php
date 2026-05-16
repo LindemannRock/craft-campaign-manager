@@ -142,6 +142,7 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Enviando convites para {count} destinatários',
     'Invitation batch sent' => 'Lote de convites enviado',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'O lote da campanha {campaignId} falhou: {errors} de {total} destinatários não puderam ser enviados. Consulte o registo do plugin para obter mais detalhes.',
+    'Campaign is disabled for site {site}.' => 'A campanha está desativada para o site {site}.',
 
     // Element (Campaign)
     'campaign' => 'campanha',

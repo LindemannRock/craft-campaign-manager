@@ -142,6 +142,7 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: إرسال الدعوات إلى {count} مستلمين',
     'Invitation batch sent' => 'تم إرسال دفعة الدعوات',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'فشلت دفعة الحملة {campaignId}: لم يتمكن من إرسالها إلى {errors} من أصل {total} مستلم. راجع سجل الإضافة للاطلاع على التفاصيل.',
+    'Campaign is disabled for site {site}.' => 'الحملة معطّلة للموقع {site}.',
 
     // Element (Campaign)
     'campaign' => 'حملة',

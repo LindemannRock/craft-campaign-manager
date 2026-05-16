@@ -93,6 +93,7 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Sending invitations to {count} recipients',
     'Invitation batch sent' => 'Invitation batch sent',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.',
+    'Campaign is disabled for site {site}.' => 'Campaign is disabled for site {site}.',
 
     // Controller messages
     'New Campaign' => 'New Campaign',

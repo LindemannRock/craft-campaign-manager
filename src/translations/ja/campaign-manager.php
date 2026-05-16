@@ -142,6 +142,7 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: {count} 件の受信者に招待を送信中',
     'Invitation batch sent' => '招待バッチが送信されました',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'キャンペーン {campaignId} のバッチが失敗しました: {total} 件中 {errors} 件の宛先に送信できませんでした。詳細はプラグインのログを確認してください。',
+    'Campaign is disabled for site {site}.' => 'キャンペーンはサイト {site} で無効になっています。',
 
     // Element (Campaign)
     'campaign' => 'キャンペーン',

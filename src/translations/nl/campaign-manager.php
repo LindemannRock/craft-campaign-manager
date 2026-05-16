@@ -142,6 +142,7 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Uitnodigingen verzenden naar {count} ontvangers',
     'Invitation batch sent' => 'Uitnodigingsbatch verzonden',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Campagne {campaignId} batch mislukt: {errors} van {total} ontvangers konden niet worden verzonden. Raadpleeg het plugin-logboek voor details.',
+    'Campaign is disabled for site {site}.' => 'Campagne is uitgeschakeld voor site {site}.',
 
     // Element (Campaign)
     'campaign' => 'campagne',

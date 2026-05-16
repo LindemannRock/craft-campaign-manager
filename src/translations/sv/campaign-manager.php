@@ -142,6 +142,7 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Skickar inbjudningar till {count} mottagare',
     'Invitation batch sent' => 'Inbjudningsomgång skickad',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampanj {campaignId} batch misslyckades: {errors} av {total} mottagare kunde inte skickas. Kontrollera plugin-loggen för detaljer.',
+    'Campaign is disabled for site {site}.' => 'Kampanjen är inaktiverad för webbplatsen {site}.',
 
     // Element (Campaign)
     'campaign' => 'kampanj',

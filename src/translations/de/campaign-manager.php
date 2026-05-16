@@ -142,6 +142,7 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Einladungen werden an {count} Empfänger gesendet',
     'Invitation batch sent' => 'Einladungs-Stapel gesendet',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampagne {campaignId} Stapel fehlgeschlagen: {errors} von {total} Empfängern konnten nicht gesendet werden. Weitere Informationen finden Sie im Plugin-Log.',
+    'Campaign is disabled for site {site}.' => 'Kampagne ist für die Site {site} deaktiviert.',
 
     // Element (Campaign)
     'campaign' => 'Kampagne',
