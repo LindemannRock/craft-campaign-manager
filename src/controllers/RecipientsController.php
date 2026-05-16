@@ -1007,21 +1007,7 @@ class RecipientsController extends Controller
         $file = UploadedFile::getInstanceByName('csvFile');
         $campaignId = (int)$this->request->getRequiredParam('campaignId');
 
-        // Check if campaign is enabled for at least one editable site
-        $campaignEnabledForAnySite = false;
-        foreach (Craft::$app->getSites()->getEditableSites() as $site) {
-            $campaignForSite = \lindemannrock\campaignmanager\elements\Campaign::find()
-                ->id($campaignId)
-                ->siteId($site->id)
-                ->status(null)
-                ->one();
-            if ($campaignForSite && $campaignForSite->getEnabledForSite()) {
-                $campaignEnabledForAnySite = true;
-                break;
-            }
-        }
-
-        if (!$campaignEnabledForAnySite) {
+        if (!$this->_isCampaignEnabledForAnyEditableSite($campaignId)) {
             Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Cannot import recipients to a disabled campaign.'));
             return $this->redirect("campaign-manager/campaigns/{$campaignId}/recipients");
         }
@@ -1512,21 +1498,7 @@ class RecipientsController extends Controller
 
         $campaignId = (int)$this->request->getRequiredParam('campaignId');
 
-        // Check if campaign is enabled for at least one editable site
-        $campaignEnabledForAnySite = false;
-        foreach (Craft::$app->getSites()->getEditableSites() as $site) {
-            $campaignForSite = \lindemannrock\campaignmanager\elements\Campaign::find()
-                ->id($campaignId)
-                ->siteId($site->id)
-                ->status(null)
-                ->one();
-            if ($campaignForSite && $campaignForSite->getEnabledForSite()) {
-                $campaignEnabledForAnySite = true;
-                break;
-            }
-        }
-
-        if (!$campaignEnabledForAnySite) {
+        if (!$this->_isCampaignEnabledForAnyEditableSite($campaignId)) {
             Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Cannot import recipients to a disabled campaign.'));
             return $this->redirect("campaign-manager/campaigns/{$campaignId}/recipients");
         }
@@ -1826,5 +1798,35 @@ class RecipientsController extends Controller
         }
 
         return $this->redirectToPostedUrl($returnUrlObject, Craft::$app->getRequest()->getReferrer());
+    }
+
+    /**
+     * Whether the campaign is enabled for at least one site the current user can edit.
+     *
+     * Fetches all variants of the campaign across editable sites in a single query
+     * instead of one-per-site, then short-circuits on the first enabled match.
+     *
+     * @since 5.11.0
+     */
+    private function _isCampaignEnabledForAnyEditableSite(int $campaignId): bool
+    {
+        $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
+        if ($editableSiteIds === []) {
+            return false;
+        }
+
+        $variants = \lindemannrock\campaignmanager\elements\Campaign::find()
+            ->id($campaignId)
+            ->siteId($editableSiteIds)
+            ->status(null)
+            ->all();
+
+        foreach ($variants as $variant) {
+            if ($variant->getEnabledForSite()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
