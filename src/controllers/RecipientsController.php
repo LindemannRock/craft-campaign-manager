@@ -139,10 +139,57 @@ class RecipientsController extends Controller
         }
 
         $totalCount = (clone $query)->count();
+        /** @var RecipientRecord[] $recipients */
         $recipients = $query
             ->offset($offset)
             ->limit($limit)
             ->all();
+
+        // Pre-fetch related campaigns, sites, and submissions to avoid N+1 queries
+        // in the Twig template (which previously fired up to 4 per-row queries).
+        $campaignIds = [];
+        $siteIds = [];
+        $submissionIds = [];
+        foreach ($recipients as $recipient) {
+            if ($recipient->campaignId) {
+                $campaignIds[$recipient->campaignId] = true;
+            }
+            if ($recipient->siteId) {
+                $siteIds[$recipient->siteId] = true;
+            }
+            if ($recipient->submissionId) {
+                $submissionIds[$recipient->submissionId] = true;
+            }
+        }
+
+        $campaignMap = [];
+        if ($campaignIds !== []) {
+            $campaigns = \lindemannrock\campaignmanager\elements\Campaign::find()
+                ->id(array_keys($campaignIds))
+                ->status(null)
+                ->all();
+            foreach ($campaigns as $campaign) {
+                $campaignMap[$campaign->id] = $campaign;
+            }
+        }
+
+        $siteMap = [];
+        foreach (array_keys($siteIds) as $sId) {
+            $site = Craft::$app->getSites()->getSiteById((int)$sId);
+            if ($site) {
+                $siteMap[$sId] = $site;
+            }
+        }
+
+        $submissionMap = [];
+        if ($submissionIds !== []) {
+            $submissions = \verbb\formie\elements\Submission::find()
+                ->id(array_keys($submissionIds))
+                ->all();
+            foreach ($submissions as $submission) {
+                $submissionMap[$submission->id] = $submission;
+            }
+        }
 
         return $this->renderTemplate('campaign-manager/recipients/index', [
             'recipients' => $recipients,
@@ -157,6 +204,9 @@ class RecipientsController extends Controller
             'sort' => $sort,
             'dir' => strtolower($dir),
             'campaignOptions' => $campaignOptions,
+            'campaignMap' => $campaignMap,
+            'siteMap' => $siteMap,
+            'submissionMap' => $submissionMap,
             'settings' => $settings,
             'pluginHandle' => CampaignManager::$plugin->id,
             'defaultDateRange' => DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id),
