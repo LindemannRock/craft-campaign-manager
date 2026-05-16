@@ -352,13 +352,17 @@
             if (response.data.success) {
                 const jobsQueued = response.data.jobsQueued || 0;
                 if (jobsQueued > 0) {
-                    Craft.cp.displayNotice('{{ "Campaign job queued. Check the queue for progress."|t("campaign-manager") }}');
+                    const queueUrl = {{ cpUrl('utilities/queue-manager')|json_encode|raw }};
+                    const queueMsg = {{ 'Campaign job queued. Check the queue for progress.'|t('campaign-manager')|json_encode|raw }};
+                    Craft.cp.displayNotice(queueMsg, {
+                        details: $('<a/>', {href: queueUrl, text: Craft.t('app', 'View')}),
+                    });
                 } else {
-                    Craft.cp.displayNotice('{{ "No pending recipients to process."|t("campaign-manager") }}');
+                    Craft.cp.displayNotice({{ 'No pending recipients to process.'|t('campaign-manager')|json_encode|raw }});
                 }
             }
         }).catch(function(error) {
-            Craft.cp.displayError('{{ "Failed to run campaign"|t("campaign-manager") }}');
+            Craft.cp.displayError({{ 'Failed to run campaign'|t('campaign-manager')|json_encode|raw }});
         });
     });
 

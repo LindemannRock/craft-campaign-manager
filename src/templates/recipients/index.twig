@@ -175,7 +175,7 @@
         <div class="menu">
             <ul>
                 {% if item.submissionId %}
-                    {% set submission = craft.formie.submissions.id(item.submissionId).one() %}
+                    {% set submission = submissionMap[item.submissionId] ?? null %}
                     {% if submission %}
                         <li>
                             <a href="{{ submission.cpEditUrl }}">
@@ -203,9 +203,9 @@
    ============================================================================ #}
 
 {% block tableRow %}
-    {# Get campaign for this recipient #}
-    {% set campaign = craft.campaignManager.campaigns.getCampaignById(item.campaignId) %}
-    {% set site = craft.app.sites.getSiteById(item.siteId) %}
+    {# Get campaign and site from pre-fetched maps (controller batched the queries) #}
+    {% set campaign = campaignMap[item.campaignId] ?? null %}
+    {% set site = siteMap[item.siteId] ?? null %}
 
     {# Determine status #}
     {% if item.smsSendDate or item.emailSendDate %}
@@ -281,7 +281,7 @@
     {# Submission #}
     <td>
         {% if item.submissionId %}
-            {% set submission = craft.formie.submissions.id(item.submissionId).one() %}
+            {% set submission = submissionMap[item.submissionId] ?? null %}
             {% if submission %}
                 <a href="{{ submission.cpEditUrl }}">{{ item.submissionId }}</a>
             {% else %}

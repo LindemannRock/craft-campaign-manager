@@ -52,10 +52,14 @@ document.addEventListener('click', function(e) {
         data: { campaignId: campaignId }
     }).then(function(response) {
         if (response.data.success) {
-            Craft.cp.displayNotice('{{ "Campaign job queued. Check the queue for progress."|t("campaign-manager")|e("js") }}');
+            var queueUrl = {{ cpUrl('utilities/queue-manager')|json_encode|raw }};
+            var queueMsg = {{ 'Campaign job queued. Check the queue for progress.'|t('campaign-manager')|json_encode|raw }};
+            Craft.cp.displayNotice(queueMsg, {
+                details: $('<a/>', {href: queueUrl, text: Craft.t('app', 'View')}),
+            });
         }
     }).catch(function(error) {
-        Craft.cp.displayError('{{ "Failed to run campaign"|t("campaign-manager")|e("js") }}');
+        Craft.cp.displayError({{ 'Failed to run campaign'|t('campaign-manager')|json_encode|raw }});
     });
 });
 {% endjs %}
