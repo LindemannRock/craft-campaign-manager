@@ -141,6 +141,7 @@ return [
     'Campaign batches queued' => 'Lots de campagne mis en file d\'attente',
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName} : Envoi des invitations à {count} destinataires',
     'Invitation batch sent' => 'Lot d\'invitations envoyé',
+    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'L\'envoi en lot de la campagne {campaignId} a échoué : {errors} destinataires sur {total} n\'ont pas pu être envoyés. Consultez le journal du plugin pour plus de détails.',
 
     // Element (Campaign)
     'campaign' => 'campagne',

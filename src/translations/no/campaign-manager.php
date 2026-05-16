@@ -141,6 +141,7 @@ return [
     'Campaign batches queued' => 'Kampanjepakker lagt i kø',
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Sender invitasjoner til {count} mottakere',
     'Invitation batch sent' => 'Invitasjonspakke sendt',
+    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampanje {campaignId} batch mislyktes: {errors} av {total} mottakere kunne ikke sendes. Sjekk plugin-loggen for detaljer.',
 
     // Element (Campaign)
     'campaign' => 'kampanje',

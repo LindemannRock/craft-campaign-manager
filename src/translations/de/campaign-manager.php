@@ -141,6 +141,7 @@ return [
     'Campaign batches queued' => 'Kampagnen-Stapel in die Warteschlange eingereiht',
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Einladungen werden an {count} Empfänger gesendet',
     'Invitation batch sent' => 'Einladungs-Stapel gesendet',
+    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampagne {campaignId} Stapel fehlgeschlagen: {errors} von {total} Empfängern konnten nicht gesendet werden. Weitere Informationen finden Sie im Plugin-Log.',
 
     // Element (Campaign)
     'campaign' => 'Kampagne',
