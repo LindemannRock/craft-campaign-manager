@@ -379,12 +379,15 @@
                     Craft.sendActionRequest('POST', 'campaign-manager/recipients/delete-from-cp', {
                         data: { id: recipientId }
                     }).then(function(response) {
-                        if (response.data.success) {
-                            Craft.cp.displayNotice('{{ "Recipient deleted"|t("campaign-manager") }}');
+                        var data = response && response.data;
+                        if (data && data.success) {
+                            Craft.cp.displayNotice({{ 'Recipient deleted'|t('campaign-manager')|json_encode|raw }});
                             setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            Craft.cp.displayError((data && data.error) || {{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
                         }
                     }).catch(function(error) {
-                        Craft.cp.displayError('{{ "Failed to delete recipient"|t("campaign-manager") }}');
+                        Craft.cp.displayError({{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
                     });
                 }
             }

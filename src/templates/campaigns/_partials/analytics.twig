@@ -136,7 +136,7 @@
                         labels: {{ dailyData.labels|json_encode|raw }},
                         datasets: [
                             {
-                                label: '{{ "Sent"|t('campaign-manager')|e('js') }}',
+                                label: {{ 'Sent'|t('campaign-manager')|json_encode|raw }},
                                 data: {{ dailyData.sent|json_encode|raw }},
                                 borderColor: '#3b82f6',
                                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -144,7 +144,7 @@
                                 fill: true
                             },
                             {
-                                label: '{{ "Opened"|t('campaign-manager')|e('js') }}',
+                                label: {{ 'Opened'|t('campaign-manager')|json_encode|raw }},
                                 data: {{ dailyData.opened|json_encode|raw }},
                                 borderColor: '#8b5cf6',
                                 backgroundColor: 'rgba(139, 92, 246, 0.1)',
@@ -152,7 +152,7 @@
                                 fill: true
                             },
                             {
-                                label: '{{ "Responses"|t('campaign-manager')|e('js') }}',
+                                label: {{ 'Responses'|t('campaign-manager')|json_encode|raw }},
                                 data: {{ dailyData.submissions|json_encode|raw }},
                                 borderColor: '#10b981',
                                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -164,7 +164,7 @@
 
                     // Channel Breakdown Chart
                     window.lrCreateChart('campaign-channel-chart', 'doughnut', {
-                        labels: ['{{ "SMS"|t('campaign-manager')|e('js') }}', '{{ "Email"|t('campaign-manager')|e('js') }}'],
+                        labels: [{{ 'SMS'|t('campaign-manager')|json_encode|raw }}, {{ 'Email'|t('campaign-manager')|json_encode|raw }}],
                         datasets: [{
                             data: [{{ stats.smsSent ?? 0 }}, {{ stats.emailsSent ?? 0 }}],
                             backgroundColor: ['#10b981', '#3b82f6']

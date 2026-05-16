@@ -319,7 +319,7 @@
 
             if (count === 0) return;
 
-            if (!confirm('{{ "Delete {count} recipient(s)? This cannot be undone."|t("campaign-manager")|e("js") }}'.replace('{count}', count))) {
+            if (!confirm({{ 'Delete {count} recipient(s)? This cannot be undone.'|t('campaign-manager')|json_encode|raw }}.replace('{count}', count))) {
                 return;
             }
 
@@ -327,7 +327,7 @@
                 data: { recipientIds: ids }
             }).then(function(response) {
                 if (response.data.count > 0) {
-                    Craft.cp.displayNotice('{{ "Deleted {count} recipients"|t("campaign-manager")|e("js") }}'.replace('{count}', response.data.count));
+                    Craft.cp.displayNotice({{ 'Deleted {count} recipients'|t('campaign-manager')|json_encode|raw }}.replace('{count}', response.data.count));
                 }
                 if (response.data.errors && response.data.errors.length > 0) {
                     response.data.errors.forEach(err => Craft.cp.displayError(err));
@@ -336,7 +336,7 @@
                     setTimeout(() => window.location.reload(), 1000);
                 }
             }).catch(function(error) {
-                Craft.cp.displayError('{{ "Failed to delete recipients"|t("campaign-manager")|e("js") }}');
+                Craft.cp.displayError({{ 'Failed to delete recipients'|t('campaign-manager')|json_encode|raw }});
             });
         });
 
@@ -350,18 +350,19 @@
                 const recipientName = this.dataset.name;
 
                 if (action === 'delete') {
-                    if (confirm('{{ "Delete recipient \"{name}\"? This cannot be undone."|t("campaign-manager")|e("js") }}'.replace('{name}', recipientName))) {
+                    if (confirm({{ 'Delete recipient "{name}"? This cannot be undone.'|t('campaign-manager')|json_encode|raw }}.replace('{name}', recipientName))) {
                         Craft.sendActionRequest('POST', 'campaign-manager/recipients/delete-from-cp', {
                             data: { id: recipientId }
                         }).then(function(response) {
-                            if (response.data.success) {
-                                Craft.cp.displayNotice('{{ "Recipient deleted"|t("campaign-manager")|e("js") }}');
+                            var data = response && response.data;
+                            if (data && data.success) {
+                                Craft.cp.displayNotice({{ 'Recipient deleted'|t('campaign-manager')|json_encode|raw }});
                                 setTimeout(() => window.location.reload(), 1000);
-                            } else if (response.data.error) {
-                                Craft.cp.displayError(response.data.error);
+                            } else {
+                                Craft.cp.displayError((data && data.error) || {{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
                             }
                         }).catch(function(error) {
-                            Craft.cp.displayError('{{ "Failed to delete recipient"|t("campaign-manager")|e("js") }}');
+                            Craft.cp.displayError({{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
                         });
                     }
                 }

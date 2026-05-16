@@ -122,7 +122,7 @@
                 var countriesByProvider = {{ countriesByProvider|json_encode|raw }};
                 var providerNames = {{ providerNames|json_encode|raw }};
                 var countryNames = {{ countryNames|json_encode|raw }};
-                var defaultSenderProviderHandle = '{{ (defaultSenderProviderHandle ?? '')|e('js') }}';
+                var defaultSenderProviderHandle = {{ (defaultSenderProviderHandle ?? '')|json_encode|raw }};
                 var senderIdSelect = document.getElementById('defaultSenderIdHandle');
                 var countriesBox = document.getElementById('provider-countries-box');
                 var countriesMessage = document.getElementById('provider-countries-message');
@@ -154,12 +154,12 @@
                     var providerName = providerNames[providerHandle] || providerHandle;
                     var message;
                     if (countries.length === 1 && countries[0] === '*') {
-                        message = '{{ "Allowed countries for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>: {{ "All countries."|t('campaign-manager')|e('js') }}';
+                        message = {{ 'Allowed countries for'|t('campaign-manager')|json_encode|raw }} + ' <strong>' + providerName + '</strong>: ' + {{ 'All countries.'|t('campaign-manager')|json_encode|raw }};
                     } else if (countries.length > 0) {
                         var formatted = countries.map(formatCountry).join(', ');
-                        message = '{{ "Allowed countries for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>: ' + formatted + '.';
+                        message = {{ 'Allowed countries for'|t('campaign-manager')|json_encode|raw }} + ' <strong>' + providerName + '</strong>: ' + formatted + '.';
                     } else {
-                        message = '{{ "No country restrictions for"|t('campaign-manager')|e('js') }} <strong>' + providerName + '</strong>.';
+                        message = {{ 'No country restrictions for'|t('campaign-manager')|json_encode|raw }} + ' <strong>' + providerName + '</strong>.';
                     }
                     countriesMessage.innerHTML = message;
                     countriesBox.style.display = '';

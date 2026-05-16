@@ -159,7 +159,7 @@
 {% js %}
     document.getElementById('clear-activity-logs')?.addEventListener('click', function(e) {
         e.preventDefault();
-        if (!confirm('{{ "Are you sure you want to clear all activity logs? This action cannot be undone."|t('campaign-manager')|e('js') }}')) {
+        if (!confirm({{ 'Are you sure you want to clear all activity logs? This action cannot be undone.'|t('campaign-manager')|json_encode|raw }})) {
             return;
         }
 
@@ -174,7 +174,7 @@
             .catch(error => {
                 button.classList.remove('loading');
                 button.disabled = false;
-                Craft.cp.displayError(error.response?.data?.error || '{{ "Failed to clear activity logs."|t('campaign-manager')|e('js') }}');
+                Craft.cp.displayError(error.response?.data?.error || {{ 'Failed to clear activity logs.'|t('campaign-manager')|json_encode|raw }});
             });
     });
 {% endjs %}
