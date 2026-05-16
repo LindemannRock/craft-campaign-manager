@@ -847,11 +847,21 @@ class RecipientsController extends Controller
         $recipientId = (int)Craft::$app->request->getRequiredBodyParam('id');
 
         $recipient = RecipientRecord::findOne($recipientId);
-        if (!CampaignManager::$plugin->recipients->deleteRecipientById($recipientId)) {
-            return $this->asJson(null);
+        if (!$recipient) {
+            // Row already gone — treat as idempotent success so the UI converges
+            // (user clicked delete on a row that's no longer there).
+            return $this->asJson(['success' => true]);
         }
 
-        if ($recipient) {
+        if (!CampaignManager::$plugin->recipients->deleteRecipientById($recipientId)) {
+            return $this->asJson([
+                'success' => false,
+                'error' => Craft::t('campaign-manager', 'Failed to delete recipient {id}', ['id' => $recipientId]),
+            ]);
+        }
+
+        // Log the deletion but never let a logging failure mask a successful delete.
+        try {
             $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
                 ->id($recipient->campaignId)
                 ->status(null)
@@ -870,6 +880,8 @@ class RecipientsController extends Controller
                     'siteName' => Craft::$app->getSites()->getSiteById($recipient->siteId)?->name,
                 ],
             ]);
+        } catch (\Throwable $e) {
+            Craft::error('Failed to log recipient_deleted activity: ' . $e->getMessage(), __METHOD__);
         }
 
         return $this->asJson(['success' => true]);
@@ -965,11 +977,18 @@ class RecipientsController extends Controller
         $recipientId = (int)Craft::$app->request->getRequiredBodyParam('id');
 
         $recipient = RecipientRecord::findOne($recipientId);
-        if (!CampaignManager::$plugin->recipients->deleteRecipientById($recipientId)) {
-            return $this->asJson(null);
+        if (!$recipient) {
+            return $this->asJson(['success' => true]);
         }
 
-        if ($recipient) {
+        if (!CampaignManager::$plugin->recipients->deleteRecipientById($recipientId)) {
+            return $this->asJson([
+                'success' => false,
+                'error' => Craft::t('campaign-manager', 'Failed to delete recipient {id}', ['id' => $recipientId]),
+            ]);
+        }
+
+        try {
             $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
                 ->id($recipient->campaignId)
                 ->status(null)
@@ -988,6 +1007,8 @@ class RecipientsController extends Controller
                     'siteName' => Craft::$app->getSites()->getSiteById($recipient->siteId)?->name,
                 ],
             ]);
+        } catch (\Throwable $e) {
+            Craft::error('Failed to log recipient_deleted activity: ' . $e->getMessage(), __METHOD__);
         }
 
         return $this->asJson(['success' => true]);
@@ -1520,15 +1541,29 @@ class RecipientsController extends Controller
         $queueSending = $previewData['queueSending'];
         $validRows = $previewData['validRows'];
 
+        // Set of sites where the campaign is enabled for this user — used to
+        // reject rows targeting disabled sites at commit time (the upload-time
+        // gate only confirms "enabled somewhere", which lets a row's mapped
+        // siteId silently land recipients on a site where the campaign is off).
+        $enabledSiteIds = $this->_getCampaignEnabledEditableSiteIds($campaignId);
+
         // Import validated rows
         $imported = 0;
         $failed = 0;
         $errorMessages = [];
 
         foreach ($validRows as $index => $rowData) {
+            $rowSiteId = (int)$rowData['siteId'];
+            if (!in_array($rowSiteId, $enabledSiteIds, true)) {
+                $failed++;
+                $siteHandle = Craft::$app->getSites()->getSiteById($rowSiteId)?->handle ?? (string)$rowSiteId;
+                $errorMessages[] = 'Row ' . ($index + 1) . ': ' . Craft::t('campaign-manager', 'Campaign is disabled for site {site}.', ['site' => $siteHandle]);
+                continue;
+            }
+
             $recipient = new RecipientRecord([
                 'campaignId' => $campaignId,
-                'siteId' => $rowData['siteId'],
+                'siteId' => $rowSiteId,
                 'name' => $rowData['name'],
                 'email' => $rowData['email'],
                 'sms' => $rowData['sms'],
@@ -1539,11 +1574,11 @@ class RecipientsController extends Controller
                     $imported++;
                 } else {
                     $failed++;
-                    $errorMessages[] = "Row " . ($index + 1) . ": " . implode(', ', $recipient->getErrorSummary(true));
+                    $errorMessages[] = 'Row ' . ($index + 1) . ': ' . implode(', ', $recipient->getErrorSummary(true));
                 }
             } catch (\Exception $e) {
                 $failed++;
-                $errorMessages[] = "Row " . ($index + 1) . ": " . $e->getMessage();
+                $errorMessages[] = 'Row ' . ($index + 1) . ': ' . $e->getMessage();
             }
         }
 
@@ -1801,18 +1836,19 @@ class RecipientsController extends Controller
     }
 
     /**
-     * Whether the campaign is enabled for at least one site the current user can edit.
+     * Get the site IDs where the campaign is enabled, scoped to editable sites.
      *
-     * Fetches all variants of the campaign across editable sites in a single query
-     * instead of one-per-site, then short-circuits on the first enabled match.
+     * Fetches all variants of the campaign across editable sites in a single
+     * query, filters to those enabled for their site.
      *
+     * @return array<int>
      * @since 5.11.0
      */
-    private function _isCampaignEnabledForAnyEditableSite(int $campaignId): bool
+    private function _getCampaignEnabledEditableSiteIds(int $campaignId): array
     {
         $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
         if ($editableSiteIds === []) {
-            return false;
+            return [];
         }
 
         $variants = \lindemannrock\campaignmanager\elements\Campaign::find()
@@ -1821,12 +1857,23 @@ class RecipientsController extends Controller
             ->status(null)
             ->all();
 
+        $enabledSiteIds = [];
         foreach ($variants as $variant) {
             if ($variant->getEnabledForSite()) {
-                return true;
+                $enabledSiteIds[] = (int)$variant->siteId;
             }
         }
 
-        return false;
+        return $enabledSiteIds;
+    }
+
+    /**
+     * Whether the campaign is enabled for at least one site the current user can edit.
+     *
+     * @since 5.11.0
+     */
+    private function _isCampaignEnabledForAnyEditableSite(int $campaignId): bool
+    {
+        return $this->_getCampaignEnabledEditableSiteIds($campaignId) !== [];
     }
 }
