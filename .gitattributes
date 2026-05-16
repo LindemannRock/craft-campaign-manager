@@ -1,6 +1,8 @@
 # Exclude dev/build files from Packagist distribution
 ecs.php export-ignore
 phpstan.neon export-ignore
+phpunit.xml.dist export-ignore
+tests/ export-ignore
 
 # Shared asset tooling: analytics build package
 src/web/assets/node_modules/ export-ignore
