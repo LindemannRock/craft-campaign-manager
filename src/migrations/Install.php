@@ -217,6 +217,14 @@ class Install extends Migration
         $this->createIndex(null, $tableName, ['sms']);
         $this->createIndex(null, $tableName, ['emailInvitationCode']);
         $this->createIndex(null, $tableName, ['smsInvitationCode']);
+        // Hot query paths — listings, status filters, COALESCE sort, analytics CASE-WHEN sums.
+        $this->createIndex(null, $tableName, ['dateCreated']);
+        $this->createIndex(null, $tableName, ['emailSendDate']);
+        $this->createIndex(null, $tableName, ['smsSendDate']);
+        $this->createIndex(null, $tableName, ['emailOpenDate']);
+        $this->createIndex(null, $tableName, ['smsOpenDate']);
+        $this->createIndex(null, $tableName, ['submissionId']);
+        $this->createIndex(null, $tableName, ['invitationExpiryDate']);
 
         // Add foreign keys
         $this->addForeignKey(
