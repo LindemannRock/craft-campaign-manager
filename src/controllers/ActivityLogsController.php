@@ -18,7 +18,6 @@ use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\LoggingLibrary;
-use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -40,11 +39,10 @@ class ActivityLogsController extends Controller
      */
     public function actionIndex(): Response
     {
-        $user = Craft::$app->getUser();
-        if (!$user->checkPermission('campaignManager:viewActivityLogs')) {
-            throw new ForbiddenHttpException('User does not have permission to view activity logs');
-        }
+        $this->requireLogin();
+        $this->requirePermission('campaignManager:viewActivityLogs');
 
+        $user = Craft::$app->getUser();
         $settings = Craft::$app->getPlugins()->getPlugin('campaign-manager')->getSettings();
         $page = (int) Craft::$app->getRequest()->getParam('page', 1);
         $limit = $settings->itemsPerPage ?? 50;
@@ -207,11 +205,8 @@ class ActivityLogsController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-
-        $user = Craft::$app->getUser();
-        if (!$user->checkPermission('campaignManager:clearActivityLogs')) {
-            throw new ForbiddenHttpException('User does not have permission to clear activity logs');
-        }
+        $this->requireLogin();
+        $this->requirePermission('campaignManager:clearActivityLogs');
 
         ActivityLogRecord::deleteAll();
 
