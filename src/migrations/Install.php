@@ -35,7 +35,6 @@ class Install extends Migration
         $this->createCampaignsTable();
         $this->createCampaignsContentTable();
         $this->createRecipientsTable();
-        $this->createStatisticsTable();
         $this->createActivityLogsTable();
     }
 
@@ -252,61 +251,6 @@ class Install extends Migration
             Submission::tableName(),
             ['id'],
             'SET NULL'
-        );
-    }
-
-    /**
-     * Create the statistics table for analytics
-     */
-    private function createStatisticsTable(): void
-    {
-        $tableName = '{{%campaignmanager_analytics}}';
-
-        if ($this->db->tableExists($tableName)) {
-            return;
-        }
-
-        $this->createTable($tableName, [
-            'id' => $this->primaryKey(),
-            'campaignId' => $this->integer()->notNull(),
-            'siteId' => $this->integer()->notNull(),
-            'date' => $this->date()->notNull(),
-            // Delivery metrics
-            'totalRecipients' => $this->integer()->notNull()->defaultValue(0),
-            'emailsSent' => $this->integer()->notNull()->defaultValue(0),
-            'smsSent' => $this->integer()->notNull()->defaultValue(0),
-            // Engagement metrics
-            'emailsOpened' => $this->integer()->notNull()->defaultValue(0),
-            'smsOpened' => $this->integer()->notNull()->defaultValue(0),
-            // Conversion metrics
-            'submissions' => $this->integer()->notNull()->defaultValue(0),
-            'expired' => $this->integer()->notNull()->defaultValue(0),
-            // Standard timestamps
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        // Create unique index for campaignId + siteId + date
-        $this->createIndex(null, $tableName, ['campaignId', 'siteId', 'date'], true);
-
-        // Add foreign keys
-        $this->addForeignKey(
-            null,
-            $tableName,
-            ['campaignId'],
-            '{{%campaignmanager_campaigns}}',
-            ['id'],
-            'CASCADE'
-        );
-
-        $this->addForeignKey(
-            null,
-            $tableName,
-            ['siteId'],
-            Site::tableName(),
-            ['id'],
-            'CASCADE'
         );
     }
 

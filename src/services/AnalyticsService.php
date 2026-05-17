@@ -17,7 +17,6 @@ use lindemannrock\base\helpers\LabelHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
-use lindemannrock\campaignmanager\records\AnalyticsRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\formieratingfield\fields\Rating;
 use lindemannrock\formieratingfield\FormieRatingField;
@@ -1594,73 +1593,5 @@ class AnalyticsService extends Component
         }
 
         return ['headers' => $headers, 'rows' => $rows];
-    }
-
-    /**
-     * Refresh statistics for a campaign
-     *
-     * Recalculates and stores aggregated statistics.
-     *
-     * @param int $campaignId Campaign ID
-     * @param int $siteId Site ID
-     * @param \DateTime|null $date Specific date to refresh, or null for today
-     */
-    public function refreshStatistics(int $campaignId, int $siteId, ?\DateTime $date = null): void
-    {
-        $date = $date ?? new \DateTime();
-        $dateStr = $date->format('Y-m-d');
-
-        // Build query for this campaign/site/date
-        $query = (new Query())
-            ->from(RecipientRecord::tableName())
-            ->where(['campaignId' => $campaignId])
-            ->andWhere(['siteId' => $siteId])
-            ->andWhere(['>=', 'dateCreated', $dateStr . ' 00:00:00'])
-            ->andWhere(['<=', 'dateCreated', $dateStr . ' 23:59:59']);
-
-        // Calculate metrics
-        $totalRecipients = (clone $query)->count();
-        $emailsSent = (clone $query)->andWhere(['not', ['emailSendDate' => null]])->count();
-        $smsSent = (clone $query)->andWhere(['not', ['smsSendDate' => null]])->count();
-        $emailsOpened = (clone $query)->andWhere(['not', ['emailOpenDate' => null]])->count();
-        $smsOpened = (clone $query)->andWhere(['not', ['smsOpenDate' => null]])->count();
-        $submissions = (clone $query)->andWhere(['not', ['submissionId' => null]])->count();
-        $expired = (clone $query)
-            ->andWhere(['<', 'invitationExpiryDate', (new \DateTime())->format('Y-m-d H:i:s')])
-            ->andWhere(['submissionId' => null])
-            ->count();
-
-        // Find or create record
-        /** @var AnalyticsRecord|null $record */
-        $record = AnalyticsRecord::find()
-            ->where([
-                'campaignId' => $campaignId,
-                'siteId' => $siteId,
-                'date' => $dateStr,
-            ])
-            ->one();
-
-        if (!$record) {
-            $record = new AnalyticsRecord();
-            $record->campaignId = $campaignId;
-            $record->siteId = $siteId;
-            $record->date = $dateStr;
-        }
-
-        $record->totalRecipients = (int)$totalRecipients;
-        $record->emailsSent = (int)$emailsSent;
-        $record->smsSent = (int)$smsSent;
-        $record->emailsOpened = (int)$emailsOpened;
-        $record->smsOpened = (int)$smsOpened;
-        $record->submissions = (int)$submissions;
-        $record->expired = (int)$expired;
-
-        $record->save(false);
-
-        $this->logInfo('Refreshed statistics', [
-            'campaignId' => $campaignId,
-            'siteId' => $siteId,
-            'date' => $dateStr,
-        ]);
     }
 }
