@@ -926,16 +926,33 @@ class RecipientsController extends Controller
     }
 
     /**
-     * Download sample CSV
+     * Download sample CSV. Streamed inline (not from disk) so fresh installs
+     * don't 500 because the plugin doesn't ship a file under `config/`.
      */
     public function actionDownloadSample(): Response
     {
         $this->requirePostRequest();
         $this->requireLogin();
         $this->requirePermission('campaignManager:importRecipients');
-        $templatePath = Craft::$app->getPath()->getConfigPath() . DIRECTORY_SEPARATOR . 'recipients-import-template.csv';
 
-        return Craft::$app->getResponse()->sendFile($templatePath);
+        $rows = [
+            ['Name', 'Email', 'Phone', 'Site'],
+            ['John Doe', 'john@example.com', '+15550100001', 'en'],
+            ['Ahmed Ali', 'ahmed@example.com', '+15550100002', 'ar'],
+        ];
+        $handle = fopen('php://temp', 'r+');
+        foreach ($rows as $row) {
+            fputcsv($handle, $row);
+        }
+        rewind($handle);
+        $content = stream_get_contents($handle);
+        fclose($handle);
+
+        return Craft::$app->getResponse()->sendContentAsFile(
+            $content,
+            'recipients-import-template.csv',
+            ['mimeType' => 'text/csv']
+        );
     }
 
     /**
