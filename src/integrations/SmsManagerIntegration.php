@@ -71,24 +71,31 @@ class SmsManagerIntegration implements IntegrationInterface
     {
         $usages = [];
 
-        /** @var CampaignRecord[] $campaigns */
-        $campaigns = CampaignRecord::find()
-            ->where(['senderId' => $senderIdId])
-            ->all();
+        // Resolve the integer id to the sender's handle — campaigns store the
+        // handle (string) in `senderId`, not the numeric DB id. Querying with
+        // the int directly returned no matches because MySQL coerces a
+        // non-numeric string handle to 0, missing every real campaign.
+        $senderRecord = SmsManager::$plugin->senderIds->getSenderIdById($senderIdId);
+        if ($senderRecord !== null && !empty($senderRecord->handle)) {
+            /** @var CampaignRecord[] $campaigns */
+            $campaigns = CampaignRecord::find()
+                ->where(['senderId' => $senderRecord->handle])
+                ->all();
 
-        foreach ($campaigns as $campaign) {
-            $label = 'Campaign #' . $campaign->id;
-            if ($campaign->formId) {
-                $form = Form::find()->id($campaign->formId)->one();
-                if ($form) {
-                    $label = $form->title;
+            foreach ($campaigns as $campaign) {
+                $label = 'Campaign #' . $campaign->id;
+                if ($campaign->formId) {
+                    $form = Form::find()->id($campaign->formId)->one();
+                    if ($form) {
+                        $label = $form->title;
+                    }
                 }
-            }
 
-            $usages[] = [
-                'label' => $label,
-                'editUrl' => UrlHelper::cpUrl('survey-campaigns/campaigns/' . $campaign->id),
-            ];
+                $usages[] = [
+                    'label' => $label,
+                    'editUrl' => UrlHelper::cpUrl('campaign-manager/campaigns/' . $campaign->id),
+                ];
+            }
         }
 
         // Plugin-default sender — resolve the configured handle and compare
