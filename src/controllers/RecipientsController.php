@@ -1492,6 +1492,10 @@ class RecipientsController extends Controller
             'summary' => $summary,
             'duplicateRows' => $duplicateRows,
             'errorRows' => $errorRows,
+            // Preserved through upload → preview → import so the activity log
+            // for `recipients_imported` records the original CSV name (was
+            // always `null` before because preview never carried it forward).
+            'filename' => $importData['filename'] ?? null,
         ]);
 
         return $this->renderTemplate('campaign-manager/recipients/preview', [
