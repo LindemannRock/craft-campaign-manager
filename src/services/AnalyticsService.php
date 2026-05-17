@@ -315,27 +315,16 @@ class AnalyticsService extends Component
     {
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
-        $totalRecipients = (clone $query)->count();
-
-        $invited = (clone $query)
-            ->andWhere([
-                'or',
-                ['not', ['emailSendDate' => null]],
-                ['not', ['smsSendDate' => null]],
+        // Single aggregate query for all 4 funnel stages — matches the pattern
+        // used in getOverviewStats() to avoid 4 separate COUNT(*) round-trips.
+        $row = (clone $query)
+            ->select([
+                'totalRecipients' => new \yii\db\Expression('COUNT(*)'),
+                'invited' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL OR smsSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'opened' => new \yii\db\Expression('SUM(CASE WHEN emailOpenDate IS NOT NULL OR smsOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'submitted' => new \yii\db\Expression('SUM(CASE WHEN submissionId IS NOT NULL THEN 1 ELSE 0 END)'),
             ])
-            ->count();
-
-        $opened = (clone $query)
-            ->andWhere([
-                'or',
-                ['not', ['emailOpenDate' => null]],
-                ['not', ['smsOpenDate' => null]],
-            ])
-            ->count();
-
-        $submitted = (clone $query)
-            ->andWhere(['not', ['submissionId' => null]])
-            ->count();
+            ->one();
 
         return [
             'labels' => [
@@ -345,10 +334,10 @@ class AnalyticsService extends Component
                 Craft::t('campaign-manager', 'Submitted'),
             ],
             'values' => [
-                (int)$totalRecipients,
-                (int)$invited,
-                (int)$opened,
-                (int)$submitted,
+                (int)($row['totalRecipients'] ?? 0),
+                (int)($row['invited'] ?? 0),
+                (int)($row['opened'] ?? 0),
+                (int)($row['submitted'] ?? 0),
             ],
         ];
     }
