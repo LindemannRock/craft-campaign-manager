@@ -219,23 +219,16 @@ class AnalyticsService extends Component
     {
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
 
-        // Email only (email sent, SMS not sent)
-        $emailOnly = (clone $query)
-            ->andWhere(['not', ['emailSendDate' => null]])
-            ->andWhere(['smsSendDate' => null])
-            ->count();
-
-        // SMS only (SMS sent, email not sent)
-        $smsOnly = (clone $query)
-            ->andWhere(['not', ['smsSendDate' => null]])
-            ->andWhere(['emailSendDate' => null])
-            ->count();
-
-        // Both (both email and SMS sent)
-        $both = (clone $query)
-            ->andWhere(['not', ['emailSendDate' => null]])
-            ->andWhere(['not', ['smsSendDate' => null]])
-            ->count();
+        // Single aggregate query for all 3 mutually-exclusive channel buckets —
+        // matches the SUM(CASE WHEN…) pattern used by getOverviewStats() and
+        // getConversionFunnel().
+        $row = (clone $query)
+            ->select([
+                'emailOnly' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL AND smsSendDate IS NULL THEN 1 ELSE 0 END)'),
+                'smsOnly' => new \yii\db\Expression('SUM(CASE WHEN smsSendDate IS NOT NULL AND emailSendDate IS NULL THEN 1 ELSE 0 END)'),
+                'both' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL AND smsSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
+            ])
+            ->one();
 
         return [
             'labels' => [
@@ -243,7 +236,11 @@ class AnalyticsService extends Component
                 Craft::t('campaign-manager', 'SMS Only'),
                 Craft::t('campaign-manager', 'Both'),
             ],
-            'values' => [(int)$emailOnly, (int)$smsOnly, (int)$both],
+            'values' => [
+                (int)($row['emailOnly'] ?? 0),
+                (int)($row['smsOnly'] ?? 0),
+                (int)($row['both'] ?? 0),
+            ],
         ];
     }
 
@@ -377,6 +374,10 @@ class AnalyticsService extends Component
         }
 
         $recipientTable = RecipientRecord::tableName();
+        $now = (new \DateTime())->format('Y-m-d H:i:s');
+        // Aggregate the same metric set as getOverviewStats() per (campaign,
+        // site) so the analytics export can read this directly instead of
+        // looping getOverviewStats() per row.
         $statsRows = $this->buildRecipientQuery('all', 'all', $dateRange)
             ->andWhere([$recipientTable . '.campaignId' => array_keys($campaignIds)])
             ->andWhere([$recipientTable . '.siteId' => array_keys($siteIds)])
@@ -384,7 +385,15 @@ class AnalyticsService extends Component
                 'campaignId' => $recipientTable . '.campaignId',
                 'siteId' => $recipientTable . '.siteId',
                 'totalRecipients' => new \yii\db\Expression('COUNT(*)'),
+                'emailsSent' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'smsSent' => new \yii\db\Expression('SUM(CASE WHEN smsSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'emailsOpened' => new \yii\db\Expression('SUM(CASE WHEN emailOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'smsOpened' => new \yii\db\Expression('SUM(CASE WHEN smsOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
                 'submissions' => new \yii\db\Expression('SUM(CASE WHEN submissionId IS NOT NULL THEN 1 ELSE 0 END)'),
+                'expired' => new \yii\db\Expression(
+                    'SUM(CASE WHEN invitationExpiryDate < :nowExpiry AND submissionId IS NULL THEN 1 ELSE 0 END)',
+                    [':nowExpiry' => $now]
+                ),
             ])
             ->groupBy([$recipientTable . '.campaignId', $recipientTable . '.siteId'])
             ->all();
@@ -398,15 +407,27 @@ class AnalyticsService extends Component
         foreach ($campaigns as $campaign) {
             $stats = $statsByKey[$campaign->id . '-' . $campaign->siteId] ?? null;
             $totalRecipients = (int)($stats['totalRecipients'] ?? 0);
+            $emailsSent = (int)($stats['emailsSent'] ?? 0);
+            $smsSent = (int)($stats['smsSent'] ?? 0);
+            $emailsOpened = (int)($stats['emailsOpened'] ?? 0);
+            $smsOpened = (int)($stats['smsOpened'] ?? 0);
             $submissions = (int)($stats['submissions'] ?? 0);
+            $expired = (int)($stats['expired'] ?? 0);
 
             $result[] = [
                 'campaignId' => $campaign->id,
                 'campaignName' => $campaign->title,
                 'siteId' => $campaign->siteId,
                 'totalRecipients' => $totalRecipients,
+                'emailsSent' => $emailsSent,
+                'smsSent' => $smsSent,
+                'emailsOpened' => $emailsOpened,
+                'smsOpened' => $smsOpened,
                 'submissions' => $submissions,
+                'expired' => $expired,
                 'conversionRate' => $totalRecipients > 0 ? round(($submissions / $totalRecipients) * 100, 1) : 0,
+                'emailOpenRate' => $emailsSent > 0 ? min(100, round(($emailsOpened / $emailsSent) * 100, 1)) : 0,
+                'smsOpenRate' => $smsSent > 0 ? min(100, round(($smsOpened / $smsSent) * 100, 1)) : 0,
             ];
         }
 
