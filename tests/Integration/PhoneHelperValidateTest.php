@@ -72,4 +72,24 @@ final class PhoneHelperValidateTest extends TestCase
         self::assertNull($result['e164']);
         self::assertNotNull($result['error']);
     }
+
+    public function testInputContainingLettersIsRejectedWithSpecificError(): void
+    {
+        // Regression: the letter check used to run after sanitize() (which
+        // strips non-digits), making it unreachable. Users got the generic
+        // "Invalid phone number" instead of the more actionable "contains
+        // letters". Pins the ordering so the specific error reaches callers.
+        $result = PhoneHelper::validate('555-PHONE', 'KW');
+        self::assertFalse($result['valid']);
+        self::assertNull($result['e164']);
+        self::assertSame('Phone number contains letters', $result['error']);
+    }
+
+    public function testInputThatIsAllLettersIsRejectedWithSpecificError(): void
+    {
+        $result = PhoneHelper::validate('callmemaybe', 'KW');
+        self::assertFalse($result['valid']);
+        self::assertNull($result['e164']);
+        self::assertSame('Phone number contains letters', $result['error']);
+    }
 }
