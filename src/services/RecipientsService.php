@@ -168,7 +168,7 @@ class RecipientsService extends Component
      * need to enumerate them here.
      *
      * @return array<string, string>
-     * @since 5.x.0
+     * @since 5.11.0
      */
     public function getInvitationTemplateVariables(RecipientRecord $recipient, string $invitationUrl): array
     {
