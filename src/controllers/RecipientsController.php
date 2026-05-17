@@ -966,55 +966,6 @@ class RecipientsController extends Controller
     }
 
     /**
-     * Delete a recipient
-     */
-    public function actionDelete(): Response
-    {
-        $this->requirePostRequest();
-        $this->requireLogin();
-        $this->requirePermission('campaignManager:deleteRecipients');
-
-        $recipientId = (int)Craft::$app->request->getRequiredBodyParam('id');
-
-        $recipient = RecipientRecord::findOne($recipientId);
-        if (!$recipient) {
-            return $this->asJson(['success' => true]);
-        }
-
-        if (!CampaignManager::$plugin->recipients->deleteRecipientById($recipientId)) {
-            return $this->asJson([
-                'success' => false,
-                'error' => Craft::t('campaign-manager', 'Failed to delete recipient {id}', ['id' => $recipientId]),
-            ]);
-        }
-
-        try {
-            $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
-                ->id($recipient->campaignId)
-                ->status(null)
-                ->one();
-            CampaignManager::$plugin->activityLogs->log('recipient_deleted', [
-                'campaignId' => $recipient->campaignId,
-                'recipientId' => $recipient->id,
-                'source' => 'manual',
-                'summary' => Craft::t('campaign-manager', 'Recipient deleted'),
-                'details' => [
-                    'campaignName' => $campaign?->title,
-                    'name' => $recipient->name,
-                    'email' => $recipient->email,
-                    'sms' => $recipient->sms,
-                    'siteId' => $recipient->siteId,
-                    'siteName' => Craft::$app->getSites()->getSiteById($recipient->siteId)?->name,
-                ],
-            ]);
-        } catch (\Throwable $e) {
-            Craft::error('Failed to log recipient_deleted activity: ' . $e->getMessage(), __METHOD__);
-        }
-
-        return $this->asJson(['success' => true]);
-    }
-
-    /**
      * Upload and parse CSV file (step 1 of import)
      *
      * @since 5.1.0
