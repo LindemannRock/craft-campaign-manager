@@ -1935,7 +1935,6 @@ class RecipientsController extends Controller
      * query, filters to those enabled for their site.
      *
      * @return array<int>
-     * @since 5.11.0
      */
     private function _getCampaignEnabledEditableSiteIds(int $campaignId): array
     {
@@ -1962,8 +1961,6 @@ class RecipientsController extends Controller
 
     /**
      * Whether the campaign is enabled for at least one site the current user can edit.
-     *
-     * @since 5.11.0
      */
     private function _isCampaignEnabledForAnyEditableSite(int $campaignId): bool
     {
