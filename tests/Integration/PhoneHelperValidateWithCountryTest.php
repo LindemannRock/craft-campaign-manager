@@ -71,4 +71,16 @@ final class PhoneHelperValidateWithCountryTest extends TestCase
         self::assertSame('+96597176606', $result['e164']);
         self::assertSame('KW', $result['country']);
     }
+
+    public function testInputContainingLettersIsRejectedWithSpecificError(): void
+    {
+        // Regression mirror of PhoneHelperValidateTest — letter check used to
+        // run after sanitize() (unreachable), so callers got a generic
+        // libphonenumber rejection instead of the actionable "contains
+        // letters" string. Pins the ordering.
+        $result = PhoneHelper::validateWithCountry('555-PHONE', 'KW');
+        self::assertFalse($result['valid']);
+        self::assertNull($result['e164']);
+        self::assertSame('Phone number contains letters', $result['error']);
+    }
 }
