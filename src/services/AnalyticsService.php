@@ -665,12 +665,6 @@ class AnalyticsService extends Component
     }
 
     /**
-     * Build a local-date SQL expression for the given column.
-     *
-     * @param string $column
-     * @return \yii\db\Expression
-     */
-    /**
      * Get rating fields present on forms tied to submissions in the current filter scope.
      *
      * Returns deduplicated entries (by fieldId) across all campaigns in scope.
