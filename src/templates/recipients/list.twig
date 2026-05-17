@@ -1,56 +1,43 @@
-{% extends "_layouts/cp" %}
-{% import "_includes/forms" as forms %}
+{#
+ # Per-campaign Recipients listing — Using cp-table layout.
+ #
+ # Scoped to a single campaign + site (locked via URL, not filterable).
+ # Filters available: status, date range, search. Sort + paginate handled
+ # by base cp-table. All filter/sort/pagination data is prepared by the
+ # controller (no per-row queries in this template).
+ #}
 
-{% set plugin = craft.app.plugins.getPlugin('campaign-manager') %}
-{% set settings = plugin.getSettings() %}
+{% extends 'lindemannrock-base/_layouts/cp-table' %}
 
-{# Site and campaign are passed from controller #}
-{% set site = site ?? craft.app.sites.getCurrentSite() %}
-{% set campaignId = campaignId ?? campaign.id %}
+{# ============================================================================
+   PERMISSION CHECKS
+   ============================================================================ #}
 
-{% set title = campaign.title ~ ' - ' ~ 'Recipients'|t('campaign-manager') %}
-{% set fullPageForm = false %}
-{% set selectedSubnavItem = 'campaigns' %}
+{% set canAdd = currentUser.can('campaignManager:addRecipients') %}
+{% set canImport = currentUser.can('campaignManager:importRecipients') %}
+{% set canDelete = currentUser.can('campaignManager:deleteRecipients') %}
+{% set canRun = currentUser.can('campaignManager:runCampaigns') %}
+{% set canExport = currentUser.can('campaignManager:exportRecipients') %}
 
-{# Get query parameters #}
-{% set search = craft.app.request.getParam('search', '') %}
-{% set sort = craft.app.request.getParam('sort', 'sent') %}
-{% set dir = craft.app.request.getParam('dir', 'desc') %}
-{% set dateRange = craft.app.request.getParam('dateRange', defaultDateRange ?? 'last30days') %}
-{% set page = craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
-{% set limit = 50 %}
-{% set offset = (page - 1) * limit %}
+{# ============================================================================
+   FALLBACKS (controller passes these, but guard against direct render)
+   ============================================================================ #}
 
-{# Date range labels from base plugin #}
-{% set dateRangeLabels = lrDateRangeOptions('assoc') %}
+{% set search = search ?? craft.app.request.getParam('search', '') %}
+{% set statusFilter = statusFilter ?? craft.app.request.getParam('status', 'all') %}
+{% set dateRange = dateRange ?? craft.app.request.getParam('dateRange', defaultDateRange ?? 'last30days') %}
+{% set sort = sort ?? craft.app.request.getParam('sort', 'sent') %}
+{% set dir = dir ?? craft.app.request.getParam('dir', 'desc') %}
+{% set page = page ?? craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
+{% set limit = limit ?? 50 %}
+{% set totalCount = totalCount ?? 0 %}
+{% set recipients = recipients ?? [] %}
+{% set submissionMap = submissionMap ?? {} %}
 
-{# Get recipients with date filtering at SQL level #}
-{% set allRecipients = campaignManager.recipients.findByCampaignAndSite(campaignId, site.id, dateRange) %}
+{# ============================================================================
+   CRUMBS — site switcher (if multi-site) + plugin + campaign + page label
+   ============================================================================ #}
 
-{# Search filter #}
-{% if search %}
-    {% set allRecipients = allRecipients|filter(c => search|lower in c.name|lower or search|lower in c.email|lower or search|lower in c.sms|lower) %}
-{% endif %}
-
-{# Sort #}
-{% if sort == 'name' %}
-    {% set allRecipients = dir == 'asc' ? allRecipients|sort((a, b) => a.name|lower <=> b.name|lower) : allRecipients|sort((a, b) => b.name|lower <=> a.name|lower) %}
-{% elseif sort == 'email' %}
-    {% set allRecipients = dir == 'asc' ? allRecipients|sort((a, b) => (a.email ?? '')|lower <=> (b.email ?? '')|lower) : allRecipients|sort((a, b) => (b.email ?? '')|lower <=> (a.email ?? '')|lower) %}
-{% elseif sort == 'sms' %}
-    {% set allRecipients = dir == 'asc' ? allRecipients|sort((a, b) => (a.sms ?? '') <=> (b.sms ?? '')) : allRecipients|sort((a, b) => (b.sms ?? '') <=> (a.sms ?? '')) %}
-{% elseif sort == 'sent' %}
-    {% set allRecipients = dir == 'asc' ? allRecipients|sort((a, b) => (a.smsSendDate ?? a.emailSendDate ?? '')|date('U') <=> (b.smsSendDate ?? b.emailSendDate ?? '')|date('U')) : allRecipients|sort((a, b) => (b.smsSendDate ?? b.emailSendDate ?? '')|date('U') <=> (a.smsSendDate ?? a.emailSendDate ?? '')|date('U')) %}
-{% elseif sort == 'opened' %}
-    {% set allRecipients = dir == 'asc' ? allRecipients|sort((a, b) => (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U') <=> (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U')) : allRecipients|sort((a, b) => (b.smsOpenDate ?? b.emailOpenDate ?? '')|date('U') <=> (a.smsOpenDate ?? a.emailOpenDate ?? '')|date('U')) %}
-{% endif %}
-
-{# Pagination #}
-{% set totalCount = allRecipients|length %}
-{% set totalPages = (totalCount / limit)|round(0, 'ceil') %}
-{% set recipients = allRecipients|slice(offset, limit) %}
-
-{# Site switcher in crumbs #}
 {% set crumbs = [] %}
 {% if craft.app.getIsMultiSite() %}
     {% set siteMenuItems = [] %}
@@ -58,340 +45,292 @@
         {% set siteMenuItems = siteMenuItems|merge([{
             label: s.name,
             url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: s.handle}),
-            selected: s.handle == site.handle
+            selected: s.handle == site.handle,
         }]) %}
     {% endfor %}
-
     {% set crumbs = [{
         id: 'site-crumb',
         icon: 'world',
         label: site.name|t('site'),
-        menu: {
-            items: siteMenuItems,
-            label: 'Select site'|t('app')
-        }
+        menu: { items: siteMenuItems, label: 'Select site'|t('app') },
     }] %}
 {% endif %}
-
 {% set crumbs = crumbs|merge([
-    { label: settings.pluginName, url: cpUrl('campaign-manager', {site: site.handle}) },
+    { label: settings.fullName, url: cpUrl('campaign-manager', {site: site.handle}) },
     { label: campaign.title, url: cpUrl('campaign-manager/campaigns/' ~ campaignId, {site: site.handle}) },
     { label: 'Recipients'|t('campaign-manager') },
 ]) %}
 
-{% block toolbar %}
-    <div id="toolbar" class="flex" style="align-items: flex-end;">
-        <div class="flex-grow">
-            <form method="get" action="{{ cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients') }}">
-                <div class="flex">
-                    {# Date range filter #}
-                    <div class="btngroup">
-                        <button type="button" class="btn menubtn">
-                            {{ dateRangeLabels[dateRange] ?? dateRangeLabels['all'] }}
-                        </button>
-                        <div class="menu">
-                            <ul>
-                                <li><a class="{{ dateRange == 'today' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=today&page=1">{{ 'Today'|t('campaign-manager') }}</a></li>
-                                <li><a class="{{ dateRange == 'yesterday' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=yesterday&page=1">{{ 'Yesterday'|t('campaign-manager') }}</a></li>
-                                <li><a class="{{ dateRange == 'last7days' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=last7days&page=1">{{ 'Last 7 days'|t('campaign-manager') }}</a></li>
-                                <li><a class="{{ dateRange == 'last30days' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=last30days&page=1">{{ 'Last 30 days'|t('campaign-manager') }}</a></li>
-                                <li><a class="{{ dateRange == 'last90days' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=last90days&page=1">{{ 'Last 90 days'|t('campaign-manager') }}</a></li>
-                                <li><a class="{{ dateRange == 'all' ? 'sel' : '' }}" href="?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange=all&page=1">{{ 'All time'|t('campaign-manager') }}</a></li>
-                            </ul>
-                        </div>
-                    </div>
+{# ============================================================================
+   TABLE CONFIGURATION
+   ============================================================================ #}
 
-                    <div class="search-container texticon flex-grow">
-                        <span class="texticon-icon search icon" aria-hidden="true"></span>
-                        <input type="text" class="clearable text fullwidth" name="search" value="{{ search }}" placeholder="{{ 'Search recipients...'|t('campaign-manager') }}" autocomplete="off" dir="ltr" aria-label="Search" {% if search %} autofocus {% endif %}>
-                        <button type="button" class="clear-btn {{ search ? '' : 'hidden' }}" title="Clear search" role="button" aria-label="Clear search"></button>
-                        <input type="hidden" name="site" value="{{ site.handle }}">
-                        <input type="hidden" name="sort" value="{{ sort }}">
-                        <input type="hidden" name="dir" value="{{ dir }}">
-                        <input type="hidden" name="dateRange" value="{{ dateRange }}">
-                    </div>
-                </div>
-            </form>
-        </div>
-        {# Export dropdown #}
+{% set tableConfig = {
+    plugin: {
+        handle: pluginHandle ?? 'campaign-manager',
+        name: settings.fullName,
+    },
+    page: {
+        title: campaign.title ~ ' — ' ~ 'Recipients'|t('campaign-manager'),
+        subnav: 'campaigns',
+        crumbs: crumbs,
+    },
+    filters: [
+        {
+            type: 'status',
+            param: 'status',
+            current: statusFilter,
+            label: 'All'|t('campaign-manager'),
+            colorSet: 'messageStatus',
+            options: [
+                {value: 'all', label: 'All'|t('campaign-manager'), status: 'all'},
+                {value: 'pending', label: 'Pending'|t('campaign-manager'), colorKey: 'pending'},
+                {value: 'sent', label: 'Sent'|t('campaign-manager'), colorKey: 'sent'},
+            ],
+        },
+        {
+            type: 'dateRange',
+            param: 'dateRange',
+            current: dateRange,
+            label: 'Date Range'|t('campaign-manager'),
+        },
+    ],
+    search: {
+        placeholder: 'Search recipients...'|t('campaign-manager'),
+        value: search,
+    },
+    sort: {
+        field: sort,
+        direction: dir,
+    },
+    table: {
+        columns: [
+            {key: 'name', label: 'Name'|t('campaign-manager'), sortable: true},
+            {key: 'contact', label: 'Contact'|t('campaign-manager')},
+            {key: 'code', label: 'Code'|t('campaign-manager')},
+            {key: 'status', label: 'Status'|t('campaign-manager')},
+            {key: 'sent', label: 'Sent'|t('campaign-manager'), sortable: true},
+            {key: 'opened', label: 'Opened'|t('campaign-manager'), sortable: true},
+            {key: 'response', label: 'Response'|t('campaign-manager')},
+        ],
+        items: recipients,
+        emptyMessage: 'No recipients found.'|t('campaign-manager'),
+    },
+    pagination: {
+        page: page,
+        limit: limit,
+        totalCount: totalCount,
+        itemLabel: {singular: 'recipient'|t('campaign-manager'), plural: 'recipients'|t('campaign-manager')},
+    },
+} %}
+
+
+{# ============================================================================
+   TOOLBAR ACTIONS (Export + Add menu + Run Campaign)
+   ============================================================================ #}
+
+{% block toolbarActions %}
+    {% if canExport %}
         {% include 'lindemannrock-base/_components/export-menu' with {
             action: 'campaign-manager/recipients/export-recipients',
             permission: 'campaignManager:exportRecipients',
-            extraParams: {campaignId: campaignId, site: site.handle, dateRange: dateRange},
+            pluginHandle: pluginHandle ?? 'campaign-manager',
+            extraParams: {
+                campaignId: campaignId,
+                site: site.handle,
+                dateRange: dateRange,
+                status: statusFilter,
+            },
         } only %}
-        {% if campaign.getEnabledForSite() %}
-            <div class="btngroup">
-                <button type="button" class="btn menubtn" data-icon="plus">{{ 'Add'|t('campaign-manager') }}</button>
-                <div class="menu" data-align="right">
-                    <ul>
+    {% endif %}
+
+    {% if campaign.getEnabledForSite() and (canAdd or canImport) %}
+        <div class="btngroup">
+            <button type="button" class="btn menubtn" data-icon="plus">{{ 'Add'|t('campaign-manager') }}</button>
+            <div class="menu" data-align="right">
+                <ul>
+                    {% if canAdd %}
                         <li>
                             <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/add-recipient', {site: site.handle}) }}">
                                 {{ 'Add Recipient'|t('campaign-manager') }}
                             </a>
                         </li>
+                    {% endif %}
+                    {% if canImport %}
                         <li>
                             <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/import-recipients', {site: site.handle}) }}">
                                 {{ 'Import Recipients'|t('campaign-manager') }}
                             </a>
                         </li>
-                    </ul>
-                </div>
+                    {% endif %}
+                </ul>
             </div>
-            <button type="button" class="btn submit" id="run-campaign-btn" data-campaign-id="{{ campaignId }}" data-site-id="{{ site.id }}">
-                {{ 'Run Campaign'|t('campaign-manager') }}
-            </button>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
+
+    {% if campaign.getEnabledForSite() and canRun %}
+        <button type="button" class="btn submit" id="run-campaign-btn" data-campaign-id="{{ campaignId }}" data-site-id="{{ site.id }}">
+            {{ 'Run Campaign'|t('campaign-manager') }}
+        </button>
+    {% endif %}
 {% endblock %}
 
-{% css %}
-@media (max-width: 768px) {
-    #new-recipient-btn .label-full {
-        display: none;
-    }
-    #new-recipient-btn .label-short {
-        display: inline;
-    }
-    #new-recipient-btn:before {
-        margin-inline-end: 0 !important;
-    }
-}
-{% endcss %}
 
-{% block content %}
-    <style>
-        #toolbar.flex {
-            flex-wrap: nowrap;
-            gap: 8px;
-        }
-        #toolbar .flex-grow {
-            min-width: 0;
-            flex-shrink: 1;
-        }
-    </style>
+{# ============================================================================
+   ROW ACTIONS (per-row menu)
+   ============================================================================ #}
 
-    <div id="elements" class="elements">
-        <div class="tableview tablepane">
-            <table class="data fullwidth">
-                <thead>
-                    <tr>
-                        <th scope="col" data-attribute="name" class="orderable {{ sort == 'name' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="name">{{ "Name"|t('campaign-manager') }}</button>
-                        </th>
-                        <th scope="col" data-attribute="email" class="orderable {{ sort == 'email' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="email">{{ "Email"|t('campaign-manager') }}</button>
-                        </th>
-                        <th scope="col" data-attribute="sms" class="orderable {{ sort == 'sms' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="sms">{{ "SMS"|t('campaign-manager') }}</button>
-                        </th>
-                        <th scope="col">{{ "Code"|t('campaign-manager') }}</th>
-                        <th scope="col" data-attribute="sent" class="orderable {{ sort == 'sent' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="sent">{{ "Sent"|t('campaign-manager') }}</button>
-                        </th>
-                        <th scope="col" data-attribute="opened" class="orderable {{ sort == 'opened' ? 'ordered ' ~ dir : '' }}">
-                            <button type="button" data-sort="opened">{{ "Opened"|t('campaign-manager') }}</button>
-                        </th>
-                        <th scope="col">{{ "Response"|t('campaign-manager') }}</th>
-                        <th scope="col" class="thin">{{ "Actions"|t('campaign-manager') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if recipients|length %}
-                        {% for recipient in recipients %}
-                            <tr data-id="{{ recipient.id }}" data-name="{{ recipient.name }}">
-                                <td>{{ recipient.name }}</td>
-                                <td>
-                                    {% if recipient.email %}
-                                        <code>{{ recipient.email }}</code>
-                                    {% else %}
-                                        <span class="light">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if recipient.sms %}
-                                        <code>{{ recipient.sms }}</code>
-                                    {% else %}
-                                        <span class="light">-</span>
-                                    {% endif %}
-                                </td>
-                                <td><code>{{ recipient.smsInvitationCode ?? recipient.emailInvitationCode ?? '-' }}</code></td>
-                                <td>
-                                    {% set sentDate = recipient.smsSendDate ?? recipient.emailSendDate %}
-                                    {% if sentDate %}
-                                        {{ sentDate|lrDatetime('medium') }}
-                                    {% else %}
-                                        <span class="light">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% set openedDate = recipient.smsOpenDate ?? recipient.emailOpenDate %}
-                                    {% if openedDate %}
-                                        {{ openedDate|lrDatetime('medium') }}
-                                    {% else %}
-                                        <span class="light">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if recipient.submissionId %}
-                                        {% set submission = craft.formie.submissions.id(recipient.submissionId).one() %}
-                                        {% if submission %}
-                                            <a href="{{ submission.cpEditUrl }}">{{ recipient.submissionId }}</a>
-                                        {% else %}
-                                            <span class="light">{{ recipient.submissionId }}</span>
-                                        {% endif %}
-                                    {% else %}
-                                        <span class="light">-</span>
-                                    {% endif %}
-                                </td>
-                                <td class="thin" style="text-align: right;">
-                                    <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('campaign-manager') }}"></button>
-                                    <div class="menu">
-                                        <ul>
-                                            <li>
-                                                <a class="recipient-action error" data-action="delete" data-id="{{ recipient.id }}" data-name="{{ recipient.name }}">
-                                                    {{ 'Delete'|t('campaign-manager') }}
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="8" style="text-align: center; padding: 2em;">
-                                {{ 'No recipients found.'|t('campaign-manager') }}
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="footer" class="flex flex-justify">
-        <div class="light">
-            <div class="flex pagination">
-                <nav class="flex" aria-label="recipient pagination">
-                    <button type="button" class="page-link prev-page {{ page <= 1 ? 'disabled' : '' }}" {{ page <= 1 ? 'disabled' : '' }} title="Previous Page"></button>
-                    <button type="button" class="page-link next-page {{ page >= totalPages ? 'disabled' : '' }}" {{ page >= totalPages ? 'disabled' : '' }} title="Next Page"></button>
-                </nav>
-                <div class="page-info">
-                    {% set endRange = min(offset + limit, totalCount) %}
-                    {% if totalCount == 0 %}
-                        {{ 'no recipients'|t('campaign-manager') }}
-                    {% else %}
-                        {{ offset + 1 }} – {{ endRange }} {{ 'of'|t('campaign-manager') }} {{ totalCount }} {{ totalCount == 1 ? 'recipient'|t('campaign-manager') : 'recipients'|t('campaign-manager') }}
-                    {% endif %}
-                </div>
+{% block rowActions %}
+    {% if canDelete %}
+        <td class="thin" style="text-align: right;">
+            <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('app') }}"></button>
+            <div class="menu">
+                <ul>
+                    <li>
+                        <a class="recipient-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.name }}">
+                            {{ 'Delete'|t('app') }}
+                        </a>
+                    </li>
+                </ul>
             </div>
-        </div>
-    </div>
+        </td>
+    {% endif %}
+{% endblock %}
 
+
+{# ============================================================================
+   CUSTOM ROW RENDERING
+   ============================================================================ #}
+
+{% block tableRow %}
+    {# Status #}
+    {% if item.smsSendDate or item.emailSendDate %}
+        {% set statusValue = 'sent' %}
+        {% set statusLabel = 'Sent'|t('campaign-manager') %}
+    {% else %}
+        {% set statusValue = 'pending' %}
+        {% set statusLabel = 'Pending'|t('campaign-manager') %}
+    {% endif %}
+
+    {# Name #}
+    <td>{{ item.name }}</td>
+
+    {# Contact (email + sms) #}
+    <td>
+        {% if item.email %}<code style="font-size: 11px;">{{ item.email }}</code>{% endif %}
+        {% if item.email and item.sms %}<br>{% endif %}
+        {% if item.sms %}<code style="font-size: 11px;">{{ item.sms }}</code>{% endif %}
+        {% if not item.email and not item.sms %}<span class="light">-</span>{% endif %}
+    </td>
+
+    {# Invitation code #}
+    <td><code>{{ item.smsInvitationCode ?? item.emailInvitationCode ?? '-' }}</code></td>
+
+    {# Status badge #}
+    <td>
+        {% include 'lindemannrock-base/_components/badge' with {
+            label: statusLabel,
+            value: statusValue,
+            colorSet: 'messageStatus',
+        } only %}
+    </td>
+
+    {# Sent date #}
+    <td>
+        {% set sentDate = item.smsSendDate ?? item.emailSendDate %}
+        {% if sentDate %}
+            {{ sentDate|lrDatetime('medium') }}
+        {% else %}
+            <span class="light">-</span>
+        {% endif %}
+    </td>
+
+    {# Opened date #}
+    <td>
+        {% set openedDate = item.smsOpenDate ?? item.emailOpenDate %}
+        {% if openedDate %}
+            {{ openedDate|lrDatetime('medium') }}
+        {% else %}
+            <span class="light">-</span>
+        {% endif %}
+    </td>
+
+    {# Response #}
+    <td>
+        {% if item.submissionId %}
+            {% set submission = submissionMap[item.submissionId] ?? null %}
+            {% if submission %}
+                <a href="{{ submission.cpEditUrl }}">{{ item.submissionId }}</a>
+            {% else %}
+                <span class="light">{{ item.submissionId }}</span>
+            {% endif %}
+        {% else %}
+            <span class="light">-</span>
+        {% endif %}
+    </td>
+{% endblock %}
+
+
+{# ============================================================================
+   SCRIPTS (Run Campaign + per-row delete)
+   ============================================================================ #}
+
+{% block scripts %}
     <script>
-    // Initialize menu buttons
-    document.querySelectorAll('.menubtn').forEach(btn => {
-        if (typeof Craft !== 'undefined' && Craft.MenuBtn) {
-            new Craft.MenuBtn(btn);
-        } else if (typeof Garnish !== 'undefined' && Garnish.MenuBtn) {
-            new Garnish.MenuBtn(btn);
-        }
-    });
+    (function() {
+        // Run campaign button
+        document.getElementById('run-campaign-btn')?.addEventListener('click', function() {
+            const campaignId = this.dataset.campaignId;
+            const siteId = this.dataset.siteId;
 
-    // Clear search
-    const clearBtn = document.querySelector('.clear-btn');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function() {
-            const searchInput = document.querySelector('input[name="search"]');
-            searchInput.value = '';
-            searchInput.form.submit();
-        });
-    }
-
-    // Search on Enter
-    const searchInput = document.querySelector('input[name="search"]');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function(e) {
-            if (e.key === 'Enter') {
-                this.form.submit();
-            }
-        });
-    }
-
-    // Pagination
-    document.querySelector('.prev-page:not(.disabled)')?.addEventListener('click', function() {
-        window.location.href = '?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange={{ dateRange }}&page={{ page - 1 }}';
-    });
-
-    document.querySelector('.next-page:not(.disabled)')?.addEventListener('click', function() {
-        window.location.href = '?site={{ site.handle }}&search={{ search }}&sort={{ sort }}&dir={{ dir }}&dateRange={{ dateRange }}&page={{ page + 1 }}';
-    });
-
-    // Sort buttons
-    document.querySelectorAll('th.orderable button').forEach(button => {
-        button.addEventListener('click', function() {
-            const sortField = this.dataset.sort;
-            const currentSort = '{{ sort }}';
-            const currentDir = '{{ dir }}';
-            let newDir = 'asc';
-            if (sortField === currentSort) {
-                newDir = currentDir === 'asc' ? 'desc' : 'asc';
-            }
-            window.location.href = '?site={{ site.handle }}&search={{ search }}&sort=' + sortField + '&dir=' + newDir + '&dateRange={{ dateRange }}&page=1';
-        });
-    });
-
-    // Run campaign button
-    document.getElementById('run-campaign-btn')?.addEventListener('click', function() {
-        const campaignId = this.dataset.campaignId;
-        const siteId = this.dataset.siteId;
-
-        Craft.sendActionRequest('POST', 'campaign-manager/campaigns/run-all', {
-            data: { campaignId: campaignId, siteId: siteId }
-        }).then(function(response) {
-            if (response.data.success) {
-                const jobsQueued = response.data.jobsQueued || 0;
-                if (jobsQueued > 0) {
-                    const queueUrl = {{ cpUrl('utilities/queue-manager')|json_encode|raw }};
-                    const queueMsg = {{ 'Campaign job queued. Check the queue for progress.'|t('campaign-manager')|json_encode|raw }};
-                    Craft.cp.displayNotice(queueMsg, {
-                        details: $('<a/>', {href: queueUrl, text: Craft.t('app', 'View')}),
-                    });
-                } else {
-                    Craft.cp.displayNotice({{ 'No pending recipients to process.'|t('campaign-manager')|json_encode|raw }});
+            Craft.sendActionRequest('POST', 'campaign-manager/campaigns/run-all', {
+                data: { campaignId: campaignId, siteId: siteId }
+            }).then(function(response) {
+                if (response.data.success) {
+                    const jobsQueued = response.data.jobsQueued || 0;
+                    if (jobsQueued > 0) {
+                        const queueUrl = {{ cpUrl('utilities/queue-manager')|json_encode|raw }};
+                        const queueMsg = {{ 'Campaign job queued. Check the queue for progress.'|t('campaign-manager')|json_encode|raw }};
+                        Craft.cp.displayNotice(queueMsg, {
+                            details: $('<a/>', {href: queueUrl, text: Craft.t('app', 'View')}),
+                        });
+                    } else {
+                        Craft.cp.displayNotice({{ 'No pending recipients to process.'|t('campaign-manager')|json_encode|raw }});
+                    }
                 }
-            }
-        }).catch(function(error) {
-            Craft.cp.displayError({{ 'Failed to run campaign'|t('campaign-manager')|json_encode|raw }});
+            }).catch(function(error) {
+                Craft.cp.displayError({{ 'Failed to run campaign'|t('campaign-manager')|json_encode|raw }});
+            });
         });
-    });
 
-    // Recipient actions
-    document.querySelectorAll('.recipient-action').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const action = this.dataset.action;
-            const recipientId = this.dataset.id;
-            const recipientName = this.dataset.name;
+        // Per-row delete
+        document.querySelectorAll('.recipient-action').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const action = this.dataset.action;
+                const recipientId = this.dataset.id;
+                const recipientName = this.dataset.name;
 
-            if (action === 'delete') {
-                if (confirm('{{ "Delete recipient"|t("campaign-manager") }} "' + recipientName + '"? {{ "This cannot be undone."|t("campaign-manager") }}')) {
-                    Craft.sendActionRequest('POST', 'campaign-manager/recipients/delete-from-cp', {
-                        data: { id: recipientId }
-                    }).then(function(response) {
-                        var data = response && response.data;
-                        if (data && data.success) {
-                            Craft.cp.displayNotice({{ 'Recipient deleted'|t('campaign-manager')|json_encode|raw }});
-                            setTimeout(() => window.location.reload(), 1000);
-                        } else {
-                            Craft.cp.displayError((data && data.error) || {{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
-                        }
-                    }).catch(function(error) {
-                        Craft.cp.displayError({{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
-                    });
+                if (action !== 'delete') return;
+                if (!confirm({{ 'Delete recipient "{name}"? This cannot be undone.'|t('campaign-manager')|json_encode|raw }}.replace('{name}', recipientName))) {
+                    return;
                 }
-            }
+
+                Craft.sendActionRequest('POST', 'campaign-manager/recipients/delete-from-cp', {
+                    data: { id: recipientId }
+                }).then(function(response) {
+                    var data = response && response.data;
+                    if (data && data.success) {
+                        Craft.cp.displayNotice({{ 'Recipient deleted'|t('campaign-manager')|json_encode|raw }});
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        Craft.cp.displayError((data && data.error) || {{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
+                    }
+                }).catch(function(error) {
+                    Craft.cp.displayError({{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
+                });
+            });
         });
-    });
+    })();
     </script>
 {% endblock %}
