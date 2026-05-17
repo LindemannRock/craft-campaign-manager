@@ -43,7 +43,59 @@ return [
     'Clear activity logs' => 'アクティビティログをクリアする',
     'Manage settings' => '設定を管理する',
 
-    // Controller flash messages — Campaigns
+    // Common
+    'Actions' => 'アクション',
+    'All' => 'すべて',
+    'Cancel' => 'キャンセル',
+    'Campaign' => 'キャンペーン',
+    'Conversion Rate' => 'コンバージョン率',
+    'Date' => '日付',
+    'Delete' => '削除',
+    'Email' => 'Email',
+    'Error' => 'エラー',
+    'Name' => '名前',
+    'No' => 'いいえ',
+    'Opened' => '開封済み',
+    'Phone' => '電話番号',
+    'Responses' => '回答',
+    'Site' => 'サイト',
+    'SMS' => 'SMS',
+    'Status' => 'ステータス',
+    'Submissions' => '送信件数',
+    'Total Recipients' => '受信者合計',
+    'Yes' => 'はい',
+
+    // Element
+    'campaign' => 'キャンペーン',
+    'campaigns' => 'キャンペーン',
+    'All Campaigns' => 'すべてのキャンペーン',
+    'Campaign Types' => 'キャンペーンタイプ',
+    'Type' => 'タイプ',
+    'Form' => 'フォーム',
+    'Sent' => '送信済み',
+    'Pending' => '保留中',
+    'Campaign Type' => 'キャンペーンタイプ',
+    'Are you sure you want to delete the selected campaigns?' => '選択したキャンペーンを削除してもよろしいですか？',
+    'Campaigns deleted.' => 'キャンペーンが削除されました。',
+    'Campaigns restored.' => 'キャンペーンが復元されました。',
+    'Some campaigns restored.' => '一部のキャンペーンが復元されました。',
+    'Campaigns not restored.' => 'キャンペーンが復元されませんでした。',
+    'View Recipients' => '受信者を表示する',
+    'Add Recipient' => '受信者を追加する',
+    'Import Recipients' => '受信者をインポートする',
+    'Run Campaign' => 'キャンペーンを実行する',
+
+    // Jobs
+    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: キャンペーン招待を実行中',
+    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: キャンペーン #{id} の受信者をインポート中',
+    '{pluginName}: Processing campaign #{id}' => '{pluginName}: キャンペーン #{id} を処理中',
+    'Campaign batches queued' => 'キャンペーンバッチがキューに追加されました',
+    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: {count} 件の受信者に招待を送信中',
+    'Invitation batch sent' => '招待バッチが送信されました',
+    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'キャンペーン {campaignId} のバッチが失敗しました: {total} 件中 {errors} 件の宛先に送信できませんでした。詳細はプラグインのログを確認してください。',
+    'Campaign is disabled for site {site}.' => 'キャンペーンはサイト {site} で無効になっています。',
+
+    // Controller messages
     'New Campaign' => '新しいキャンペーン',
     'Select a provider first...' => '最初にプロバイダーを選択してください...',
     'Couldn\'t save campaign.' => 'キャンペーンを保存できませんでした。',
@@ -56,8 +108,6 @@ return [
     'Campaign jobs queued' => 'キャンペーンジョブがキューに追加されました',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} 件のキャンペーンジョブがキューに追加されました。進捗状況はキューを確認してください。',
     'No campaigns to process.' => '処理するキャンペーンはありません。',
-
-    // Controller flash messages — Recipients
     'No recipients to export for the selected filters.' => '選択したフィルターでエクスポートする受信者がいません。',
     'No responses to export.' => 'エクスポートする回答がありません。',
     'Recipients exported' => '受信者がエクスポートされました',
@@ -100,69 +150,32 @@ return [
     'No recipients to export.' => 'エクスポートする受信者がいません。',
     'Campaign recipients exported' => 'キャンペーンの受信者がエクスポートされました',
     'ID' => 'ID',
-    'Name' => '名前',
-    'Email' => 'Email',
-    'Phone' => '電話番号',
     'Email Sent Date' => 'Email 送信日',
     'SMS Sent Date' => 'SMS 送信日',
     'Email Opened Date' => 'Email 開封日',
     'SMS Opened Date' => 'SMS 開封日',
     'Submission ID' => '送信 ID',
     'Date Created' => '作成日',
-
-    // Controller flash messages — Analytics
     'No analytics data to export for the selected filters.' => '選択したフィルターでエクスポートするアナリティクスデータがありません。',
-    'Campaign' => 'キャンペーン',
-    'Total Recipients' => '受信者合計',
     'Emails Sent' => '送信済み Email',
     'SMS Sent' => '送信済み SMS',
     'Emails Opened' => '開封済み Email',
     'SMS Opened' => '開封済み SMS',
     'Email Open Rate' => 'Email 開封率',
     'SMS Open Rate' => 'SMS 開封率',
-    'Submissions' => '送信件数',
-    'Conversion Rate' => 'コンバージョン率',
     'Expired' => '期限切れ',
-
-    // Controller flash messages — Settings
     'Couldn\'t save settings.' => '設定を保存できませんでした。',
     'Settings saved.' => '設定が保存されました。',
     'Couldn\'t save field layout.' => 'フィールドレイアウトを保存できませんでした。',
     'Field layout saved.' => 'フィールドレイアウトが保存されました。',
-
-    // Controller flash messages — Activity Logs
     'Activity logs cleared successfully.' => 'アクティビティログが正常にクリアされました。',
     '{count} recipients' => '{count} 件の受信者',
 
-    // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: キャンペーン招待を実行中',
-    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: キャンペーン #{id} の受信者をインポート中',
-    '{pluginName}: Processing campaign #{id}' => '{pluginName}: キャンペーン #{id} を処理中',
-    'Campaign batches queued' => 'キャンペーンバッチがキューに追加されました',
-    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: {count} 件の受信者に招待を送信中',
-    'Invitation batch sent' => '招待バッチが送信されました',
-    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'キャンペーン {campaignId} のバッチが失敗しました: {total} 件中 {errors} 件の宛先に送信できませんでした。詳細はプラグインのログを確認してください。',
-    'Campaign is disabled for site {site}.' => 'キャンペーンはサイト {site} で無効になっています。',
-
-    // Element (Campaign)
-    'campaign' => 'キャンペーン',
-    'campaigns' => 'キャンペーン',
-    'All Campaigns' => 'すべてのキャンペーン',
-    'Campaign Types' => 'キャンペーンタイプ',
-    'Type' => 'タイプ',
-    'Form' => 'フォーム',
-    'Sent' => '送信済み',
-    'Pending' => '保留中',
-    'Campaign Type' => 'キャンペーンタイプ',
-    'Are you sure you want to delete the selected campaigns?' => '選択したキャンペーンを削除してもよろしいですか？',
-    'Campaigns deleted.' => 'キャンペーンが削除されました。',
-    'Campaigns restored.' => 'キャンペーンが復元されました。',
-    'Some campaigns restored.' => '一部のキャンペーンが復元されました。',
-    'Campaigns not restored.' => 'キャンペーンが復元されませんでした。',
-    'View Recipients' => '受信者を表示する',
-    'Add Recipient' => '受信者を追加する',
-    'Import Recipients' => '受信者をインポートする',
-    'Run Campaign' => 'キャンペーンを実行する',
+    // Validation messages
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} 件の{count, plural, =1{エラー} other{エラー}}が見つかりました',
+    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => '英数字、ハイフン、アンダースコア、スラッシュのみ使用できます。',
+    'Route cannot contain double slashes.' => 'ルートに二重スラッシュを含めることはできません。',
+    'Route cannot contain spaces.' => 'ルートにスペースを含めることはできません。',
 
     // Settings: General
     'General Settings' => '一般設定',
@@ -222,13 +235,10 @@ return [
     'Add custom fields to Campaign elements. Any fields you add here will appear in the Campaign edit screen.' => 'キャンペーン要素にカスタムフィールドを追加します。ここで追加したフィールドはキャンペーンの編集画面に表示されます。',
     'No field layout available.' => '利用可能なフィールドレイアウトがありません。',
 
-    // Settings: Validation messages (Settings model)
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} 件の{count, plural, =1{エラー} other{エラー}}が見つかりました',
-    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => '英数字、ハイフン、アンダースコア、スラッシュのみ使用できます。',
-    'Route cannot contain double slashes.' => 'ルートに二重スラッシュを含めることはできません。',
-    'Route cannot contain spaces.' => 'ルートにスペースを含めることはできません。',
+    // Campaigns: Index
+    'New campaign' => '新しいキャンペーン',
 
-    // Campaigns: Edit page
+    // Campaigns: Edit
     'Are you sure you want to delete this campaign?' => 'このキャンペーンを削除してもよろしいですか？',
     'Select a form' => 'フォームを選択してください',
     'Select a Formie form to link with this campaign.' => 'このキャンペーンにリンクする Formie フォームを選択してください。',
@@ -257,22 +267,16 @@ return [
     'Campaign job queued. Check the queue for progress.' => 'キャンペーンジョブがキューに追加されました。進捗状況はキューを確認してください。',
     'Failed to run campaign' => 'キャンペーンの実行に失敗しました',
 
-    // Campaigns: Index
-    'New campaign' => '新しいキャンペーン',
-
-    // Campaign: Analytics partial
+    // Campaign: Analytics
     'Daily Activity' => '日別アクティビティ',
     'Channel Breakdown' => 'チャネル別内訳',
     'Recent Responses' => '最近の回答',
     'Recipient' => '受信者',
-    'Site' => 'サイト',
     'Responded' => '回答済み',
     'No data available yet.' => 'データがまだありません。',
     'Analytics will appear here once recipients are added to this campaign.' => 'このキャンペーンに受信者が追加されると、ここにアナリティクスが表示されます。',
-    'SMS' => 'SMS',
-    'Opened' => '開封済み',
 
-    // Campaign: Responses partial
+    // Campaign: Responses
     'All Sites' => 'すべてのサイト',
     'Toggle Details' => '詳細の表示/非表示',
     'Submitted' => '送信済み',
@@ -282,12 +286,10 @@ return [
     'No responses yet.' => 'まだ回答がありません。',
     'Recipients who submit the form will appear here.' => 'フォームを送信した受信者がここに表示されます。',
 
-    // Recipients: Index (global)
-    'All' => 'すべて',
+    // Recipients: Index
     'Date Range' => '期間',
     'Search recipients...' => '受信者を検索...',
     'Contact' => '連絡先',
-    'Status' => 'ステータス',
     'Response' => '回答',
     'No recipients found.' => '受信者が見つかりません。',
     'recipient' => '受信者',
@@ -298,7 +300,7 @@ return [
     'Delete recipient "{name}"? This cannot be undone.' => '受信者 "{name}" を削除しますか？この操作は元に戻せません。',
     'Failed to delete recipient' => '受信者の削除に失敗しました',
 
-    // Recipients: List (campaign-specific)
+    // Recipients: List
     'Today' => '今日',
     'Yesterday' => '昨日',
     'Last 7 days' => '過去 7 日間',
@@ -306,12 +308,10 @@ return [
     'Last 90 days' => '過去 90 日間',
     'All time' => '全期間',
     'Code' => 'コード',
-    'Actions' => 'アクション',
     'Add' => '追加',
     'no recipients' => '受信者なし',
     'of' => '/',
     'No pending recipients to process.' => '処理する保留中の受信者がいません。',
-    'Delete' => '削除',
     'Delete recipient' => '受信者を削除する',
     'This cannot be undone.' => 'この操作は元に戻せません。',
 
@@ -381,13 +381,12 @@ return [
     'No SMS provider configured. Phone numbers will be skipped during import.' => 'SMS プロバイダーが設定されていません。インポート中に電話番号はスキップされます。',
     'Default Site' => 'デフォルトサイト',
     'Used as fallback when the Site column is not mapped, or when a row has an empty/invalid site value.' => 'Site カラムがマッピングされていない場合、またはサイト値が空/無効な行のフォールバックとして使用されます。',
-    'Cancel' => 'キャンセル',
     'Preview Import' => 'インポートをプレビューする',
     'Send Invitations' => '招待を送信する',
     'Queue invitation sending after import.' => 'インポート後に招待の送信をキューに追加します。',
     'Rows to Import' => 'インポートする行数',
 
-    // Recipients: Preview import
+    // Recipients: Preview
     'Total Rows' => '合計行数',
     'Valid' => '有効',
     'Duplicates' => '重複',
@@ -402,7 +401,6 @@ return [
     'Phone/Email' => '電話番号/Email',
     'Reason' => '理由',
     'Invalid Rows (will be skipped)' => '無効な行（スキップされます）',
-    'Error' => 'エラー',
     'Ready to Import' => 'インポートの準備ができました',
     'Click the button below to import {count} valid recipient(s).' => '以下のボタンをクリックして {count} 件の有効な受信者をインポートしてください。',
     '{duplicates} duplicate(s) will be skipped.' => '{duplicates} 件の重複がスキップされます。',
@@ -410,8 +408,6 @@ return [
     'No valid recipients found to import.' => 'インポートする有効な受信者が見つかりません。',
     'Import {count} Recipients' => '{count} 件の受信者をインポートする',
     'No Valid Recipients to Import' => 'インポートする有効な受信者がいません',
-    'Yes' => 'はい',
-    'No' => 'いいえ',
 
     // Analytics page
     'Overview' => '概要',
@@ -426,7 +422,6 @@ return [
     'No rating distribution data available for the selected filters.' => '選択したフィルターで利用可能なレーティング分布データがありません。',
     'No rating trend data available for the selected filters.' => '選択したフィルターで利用可能なレーティングトレンドデータがありません。',
     'Recipients Added' => '追加された受信者',
-    'Responses' => '回答',
     'Email Opens' => 'Email 開封数',
     'SMS Opens' => 'SMS 開封数',
     'Count' => '件数',
@@ -462,7 +457,6 @@ return [
     'To improve conversion rates, consider: personalized messaging, shorter forms, mobile optimization, and timely follow-ups.' => 'コンバージョン率を改善するには、パーソナライズされたメッセージ、短いフォーム、モバイル最適化、タイムリーなフォローアップをご検討ください。',
 
     // Activity Logs
-    'Date' => '日付',
     'User' => 'ユーザー',
     'Action' => 'アクション',
     'Source' => 'ソース',
@@ -490,7 +484,7 @@ return [
     'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'すべてのアクティビティログをクリアしてもよろしいですか？この操作は元に戻せません。',
     'Failed to clear activity logs.' => 'アクティビティログのクリアに失敗しました。',
 
-    // Frontend / Invite
+    // Frontend
     'Invitation' => '招待',
     'You have already responded to this invitation.' => 'この招待にはすでに回答済みです。',
     'This invitation has expired.' => 'この招待は期限切れです。',
@@ -498,10 +492,8 @@ return [
     'Invalid Invitation' => '無効な招待',
     'This invitation link is not valid or has expired.' => 'この招待リンクは無効または期限切れです。',
 
-    // SmsService
+    // Services
     'Select a provider...' => 'プロバイダーを選択してください...',
-
-    // AnalyticsService
     'Email Only' => 'Email のみ',
     'SMS Only' => 'SMS のみ',
     'Both' => '両方',
