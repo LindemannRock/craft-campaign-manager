@@ -871,6 +871,13 @@ class AnalyticsService extends Component
         $rows = [];
         $fieldType = null;
 
+        // Pre-fetch submissions for every (campaign, site) pair in scope — one
+        // recipient query + one submission batch — instead of `_getSubmissionsInScope`
+        // per campaign (was N pairs of queries for N campaigns). Each row's
+        // formId is verified during distribution so per-campaign formId filtering
+        // is preserved.
+        $submissionsByKey = $this->_loadSubmissionsByCampaignSite($campaigns, $dateRange, $dateBasis);
+
         foreach ($campaigns as $campaign) {
             if (!$campaign->formId) {
                 $rows[] = $this->_emptyBreakdownRow($campaign, null);
@@ -902,7 +909,7 @@ class AnalyticsService extends Component
                 $fieldType = $ratingField->ratingType;
             }
 
-            $submissions = $this->_getSubmissionsInScope($campaign->id, $campaign->siteId, $dateRange, $dateBasis, $campaign->formId);
+            $submissions = $submissionsByKey[$campaign->id . '-' . $campaign->siteId] ?? [];
             $stats = FormieRatingField::$plugin->statistics->calculateStatsForSubmissions($submissions, $ratingField);
 
             if ($stats['fieldType'] === Rating::RATING_TYPE_NPS) {
@@ -997,12 +1004,9 @@ class AnalyticsService extends Component
             return $empty;
         }
 
-        $stats = $this->getRatingStats($campaignId, $siteId, $dateRange, $dateBasis, $fieldId);
-        if ($stats['totalResponses'] === 0) {
-            return $empty;
-        }
-
-        // Resolve field info
+        // Resolve field info (called once — getRatingStats() used to call this
+        // again internally before the round-8 refactor; we now skip getRatingStats
+        // entirely and use the loaded submission count as the zero-response guard).
         $ratingFields = $this->getRatingFieldsInScope($campaignId, $siteId, $dateRange, $dateBasis);
         $targetFieldInfo = null;
         if ($fieldId !== null) {
@@ -1047,8 +1051,12 @@ class AnalyticsService extends Component
         $daysDiff = (int)$start->diff($end)->days;
         $byWeek = $daysDiff > 90;
 
-        // Fetch all submissions in scope
+        // Fetch all submissions in scope (single load — also serves as the
+        // zero-response early-out, replacing the prior getRatingStats() call).
         $allSubmissions = $this->_getSubmissionsInScope($campaignId, $siteId, $dateRange, $dateBasis, $targetFieldInfo['formId']);
+        if ($allSubmissions === []) {
+            return $empty;
+        }
 
         // Index submissions by date string
         $submissionsByDate = [];
@@ -1234,6 +1242,82 @@ class AnalyticsService extends Component
             ->all();
 
         return $submissions;
+    }
+
+    /**
+     * Batch-load submissions for a set of (campaign, site) pairs into a map
+     * keyed by `"{campaignId}-{siteId}"`. Replaces N pairs of queries from
+     * `_getSubmissionsInScope()` called in a loop with one recipient query
+     * plus one submission fetch.
+     *
+     * @param array<Campaign> $campaigns
+     * @return array<string, Submission[]>
+     */
+    private function _loadSubmissionsByCampaignSite(array $campaigns, string $dateRange, string $dateBasis): array
+    {
+        if ($campaigns === []) {
+            return [];
+        }
+
+        $campaignIdsInScope = [];
+        $siteIdsInScope = [];
+        $formIdByKey = [];
+        foreach ($campaigns as $campaign) {
+            $campaignIdsInScope[(int)$campaign->id] = true;
+            $siteIdsInScope[(int)$campaign->siteId] = true;
+            $formIdByKey[$campaign->id . '-' . $campaign->siteId] = (int)($campaign->formId ?? 0);
+        }
+
+        $recipientTable = RecipientRecord::tableName();
+        $recipientRows = $this->buildRecipientQuery('all', 'all', $dateRange, $dateBasis)
+            ->andWhere([$recipientTable . '.campaignId' => array_keys($campaignIdsInScope)])
+            ->andWhere([$recipientTable . '.siteId' => array_keys($siteIdsInScope)])
+            ->andWhere(['not', [$recipientTable . '.submissionId' => null]])
+            ->select([
+                'campaignId' => $recipientTable . '.campaignId',
+                'siteId' => $recipientTable . '.siteId',
+                'submissionId' => $recipientTable . '.submissionId',
+            ])
+            ->all();
+
+        if ($recipientRows === []) {
+            return [];
+        }
+
+        $submissionIdsByKey = [];
+        $allSubmissionIds = [];
+        foreach ($recipientRows as $row) {
+            $key = $row['campaignId'] . '-' . $row['siteId'];
+            $submissionIdsByKey[$key][] = (int)$row['submissionId'];
+            $allSubmissionIds[(int)$row['submissionId']] = true;
+        }
+
+        /** @var Submission[] $submissions */
+        $submissions = Submission::find()
+            ->id(array_keys($allSubmissionIds))
+            ->isIncomplete(false)
+            ->isSpam(false)
+            ->all();
+
+        $submissionsById = [];
+        foreach ($submissions as $submission) {
+            $submissionsById[$submission->id] = $submission;
+        }
+
+        $submissionsByKey = [];
+        foreach ($submissionIdsByKey as $key => $subIds) {
+            $expectedFormId = $formIdByKey[$key] ?? 0;
+            $bucket = [];
+            foreach ($subIds as $sid) {
+                $sub = $submissionsById[$sid] ?? null;
+                if ($sub !== null && (int)$sub->formId === $expectedFormId) {
+                    $bucket[] = $sub;
+                }
+            }
+            $submissionsByKey[$key] = $bucket;
+        }
+
+        return $submissionsByKey;
     }
 
     /**
