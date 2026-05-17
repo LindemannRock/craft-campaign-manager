@@ -48,6 +48,19 @@ class PhoneHelper
             $defaultRegion = self::getDefaultRegion();
         }
 
+        // Letter check on the raw input — must run before sanitize() because
+        // sanitize() strips all non-digits, so a letter check after it can
+        // never match. Without this ordering, input like "555-PHONE" gets a
+        // generic libphonenumber rejection instead of the specific error.
+        if (preg_match('/[a-zA-Z]/', $phone)) {
+            return [
+                'valid' => false,
+                'e164' => null,
+                'error' => 'Phone number contains letters',
+                'country' => null,
+            ];
+        }
+
         // Clean the input
         $phone = self::sanitize($phone);
 
@@ -56,16 +69,6 @@ class PhoneHelper
                 'valid' => false,
                 'e164' => null,
                 'error' => 'Phone number is empty after sanitization',
-                'country' => null,
-            ];
-        }
-
-        // Check for letters (common error)
-        if (preg_match('/[a-zA-Z]/', $phone)) {
-            return [
-                'valid' => false,
-                'e164' => null,
-                'error' => 'Phone number contains letters',
                 'country' => null,
             ];
         }
@@ -282,6 +285,17 @@ class PhoneHelper
             ];
         }
 
+        // Letter check on the raw input — see PhoneHelper::validate() for why
+        // this must run before sanitize().
+        if (preg_match('/[a-zA-Z]/', $phone)) {
+            return [
+                'valid' => false,
+                'e164' => null,
+                'error' => 'Phone number contains letters',
+                'country' => null,
+            ];
+        }
+
         // Clean the input
         $phone = self::sanitize($phone);
 
@@ -290,16 +304,6 @@ class PhoneHelper
                 'valid' => false,
                 'e164' => null,
                 'error' => 'Phone number is empty after sanitization',
-                'country' => null,
-            ];
-        }
-
-        // Check for letters (common error)
-        if (preg_match('/[a-zA-Z]/', $phone)) {
-            return [
-                'valid' => false,
-                'e164' => null,
-                'error' => 'Phone number contains letters',
                 'country' => null,
             ];
         }
