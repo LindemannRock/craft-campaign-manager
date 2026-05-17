@@ -580,7 +580,10 @@ class RecipientsController extends Controller
         $this->requireLogin();
         $this->requirePermission('campaignManager:manageRecipients');
 
-        $siteHandle = Craft::$app->getRequest()->getQueryParam('site');
+        $settings = CampaignManager::$plugin->getSettings();
+        $request = Craft::$app->getRequest();
+
+        $siteHandle = $request->getQueryParam('site');
         if ($siteHandle) {
             $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
         } else {
@@ -597,10 +600,110 @@ class RecipientsController extends Controller
             throw new \yii\web\NotFoundHttpException('Campaign not found');
         }
 
+        $search = $request->getParam('search', '');
+        $statusFilter = $request->getParam('status', 'all');
+        $dateRange = $request->getParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
+        $sort = $request->getParam('sort', 'sent');
+        $dir = $request->getParam('dir', 'desc');
+        $page = (int)$request->getParam('page', 1);
+        if ($page < 1) {
+            $page = 1;
+        }
+        $limit = 50;
+        $offset = ($page - 1) * $limit;
+
+        $query = RecipientRecord::find()
+            ->where([
+                'campaignId' => $campaignId,
+                'siteId' => $site->id,
+            ]);
+
+        if ($statusFilter === 'pending') {
+            $query->andWhere(['smsSendDate' => null])
+                ->andWhere(['emailSendDate' => null]);
+        } elseif ($statusFilter === 'sent') {
+            $query->andWhere(['or',
+                ['not', ['smsSendDate' => null]],
+                ['not', ['emailSendDate' => null]],
+            ]);
+        }
+
+        if ($dateRange !== 'all') {
+            $bounds = DateRangeHelper::getBounds($dateRange);
+            if ($bounds['start']) {
+                $query->andWhere(['>=', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
+            }
+            if ($bounds['end']) {
+                $query->andWhere(['<', 'dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
+            }
+        }
+
+        if ($search !== '') {
+            $query->andWhere(['or',
+                ['like', 'name', $search],
+                ['like', 'email', $search],
+                ['like', 'sms', $search],
+            ]);
+        }
+
+        $direction = strtolower($dir) === 'asc' ? 'ASC' : 'DESC';
+        $sortField = match ($sort) {
+            'name' => 'name',
+            'email' => 'email',
+            'sms' => 'sms',
+            'sent' => 'sent',
+            'opened' => 'opened',
+            default => 'sent',
+        };
+
+        if ($sortField === 'sent') {
+            $query->orderBy(new \yii\db\Expression('COALESCE([[smsSendDate]], [[emailSendDate]]) ' . $direction));
+        } elseif ($sortField === 'opened') {
+            $query->orderBy(new \yii\db\Expression('COALESCE([[smsOpenDate]], [[emailOpenDate]]) ' . $direction));
+        } else {
+            $query->orderBy([$sortField => $direction === 'ASC' ? SORT_ASC : SORT_DESC]);
+        }
+
+        $totalCount = (clone $query)->count();
+        /** @var RecipientRecord[] $recipients */
+        $recipients = $query
+            ->offset($offset)
+            ->limit($limit)
+            ->all();
+
+        // Pre-fetch submissions for the page to avoid an N+1 in the template.
+        $submissionIds = [];
+        foreach ($recipients as $recipient) {
+            if ($recipient->submissionId) {
+                $submissionIds[$recipient->submissionId] = true;
+            }
+        }
+        $submissionMap = [];
+        if ($submissionIds !== []) {
+            $submissions = \verbb\formie\elements\Submission::find()
+                ->id(array_keys($submissionIds))
+                ->all();
+            foreach ($submissions as $submission) {
+                $submissionMap[$submission->id] = $submission;
+            }
+        }
+
         return $this->renderTemplate('campaign-manager/recipients/list', [
             'campaign' => $campaign,
             'campaignId' => $campaignId,
             'site' => $site,
+            'recipients' => $recipients,
+            'submissionMap' => $submissionMap,
+            'totalCount' => $totalCount,
+            'page' => $page,
+            'limit' => $limit,
+            'search' => $search,
+            'statusFilter' => $statusFilter,
+            'dateRange' => $dateRange,
+            'sort' => $sort,
+            'dir' => strtolower($dir),
+            'settings' => $settings,
+            'pluginHandle' => CampaignManager::$plugin->id,
             'defaultDateRange' => DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id),
         ]);
     }
@@ -1630,7 +1733,7 @@ class RecipientsController extends Controller
      *
      * @throws BadRequestHttpException
      */
-    public function actionExportRecipients(int $campaignId): Response
+    public function actionExportRecipients(): Response
     {
         $this->requirePostRequest();
         $this->requireLogin();
@@ -1638,6 +1741,7 @@ class RecipientsController extends Controller
         $this->requirePermission('campaignManager:manageRecipients');
 
         $request = Craft::$app->getRequest();
+        $campaignId = (int)$request->getRequiredBodyParam('campaignId');
         $siteHandle = $request->getBodyParam('site');
         $site = $siteHandle ? Craft::$app->getSites()->getSiteByHandle($siteHandle) : Craft::$app->getSites()->getPrimarySite();
         $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
