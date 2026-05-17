@@ -276,7 +276,7 @@
                     <button type="button" class="page-link prev-page {{ page <= 1 ? 'disabled' : '' }}" {{ page <= 1 ? 'disabled' : '' }} title="Previous Page"></button>
                     <button type="button" class="page-link next-page {{ page >= totalPages ? 'disabled' : '' }}" {{ page >= totalPages ? 'disabled' : '' }} title="Next Page"></button>
                 </nav>
-                <div class="page-info" style="margin: 0 12px; color: #596673;">
+                <div class="page-info">
                     {% set endRange = min(offset + limit, totalCount) %}
                     {% if totalCount == 0 %}
                         {{ 'no recipients'|t('campaign-manager') }}
