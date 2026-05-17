@@ -12,7 +12,6 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\App;
 use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\TimeHelper;
@@ -363,21 +362,6 @@ class RecipientsService extends Component
             $providerHandle,
             $senderIdHandle,
         );
-    }
-
-    /**
-     * Get the CP URL for surveys
-     *
-     * @param array<string, mixed> $params
-     */
-    public function getCpUrl(string $path, array $params = []): string
-    {
-        $surveysSection = Craft::$app->entries->getSectionByHandle('surveys');
-        if ($surveysSection) {
-            $params['source'] = 'section:' . $surveysSection->uid;
-        }
-
-        return UrlHelper::cpUrl($path, $params);
     }
 
     /**
