@@ -1006,8 +1006,17 @@ class RecipientsController extends Controller
         $errors = [];
         $deleted = [];
 
+        // Pre-fetch all selected recipients in one query so the activity log
+        // payload (name/email/sms/site/campaign) doesn't fire findOne() per row.
+        $normalizedIds = array_map('intval', (array)$recipientIds);
+        /** @var RecipientRecord[] $recipientMap */
+        $recipientMap = RecipientRecord::find()
+            ->where(['id' => $normalizedIds])
+            ->indexBy('id')
+            ->all();
+
         foreach ($recipientIds as $recipientId) {
-            $recipient = RecipientRecord::findOne((int)$recipientId);
+            $recipient = $recipientMap[(int)$recipientId] ?? null;
             if (CampaignManager::$plugin->recipients->deleteRecipientById((int)$recipientId)) {
                 $count++;
                 if ($recipient) {
