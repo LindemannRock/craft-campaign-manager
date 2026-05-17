@@ -93,7 +93,7 @@
         <h3>{{ 'Valid Recipients to Import'|t('campaign-manager') }} ({{ validRows|length }})</h3>
         <div style="max-height: 400px; overflow: auto; border: 1px solid #e0e0e0; border-radius: 4px;">
             <table class="data fullwidth" style="margin: 0;">
-                <thead style="position: sticky; top: 0; background: #f7f7f7; z-index: 1;">
+                <thead class="lr-row--neutral" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
                         <th>{{ 'Name'|t('campaign-manager') }}</th>
                         <th>{{ 'Email'|t('campaign-manager') }}</th>
@@ -125,7 +125,7 @@
         <p class="light">{{ 'These recipients have the same phone number or email as another row in the CSV.'|t('campaign-manager') }}</p>
         <div style="max-height: 300px; overflow: auto; border: 1px solid #e0e0e0; border-radius: 4px;">
             <table class="data fullwidth" style="margin: 0;">
-                <thead style="position: sticky; top: 0; background: #fffbf0; z-index: 1;">
+                <thead class="lr-row--warning" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
                         <th style="width: 80px;">{{ 'Row'|t('campaign-manager') }}</th>
                         <th>{{ 'Name'|t('campaign-manager') }}</th>
@@ -153,7 +153,7 @@
         <h3>{{ 'Invalid Rows (will be skipped)'|t('campaign-manager') }} ({{ errorRows|length }})</h3>
         <div style="max-height: 300px; overflow: auto; border: 1px solid #e0e0e0; border-radius: 4px;">
             <table class="data fullwidth" style="margin: 0;">
-                <thead style="position: sticky; top: 0; background: #fef2f2; z-index: 1;">
+                <thead class="lr-row--danger" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
                         <th style="width: 80px;">{{ 'Row'|t('campaign-manager') }}</th>
                         <th>{{ 'Name'|t('campaign-manager') }}</th>
@@ -165,7 +165,7 @@
                         <tr>
                             <td>{{ row.rowNumber }}</td>
                             <td>{{ row.name ?? '-' }}</td>
-                            <td style="color: #dc3545;">{{ row.error }}</td>
+                            <td class="lr-text-red">{{ row.error }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -180,7 +180,7 @@
         {{ csrfInput() }}
         {{ hiddenInput('campaignId', campaignId) }}
 
-        <div style="background: #f7f7f7; padding: 20px; border-radius: 4px; margin: 20px 0;">
+        <div class="lr-row--neutral" style="padding: 20px; border-radius: 4px; margin: 20px 0;">
             <h3 class="first">{{ 'Ready to Import'|t('campaign-manager') }}</h3>
             <p>
                 {% if summary.validRows > 0 %}
