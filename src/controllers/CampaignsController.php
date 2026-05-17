@@ -159,6 +159,7 @@ class CampaignsController extends Controller
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
+        $this->requireLogin();
 
         $request = Craft::$app->getRequest();
         $campaignId = $request->getBodyParam('campaignId');
@@ -263,6 +264,7 @@ class CampaignsController extends Controller
     public function actionDelete(): Response
     {
         $this->requirePostRequest();
+        $this->requireLogin();
         $this->requirePermission('campaignManager:deleteCampaigns');
 
         $campaignId = Craft::$app->getRequest()->getRequiredBodyParam('campaignId');
