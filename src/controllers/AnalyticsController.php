@@ -197,6 +197,7 @@ class AnalyticsController extends Controller
     public function actionExport(): Response
     {
         $this->requirePostRequest();
+        $this->requireLogin();
         $this->requirePermission('campaignManager:exportAnalytics');
 
         $request = Craft::$app->getRequest();
@@ -243,27 +244,26 @@ class AnalyticsController extends Controller
             return $this->redirect(Craft::$app->getRequest()->getReferrer());
         }
 
-        // Build export rows with comprehensive data per campaign
+        // Build export rows from the breakdown result directly (the per-campaign
+        // metrics needed for export are now aggregated inside getCampaignBreakdown,
+        // so we no longer need an additional getOverviewStats() call per row).
         $rows = [];
         foreach ($campaignBreakdown as $data) {
-            // Get detailed stats for this specific campaign
-            $campaignStats = $analyticsService->getOverviewStats($data['campaignId'], $data['siteId'], $dateRange);
-
             $site = $data['siteId'] ? Craft::$app->getSites()->getSiteById($data['siteId']) : null;
 
             $rows[] = [
                 'campaign' => $data['campaignName'],
                 'site' => $site?->name ?? '—',
-                'totalRecipients' => $campaignStats['totalRecipients'],
-                'emailsSent' => $campaignStats['emailsSent'],
-                'smsSent' => $campaignStats['smsSent'],
-                'emailsOpened' => $campaignStats['emailsOpened'],
-                'smsOpened' => $campaignStats['smsOpened'],
-                'emailOpenRate' => $campaignStats['emailOpenRate'] . '%',
-                'smsOpenRate' => $campaignStats['smsOpenRate'] . '%',
-                'submissions' => $campaignStats['submissions'],
-                'conversionRate' => $campaignStats['conversionRate'] . '%',
-                'expired' => $campaignStats['expired'],
+                'totalRecipients' => $data['totalRecipients'],
+                'emailsSent' => $data['emailsSent'],
+                'smsSent' => $data['smsSent'],
+                'emailsOpened' => $data['emailsOpened'],
+                'smsOpened' => $data['smsOpened'],
+                'emailOpenRate' => $data['emailOpenRate'] . '%',
+                'smsOpenRate' => $data['smsOpenRate'] . '%',
+                'submissions' => $data['submissions'],
+                'conversionRate' => $data['conversionRate'] . '%',
+                'expired' => $data['expired'],
             ];
         }
 
