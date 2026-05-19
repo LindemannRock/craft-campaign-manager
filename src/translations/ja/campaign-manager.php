@@ -180,9 +180,6 @@ return [
     // Settings: General
     'General Settings' => '一般設定',
     'General' => '一般',
-    'Plugin Name' => 'プラグイン名',
-    'The display name for this plugin in the control panel.' => 'コントロールパネルでのこの Plugin の表示名です。',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>pluginName</code> 設定で上書きされています。',
     'Default Provider' => 'デフォルトプロバイダー',
     'The default SMS provider to use when sending campaign invitations.' => 'キャンペーン招待を送信する際に使用するデフォルトの SMS プロバイダーです。',
     'Default Sender ID' => 'デフォルト送信者 ID',
@@ -201,13 +198,6 @@ return [
     'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.' => 'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.',
     'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>invitationTemplate</code> 設定で上書きされています。',
     'Logging Settings' => 'ログ設定',
-    'Log Level' => 'ログレベル',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => '記録するメッセージの種類を選択してください。Debug レベルは devMode が有効である必要があります。',
-    'Error (Critical errors only)' => 'Error（重大なエラーのみ）',
-    'Warning (Errors and warnings)' => 'Warning（エラーと警告）',
-    'Info (General information)' => 'Info（一般情報）',
-    'Debug (Detailed debugging)' => 'Debug（詳細なデバッグ）',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>logLevel</code> 設定で上書きされています。',
     'Activity Logs' => 'アクティビティログ',
     'Enable Activity Logs' => 'アクティビティログを有効にする',
     'Store activity records for auditing and debugging (recipients, imports, campaign runs).' => '監査とデバッグのためにアクティビティレコードを保存します（受信者、インポート、キャンペーン実行）。',
@@ -226,9 +216,6 @@ return [
     // Settings: Interface
     'Interface Settings' => 'インターフェース設定',
     'Interface' => 'インターフェース',
-    'Items Per Page' => '1 ページあたりの件数',
-    'Number of items to display per page in lists.' => 'リストで 1 ページに表示する件数です。',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>itemsPerPage</code> 設定で上書きされています。',
 
     // Settings: Field Layout
     'Field Layout' => 'フィールドレイアウト',

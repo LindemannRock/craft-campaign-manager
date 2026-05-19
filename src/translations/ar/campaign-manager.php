@@ -167,9 +167,6 @@ return [
     // Settings: General
     'General Settings' => 'الإعدادات العامة',
     'General' => 'عام',
-    'Plugin Name' => 'اسم الإضافة',
-    'The display name for this plugin in the control panel.' => 'اسم العرض لهذا Plugin في لوحة التحكم.',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>pluginName</code> في <code>config/campaign-manager.php</code>.',
     'Default Provider' => 'المزوّد الافتراضي',
     'The default SMS provider to use when sending campaign invitations.' => 'مزوّد SMS الافتراضي المستخدم لإرسال دعوات الحملة.',
     'Default Sender ID' => 'معرّف المُرسِل الافتراضي',
@@ -188,13 +185,6 @@ return [
     'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.' => 'انسخ Template المرجعي من <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> إلى مجلد templates الخاص بمشروعك.',
     'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>invitationTemplate</code> في <code>config/campaign-manager.php</code>.',
     'Logging Settings' => 'إعدادات التسجيل',
-    'Log Level' => 'مستوى السجل',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'اختر أنواع الرسائل المراد تسجيلها. يتطلب مستوى Debug تفعيل devMode.',
-    'Error (Critical errors only)' => 'خطأ (الأخطاء الحرجة فقط)',
-    'Warning (Errors and warnings)' => 'تحذير (الأخطاء والتحذيرات)',
-    'Info (General information)' => 'معلومات (معلومات عامة)',
-    'Debug (Detailed debugging)' => 'Debug (تصحيح أخطاء تفصيلي)',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/campaign-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>logLevel</code> في <code>config/campaign-manager.php</code>.',
     'Activity Logs' => 'سجلات النشاط',
     'Enable Activity Logs' => 'تفعيل سجلات النشاط',
     'Store activity records for auditing and debugging (recipients, imports, campaign runs).' => 'تخزين سجلات النشاط للتدقيق وتصحيح الأخطاء (المستلمون، الاستيرادات، تشغيلات الحملة).',
@@ -213,9 +203,6 @@ return [
     // Settings: Interface
     'Interface Settings' => 'إعدادات الواجهة',
     'Interface' => 'الواجهة',
-    'Items Per Page' => 'العناصر في الصفحة',
-    'Number of items to display per page in lists.' => 'عدد العناصر المعروضة في كل صفحة في القوائم.',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>itemsPerPage</code> في <code>config/campaign-manager.php</code>.',
 
     // Settings: Field Layout
     'Field Layout' => 'تخطيط الحقول',

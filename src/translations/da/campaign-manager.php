@@ -167,9 +167,6 @@ return [
     // Settings: General
     'General Settings' => 'Generelle indstillinger',
     'General' => 'Generelt',
-    'Plugin Name' => 'Plugin-navn',
-    'The display name for this plugin in the control panel.' => 'Visningsnavnet for dette plugin i kontrolpanelet.',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>pluginName</code> i <code>config/campaign-manager.php</code>.',
     'Default Provider' => 'Standardudbyder',
     'The default SMS provider to use when sending campaign invitations.' => 'Standard-SMS-udbyderen, der bruges til afsendelse af kampagneinvitationer.',
     'Default Sender ID' => 'Standard afsender-ID',
@@ -188,13 +185,6 @@ return [
     'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.' => 'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.',
     'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>invitationTemplate</code> i <code>config/campaign-manager.php</code>.',
     'Logging Settings' => 'Logindstillinger',
-    'Log Level' => 'Logniveau',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Vælg hvilke typer meddelelser der skal logges. Debug-niveauet kræver, at devMode er aktiveret.',
-    'Error (Critical errors only)' => 'Error (kun kritiske fejl)',
-    'Warning (Errors and warnings)' => 'Warning (fejl og advarsler)',
-    'Info (General information)' => 'Info (generel information)',
-    'Debug (Detailed debugging)' => 'Debug (detaljeret fejlretning)',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/campaign-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>logLevel</code> i <code>config/campaign-manager.php</code>.',
     'Activity Logs' => 'Aktivitetslogfiler',
     'Enable Activity Logs' => 'Aktivér aktivitetslogfiler',
     'Store activity records for auditing and debugging (recipients, imports, campaign runs).' => 'Gem aktivitetsposter til revision og fejlretning (modtagere, importer, kampagnekørsler).',
@@ -213,9 +203,6 @@ return [
     // Settings: Interface
     'Interface Settings' => 'Grænsefladeindstillinger',
     'Interface' => 'Brugerflade',
-    'Items Per Page' => 'Elementer pr. side',
-    'Number of items to display per page in lists.' => 'Antal elementer der vises pr. side i lister.',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>itemsPerPage</code> i <code>config/campaign-manager.php</code>.',
 
     // Settings: Field Layout
     'Field Layout' => 'Feltlayout',

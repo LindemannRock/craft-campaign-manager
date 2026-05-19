@@ -167,9 +167,6 @@ return [
     // Settings: General
     'General Settings' => 'Algemene instellingen',
     'General' => 'Algemeen',
-    'Plugin Name' => 'Pluginnaam',
-    'The display name for this plugin in the control panel.' => 'De weergavenaam voor deze plugin in het control panel.',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>pluginName</code> in <code>config/campaign-manager.php</code>.',
     'Default Provider' => 'Standaard provider',
     'The default SMS provider to use when sending campaign invitations.' => 'De standaard SMS-provider voor het verzenden van campagne-uitnodigingen.',
     'Default Sender ID' => 'Standaard afzender-ID',
@@ -188,13 +185,6 @@ return [
     'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.' => 'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.',
     'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>invitationTemplate</code> in <code>config/campaign-manager.php</code>.',
     'Logging Settings' => 'Logboekinstellingen',
-    'Log Level' => 'Logboekniveau',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Kies welke typen berichten worden geregistreerd. Het Debug-niveau vereist dat devMode is ingeschakeld.',
-    'Error (Critical errors only)' => 'Fout (Alleen kritieke fouten)',
-    'Warning (Errors and warnings)' => 'Waarschuwing (Fouten en waarschuwingen)',
-    'Info (General information)' => 'Info (Algemene informatie)',
-    'Debug (Detailed debugging)' => 'Debug (Gedetailleerde foutopsporing)',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/campaign-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>logLevel</code> in <code>config/campaign-manager.php</code>.',
     'Activity Logs' => 'Activiteitenlogboeken',
     'Enable Activity Logs' => 'Activiteitenlogboeken inschakelen',
     'Store activity records for auditing and debugging (recipients, imports, campaign runs).' => 'Activiteitsrecords opslaan voor controle en foutopsporing (ontvangers, imports, campagne-uitvoeringen).',
@@ -213,9 +203,6 @@ return [
     // Settings: Interface
     'Interface Settings' => 'Interface-instellingen',
     'Interface' => 'Interface',
-    'Items Per Page' => 'Items per pagina',
-    'Number of items to display per page in lists.' => 'Aantal items dat per pagina in lijsten wordt weergegeven.',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>itemsPerPage</code> in <code>config/campaign-manager.php</code>.',
 
     // Settings: Field Layout
     'Field Layout' => 'Veldindeling',

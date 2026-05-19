@@ -167,9 +167,6 @@ return [
     // Settings: General
     'General Settings' => 'Paramètres généraux',
     'General' => 'Général',
-    'Plugin Name' => 'Nom du plugin',
-    'The display name for this plugin in the control panel.' => 'Le nom d\'affichage de ce plugin dans le panneau de contrôle.',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>.' => 'Ce paramètre est remplacé par le paramètre <code>pluginName</code> dans <code>config/campaign-manager.php</code>.',
     'Default Provider' => 'Fournisseur par défaut',
     'The default SMS provider to use when sending campaign invitations.' => 'Le fournisseur SMS par défaut pour l\'envoi des invitations de campagne.',
     'Default Sender ID' => 'ID expéditeur par défaut',
@@ -188,13 +185,6 @@ return [
     'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.' => 'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.',
     'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.' => 'Ce paramètre est remplacé par le paramètre <code>invitationTemplate</code> dans <code>config/campaign-manager.php</code>.',
     'Logging Settings' => 'Paramètres de journalisation',
-    'Log Level' => 'Niveau de journal',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Choisissez les types de messages à journaliser. Le niveau Debug nécessite l\'activation du devMode.',
-    'Error (Critical errors only)' => 'Erreur (Erreurs critiques uniquement)',
-    'Warning (Errors and warnings)' => 'Avertissement (Erreurs et avertissements)',
-    'Info (General information)' => 'Info (Informations générales)',
-    'Debug (Detailed debugging)' => 'Debug (Débogage détaillé)',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/campaign-manager.php</code>.' => 'Ce paramètre est remplacé par le paramètre <code>logLevel</code> dans <code>config/campaign-manager.php</code>.',
     'Activity Logs' => 'Journaux d\'activité',
     'Enable Activity Logs' => 'Activer les journaux d\'activité',
     'Store activity records for auditing and debugging (recipients, imports, campaign runs).' => 'Stocker les enregistrements d\'activité à des fins d\'audit et de débogage (destinataires, importations, exécutions de campagne).',
@@ -213,9 +203,6 @@ return [
     // Settings: Interface
     'Interface Settings' => 'Paramètres d\'interface',
     'Interface' => 'Interface',
-    'Items Per Page' => 'Éléments par page',
-    'Number of items to display per page in lists.' => 'Nombre d\'éléments à afficher par page dans les listes.',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.' => 'Ce paramètre est remplacé par le paramètre <code>itemsPerPage</code> dans <code>config/campaign-manager.php</code>.',
 
     // Settings: Field Layout
     'Field Layout' => 'Disposition des champs',

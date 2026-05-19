@@ -180,9 +180,6 @@ return [
     // Settings: General
     'General Settings' => 'General Settings',
     'General' => 'General',
-    'Plugin Name' => 'Plugin Name',
-    'The display name for this plugin in the control panel.' => 'The display name for this plugin in the control panel.',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>.' => 'This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>.',
     'Default Provider' => 'Default Provider',
     'The default SMS provider to use when sending campaign invitations.' => 'The default SMS provider to use when sending campaign invitations.',
     'Default Sender ID' => 'Default Sender ID',
@@ -201,13 +198,6 @@ return [
     'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.' => 'Copy reference template from <code>vendor/lindemannrock/craft-campaign-manager/src/templates/invite.twig</code> to your project\'s templates folder.',
     'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.' => 'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.',
     'Logging Settings' => 'Logging Settings',
-    'Log Level' => 'Log Level',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Choose what types of messages to log. Debug level requires devMode to be enabled.',
-    'Error (Critical errors only)' => 'Error (Critical errors only)',
-    'Warning (Errors and warnings)' => 'Warning (Errors and warnings)',
-    'Info (General information)' => 'Info (General information)',
-    'Debug (Detailed debugging)' => 'Debug (Detailed debugging)',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/campaign-manager.php</code>.' => 'This is being overridden by the <code>logLevel</code> setting in <code>config/campaign-manager.php</code>.',
     'Activity Logs' => 'Activity Logs',
     'Enable Activity Logs' => 'Enable Activity Logs',
     'Store activity records for auditing and debugging (recipients, imports, campaign runs).' => 'Store activity records for auditing and debugging (recipients, imports, campaign runs).',
@@ -226,9 +216,6 @@ return [
     // Settings: Interface
     'Interface Settings' => 'Interface Settings',
     'Interface' => 'Interface',
-    'Items Per Page' => 'Items Per Page',
-    'Number of items to display per page in lists.' => 'Number of items to display per page in lists.',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.' => 'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>.',
 
     // Settings: Field Layout
     'Field Layout' => 'Field Layout',
