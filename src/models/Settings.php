@@ -11,6 +11,12 @@ namespace lindemannrock\campaignmanager\models;
 use Craft;
 use craft\base\Model;
 use craft\behaviors\EnvAttributeParserBehavior;
+use lindemannrock\base\traits\DateFormatSettingsTrait;
+use lindemannrock\base\traits\DateRangeSettingsTrait;
+use lindemannrock\base\traits\ExportFormatSettingsTrait;
+use lindemannrock\base\traits\ItemsPerPageSettingsTrait;
+use lindemannrock\base\traits\LogLevelSettingsTrait;
+use lindemannrock\base\traits\PluginNameSettingsTrait;
 use lindemannrock\base\traits\SettingsConfigTrait;
 use lindemannrock\base\traits\SettingsDisplayNameTrait;
 use lindemannrock\base\traits\SettingsPersistenceTrait;
@@ -25,10 +31,16 @@ use lindemannrock\logginglibrary\traits\LoggingTrait;
  */
 class Settings extends Model
 {
+    use DateFormatSettingsTrait;
+    use DateRangeSettingsTrait;
+    use ExportFormatSettingsTrait;
+    use ItemsPerPageSettingsTrait;
+    use LogLevelSettingsTrait;
     use LoggingTrait;
+    use PluginNameSettingsTrait;
+    use SettingsConfigTrait;
     use SettingsDisplayNameTrait;
     use SettingsPersistenceTrait;
-    use SettingsConfigTrait;
 
     // =========================================================================
     // PLUGIN SETTINGS
@@ -71,22 +83,8 @@ class Settings extends Model
     public ?string $defaultSenderIdHandle = null;
 
     // =========================================================================
-    // INTERFACE SETTINGS
-    // =========================================================================
-
-    /**
-     * @var int Number of items to display per page in lists
-     */
-    public int $itemsPerPage = 50;
-
-    // =========================================================================
     // LOGGING SETTINGS
     // =========================================================================
-
-    /**
-     * @var string Log level for the logging library
-     */
-    public string $logLevel = 'error';
 
     /**
      * @var bool Enable activity logs
@@ -192,6 +190,10 @@ class Settings extends Model
         return [
             'enableActivityLogs',
             'activityAutoTrimLogs',
+            'showSeconds',
+            'exportsCsv',
+            'exportsJson',
+            'exportsExcel',
         ];
     }
 
@@ -234,9 +236,7 @@ class Settings extends Model
      */
     public function rules(): array
     {
-        return [
-            ['pluginName', 'string'],
-            ['pluginName', 'default', 'value' => 'Campaign Manager'],
+        return array_merge([
             ['invitationRoute', 'required'],
             ['invitationRoute', 'string'],
             ['invitationRoute', 'default', 'value' => 'cm/invite'],
@@ -245,10 +245,6 @@ class Settings extends Model
             ['invitationTemplate', 'string'],
             ['defaultSenderIdId', 'integer'],
             ['defaultSenderIdHandle', 'string', 'max' => 64],
-            [['logLevel'], 'in', 'range' => ['debug', 'info', 'warning', 'error']],
-            ['itemsPerPage', 'required'],
-            ['itemsPerPage', 'integer', 'min' => 10, 'max' => 500],
-            ['itemsPerPage', 'default', 'value' => 50],
             ['enableActivityLogs', 'boolean'],
             ['activityAutoTrimLogs', 'boolean'],
             ['activityLogsRetention', 'required'],
@@ -257,7 +253,22 @@ class Settings extends Model
             ['activityLogsLimit', 'required'],
             ['activityLogsLimit', 'integer', 'min' => 0],
             ['activityLogsLimit', 'default', 'value' => 10000],
-        ];
+        ], $this->pluginNameSettingsRules(), $this->logLevelSettingsRules(), $this->itemsPerPageSettingsRules(), $this->dateFormatSettingsRules(), $this->dateRangeSettingsRules(), $this->exportFormatSettingsRules());
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels(): array
+    {
+        return array_merge(
+            $this->pluginNameSettingsLabel(),
+            $this->logLevelSettingsLabel(),
+            $this->itemsPerPageSettingsLabel(),
+            $this->dateFormatSettingsLabels(),
+            $this->dateRangeSettingsLabel(),
+            $this->exportFormatSettingsLabels(),
+        );
     }
 
     /**
