@@ -99,6 +99,15 @@ class SettingsController extends Controller
         // Update settings with posted values
         foreach ($postedSettings as $key => $value) {
             if (property_exists($settings, $key) && !$settings->isOverriddenByConfig($key)) {
+                // Multi-state selects (e.g. "Use global default" = '') need '' → null
+                // so the property holds null, not a coerced false / 0.
+                if ($value === '') {
+                    $type = (new \ReflectionProperty($settings, $key))->getType();
+                    if ($type instanceof \ReflectionNamedType && $type->allowsNull()) {
+                        $value = null;
+                    }
+                }
+
                 if (in_array($key, $nullableIntFields, true)) {
                     $settings->$key = $value !== '' && $value !== null ? (int)$value : null;
                 } elseif (in_array($key, $nullableStringFields, true)) {
@@ -173,6 +182,15 @@ class SettingsController extends Controller
             ],
             'interface' => [
                 'itemsPerPage',
+                'timeFormat',
+                'monthFormat',
+                'dateOrder',
+                'dateSeparator',
+                'showSeconds',
+                'defaultDateRange',
+                'exportsCsv',
+                'exportsJson',
+                'exportsExcel',
             ],
             default => [],
         };
