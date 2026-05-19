@@ -126,7 +126,7 @@
     {# Parse existing delay period - default to Hours #}
     {% set delayValue = '' %}
     {% set delayUnit = 'H' %}
-    {% if campaign.invitationDelayPeriod matches '/^P(\\d+)([DWMY])$/' %}
+    {% if campaign.invitationDelayPeriod matches '/^P(\\d+)([DWM])$/' %}
         {% set delayValue = campaign.invitationDelayPeriod|replace('/[^0-9]/', '') %}
         {% set delayUnit = campaign.invitationDelayPeriod|slice(-1) %}
     {% elseif campaign.invitationDelayPeriod matches '/^PT(\\d+)H$/' %}
@@ -137,7 +137,7 @@
     {# Parse existing expiry period - default to Days #}
     {% set expiryValue = '' %}
     {% set expiryUnit = 'D' %}
-    {% if campaign.invitationExpiryPeriod matches '/^P(\\d+)([DWMY])$/' %}
+    {% if campaign.invitationExpiryPeriod matches '/^P(\\d+)([DWM])$/' %}
         {% set expiryValue = campaign.invitationExpiryPeriod|replace('/[^0-9]/', '') %}
         {% set expiryUnit = campaign.invitationExpiryPeriod|slice(-1) %}
     {% elseif campaign.invitationExpiryPeriod matches '/^PT(\\d+)H$/' %}
