@@ -13,20 +13,21 @@
 
     <h2 class="first">{{ "Interface Settings"|t('campaign-manager') }}</h2>
 
-    {{ forms.textField({
-        label: 'Items Per Page'|t('campaign-manager'),
-        instructions: 'Number of items to display per page in lists.'|t('campaign-manager'),
-        id: 'itemsPerPage',
-        name: 'settings[itemsPerPage]',
-        type: 'number',
-        value: settings.itemsPerPage,
-        min: 10,
-        max: 500,
-        required: true,
-        errors: settings.getErrors('itemsPerPage'),
-        disabled: settings.isOverriddenByConfig('itemsPerPage'),
-        warning: settings.isOverriddenByConfig('itemsPerPage') ?
-            "This is being overridden by the <code>itemsPerPage</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
-    }) }}
+    {% include 'lindemannrock-base/_partials/field-items-per-page' with {
+        settings: settings,
+        pluginHandle: 'campaign-manager',
+    } only %}
+
+    <hr>
+
+    {% include 'lindemannrock-base/_partials/cascade-base-overrides' with {
+        settings: settings,
+        pluginHandle: 'campaign-manager',
+        sections: {
+            dateFormat: {},
+            dateRange: {},
+            exports: {},
+        },
+    } only %}
 
 {% endblock %}
