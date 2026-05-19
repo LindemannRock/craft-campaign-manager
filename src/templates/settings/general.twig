@@ -13,17 +13,10 @@
 
     <h2 class="first">{{ "General Settings"|t('campaign-manager') }}</h2>
 
-    {{ forms.textField({
-        label: 'Plugin Name'|t('campaign-manager'),
-        instructions: 'The display name for this plugin in the control panel.'|t('campaign-manager'),
-        id: 'pluginName',
-        name: 'settings[pluginName]',
-        value: settings.pluginName,
-        errors: settings.getErrors('pluginName'),
-        disabled: settings.isOverriddenByConfig('pluginName'),
-        warning: settings.isOverriddenByConfig('pluginName') ?
-            "This is being overridden by the <code>pluginName</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
-    }) }}
+    {% include 'lindemannrock-base/_partials/field-plugin-name' with {
+        settings: settings,
+        pluginHandle: 'campaign-manager',
+    } only %}
 
     <hr>
 
@@ -211,30 +204,10 @@
 
     <h2>{{ "Logging Settings"|t('campaign-manager') }}</h2>
 
-    {% set logOptions = [
-        {value: 'error', label: 'Error (Critical errors only)'|t('campaign-manager')},
-        {value: 'warning', label: 'Warning (Errors and warnings)'|t('campaign-manager')},
-        {value: 'info', label: 'Info (General information)'|t('campaign-manager')},
-    ] %}
-
-    {% if craft.app.config.general.devMode %}
-        {% set logOptions = logOptions|merge([
-            {value: 'debug', label: 'Debug (Detailed debugging)'|t('campaign-manager')}
-        ]) %}
-    {% endif %}
-
-    {{ forms.selectField({
-        label: 'Log Level'|t('campaign-manager'),
-        instructions: 'Choose what types of messages to log. Debug level requires devMode to be enabled.'|t('campaign-manager'),
-        id: 'logLevel',
-        name: 'settings[logLevel]',
-        value: settings.logLevel,
-        options: logOptions,
-        errors: settings.getErrors('logLevel'),
-        disabled: settings.isOverriddenByConfig('logLevel'),
-        warning: settings.isOverriddenByConfig('logLevel') ?
-            "This is being overridden by the <code>logLevel</code> setting in <code>config/campaign-manager.php</code>."|t('campaign-manager')|raw : null,
-    }) }}
+    {% include 'lindemannrock-base/_partials/field-log-level' with {
+        settings: settings,
+        pluginHandle: 'campaign-manager',
+    } only %}
 
     <hr>
 
