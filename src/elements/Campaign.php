@@ -37,6 +37,36 @@ class Campaign extends Element
 {
     use LoggingTrait;
 
+    // Constants
+    // =========================================================================
+
+    /**
+     * Regex pattern matching the ISO 8601 duration strings accepted for the
+     * invitation delay and invitation expiry fields. Mirrors the unit choices
+     * offered by the campaign edit form (`H`, `D`, `W`, `M`); anything outside
+     * this set is rejected by validation so malformed values can never reach
+     * {@see \DateInterval} downstream.
+     *
+     * @since 5.11.0
+     */
+    public const ALLOWED_DURATION_PERIOD_PATTERN = '/^(PT\d+H|P\d+[DWM])$/';
+
+    /**
+     * Whether the given string is a valid invitation duration period. Empty
+     * and null values are treated as valid (they represent "no delay" / "no
+     * expiry"); any non-empty value must match {@see self::ALLOWED_DURATION_PERIOD_PATTERN}.
+     *
+     * @since 5.11.0
+     */
+    public static function isValidDurationPeriod(?string $period): bool
+    {
+        if ($period === null || $period === '') {
+            return true;
+        }
+
+        return (bool) preg_match(self::ALLOWED_DURATION_PERIOD_PATTERN, $period);
+    }
+
     // Properties
     // =========================================================================
 
@@ -690,6 +720,7 @@ class Campaign extends Element
         $rules[] = [['campaignType'], 'string', 'max' => 255];
         $rules[] = [['formId'], 'integer'];
         $rules[] = [['invitationDelayPeriod', 'invitationExpiryPeriod'], 'string', 'max' => 50];
+        $rules[] = [['invitationDelayPeriod', 'invitationExpiryPeriod'], 'match', 'pattern' => self::ALLOWED_DURATION_PERIOD_PATTERN];
         $rules[] = [['emailInvitationSubject', 'providerHandle', 'senderId'], 'string', 'max' => 255];
 
         return $rules;
