@@ -14,6 +14,7 @@ use craft\helpers\DateTimeHelper;
 use craft\models\Site;
 use DateInterval;
 use lindemannrock\campaignmanager\CampaignManager;
+use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\helpers\PhoneHelper;
 use lindemannrock\campaignmanager\helpers\TimeHelper;
 use verbb\formie\elements\Submission;
@@ -120,12 +121,27 @@ class RecipientRecord extends BaseRecord
 
         if ($this->getIsNewRecord() && empty($this->invitationExpiryDate)) {
             $campaign = $this->getCampaign();
-            $expiryPeriod = $campaign !== null && method_exists($campaign, 'getInvitationExpiryPeriod')
-                ? $campaign->getInvitationExpiryPeriod()
-                : null;
+            // Direct property access — the getter lives on CampaignBehavior, which
+            // `method_exists()` doesn't see (behavior methods are dispatched via
+            // __call). The Campaign element exposes `invitationExpiryPeriod` as a
+            // public property hydrated by CampaignQuery.
+            $expiryPeriod = $campaign instanceof Campaign ? $campaign->invitationExpiryPeriod : null;
             if ($expiryPeriod) {
-                $expiryDate = new DateInterval($expiryPeriod);
-                $this->invitationExpiryDate = TimeHelper::fromNow($expiryDate);
+                try {
+                    $expiryDate = new DateInterval($expiryPeriod);
+                    $this->invitationExpiryDate = TimeHelper::fromNow($expiryDate);
+                } catch (\Exception $e) {
+                    // Malformed period (legacy data, direct DB write, etc.) would
+                    // otherwise crash recipient creation. Save without expiry and
+                    // log so the bad campaign value can be corrected.
+                    Craft::warning(sprintf(
+                        'Invalid invitation expiry period; recipient saved with no expiry: campaignId=%s, recipientId=%s, period=%s, error=%s',
+                        $this->campaignId,
+                        $this->id ?? 'new',
+                        $expiryPeriod,
+                        $e->getMessage(),
+                    ), CampaignManager::$plugin->id);
+                }
             }
         }
 
