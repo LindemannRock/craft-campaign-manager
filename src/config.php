@@ -69,9 +69,9 @@ return [
 
         /**
          * Number of items per page in CP listings
-         * Default: 50
+         * Default: 100
          */
-        // 'itemsPerPage' => 50,
+        // 'itemsPerPage' => 100,
 
         // ========================================
         // CAMPAIGN SETTINGS
