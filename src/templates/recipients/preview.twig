@@ -44,24 +44,24 @@
     <h2 class="first">{{ 'Import Preview'|t('campaign-manager') }}</h2>
 
     <div class="lr-unified-cards cols-4" style="margin: 30px 0;">
-        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        {% include 'lindemannrock-base/_components/unified-card' with {
             value: summary.totalRows,
             description: 'Total Rows'|t('campaign-manager'),
             align: 'center',
         } only %}
-        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        {% include 'lindemannrock-base/_components/unified-card' with {
             value: summary.validRows,
             description: 'Valid'|t('campaign-manager'),
             palette: 'green',
             align: 'center',
         } only %}
-        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        {% include 'lindemannrock-base/_components/unified-card' with {
             value: summary.duplicates,
             description: 'Duplicates'|t('campaign-manager'),
             palette: 'amber',
             align: 'center',
         } only %}
-        {% include 'lindemannrock-base/_components/cards/unified-card' with {
+        {% include 'lindemannrock-base/_components/unified-card' with {
             value: summary.errors,
             description: 'Errors'|t('campaign-manager'),
             palette: 'red',

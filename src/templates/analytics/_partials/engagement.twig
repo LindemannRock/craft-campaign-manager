@@ -2,25 +2,25 @@
 
 {# Engagement Stats Grid #}
 <div class="lr-unified-cards">
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.emailsOpened,
         description: 'Emails Opened'|t('campaign-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.smsOpened,
         description: 'SMS Opened'|t('campaign-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.emailOpenRate ~ '%',
         description: 'Email Open Rate'|t('campaign-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.smsOpenRate ~ '%',
         description: 'SMS Open Rate'|t('campaign-manager'),
         align: 'center',

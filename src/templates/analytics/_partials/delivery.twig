@@ -2,25 +2,25 @@
 
 {# Delivery Stats Grid #}
 <div class="lr-unified-cards">
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.emailsSent,
         description: 'Emails Sent'|t('campaign-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.smsSent,
         description: 'SMS Sent'|t('campaign-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.totalSent,
         description: 'Total Invitations'|t('campaign-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.expired,
         description: 'Expired'|t('campaign-manager'),
         align: 'center',

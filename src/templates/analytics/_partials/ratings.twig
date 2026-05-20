@@ -139,7 +139,7 @@
                 {% set npsValue = ratingStats.npsScore %}
                 {% set npsDisplay = (npsValue == npsValue|round(0)) ? npsValue|number_format(0) : npsValue|number_format(1) %}
                 {% set npsColor = npsValue >= 50 ? '#10b981' : (npsValue >= 0 ? '#f59e0b' : '#ef4444') %}
-                {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                {% include 'lindemannrock-base/_components/unified-card' with {
                     value: npsDisplay,
                     valueIsFormatted: true,
                     valueColor: npsColor,
@@ -147,35 +147,35 @@
                     align: 'center',
                 } only %}
             {% else %}
-                {% include 'lindemannrock-base/_components/cards/unified-card' with {
+                {% include 'lindemannrock-base/_components/unified-card' with {
                     value: '—',
                     description: 'NPS Score'|t('campaign-manager'),
                     align: 'center',
                 } only %}
             {% endif %}
 
-            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            {% include 'lindemannrock-base/_components/unified-card' with {
                 value: ratingStats.promoters ?? 0,
                 valueColor: '#10b981',
                 description: 'Promoters'|t('campaign-manager') ~ (ratingStats.totalResponses > 0 and ratingStats.promotersPercentage is defined ? ' (' ~ ratingStats.promotersPercentage ~ '%)' : ''),
                 align: 'center',
             } only %}
 
-            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            {% include 'lindemannrock-base/_components/unified-card' with {
                 value: ratingStats.passives ?? 0,
                 valueColor: '#f59e0b',
                 description: 'Passives'|t('campaign-manager') ~ (ratingStats.totalResponses > 0 and ratingStats.passivesPercentage is defined ? ' (' ~ ratingStats.passivesPercentage ~ '%)' : ''),
                 align: 'center',
             } only %}
 
-            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            {% include 'lindemannrock-base/_components/unified-card' with {
                 value: ratingStats.detractors ?? 0,
                 valueColor: '#ef4444',
                 description: 'Detractors'|t('campaign-manager') ~ (ratingStats.totalResponses > 0 and ratingStats.detractorsPercentage is defined ? ' (' ~ ratingStats.detractorsPercentage ~ '%)' : ''),
                 align: 'center',
             } only %}
 
-            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            {% include 'lindemannrock-base/_components/unified-card' with {
                 value: ratingStats.totalResponses ?? 0,
                 description: 'Responses'|t('campaign-manager'),
                 align: 'center',
@@ -184,25 +184,25 @@
         {% else %}
             {# Star / Emoji: Average Rating, Median, Most Common, Responses #}
             {% set avgValue = ratingStats.average ?? 0 %}
-            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            {% include 'lindemannrock-base/_components/unified-card' with {
                 value: ratingStats.totalResponses > 0 ? avgValue|number_format(1) : '—',
                 description: 'Average Rating'|t('campaign-manager'),
                 align: 'center',
             } only %}
 
-            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            {% include 'lindemannrock-base/_components/unified-card' with {
                 value: ratingStats.totalResponses > 0 ? (ratingStats.median ?? '—') : '—',
                 description: 'Median'|t('campaign-manager'),
                 align: 'center',
             } only %}
 
-            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            {% include 'lindemannrock-base/_components/unified-card' with {
                 value: ratingStats.totalResponses > 0 ? (ratingStats.mode ?? '—') : '—',
                 description: 'Most Common'|t('campaign-manager'),
                 align: 'center',
             } only %}
 
-            {% include 'lindemannrock-base/_components/cards/unified-card' with {
+            {% include 'lindemannrock-base/_components/unified-card' with {
                 value: ratingStats.totalResponses ?? 0,
                 description: 'Responses'|t('campaign-manager'),
                 align: 'center',

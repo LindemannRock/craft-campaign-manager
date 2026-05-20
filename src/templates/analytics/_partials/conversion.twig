@@ -2,25 +2,25 @@
 
 {# Conversion Stats Grid #}
 <div class="lr-unified-cards">
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.totalRecipients,
         description: 'Total Recipients'|t('campaign-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.totalOpened,
         description: 'Opened Invitations'|t('campaign-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.submissions,
         description: 'Form Responses'|t('campaign-manager'),
         align: 'center',
     } only %}
 
-    {% include 'lindemannrock-base/_components/cards/unified-card' with {
+    {% include 'lindemannrock-base/_components/unified-card' with {
         value: summaryStats.conversionRate ~ '%',
         description: 'Conversion Rate'|t('campaign-manager'),
         align: 'center',
