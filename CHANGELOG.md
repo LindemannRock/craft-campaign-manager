@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.11.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.3...v5.11.0) (2026-05-22)
+## [5.11.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.3...v5.11.0) - 2026-05-22
 
 
 ### Added
@@ -39,7 +39,7 @@
 * **integration:** resolve sender ID to handle for campaign usage reporting ([94dfd2f](https://github.com/LindemannRock/craft-campaign-manager/commit/94dfd2f431c16adc57ce92cfd8a5a8bf78507449))
 * **phone:** validate phone number input for letters before sanitization ([463e89d](https://github.com/LindemannRock/craft-campaign-manager/commit/463e89d2ea5e9bbc2a0f3c971026e1c0016d2e7c))
 
-## [5.10.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.2...v5.10.3) (2026-05-10)
+## [5.10.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.2...v5.10.3) - 2026-05-10
 
 
 ### Bug Fixes
@@ -48,21 +48,21 @@
 * **responses:** correct base URL handling in filter URL prefix ([f8ee7e5](https://github.com/LindemannRock/craft-campaign-manager/commit/f8ee7e567e8232e97f960acf2db6f3e7a25c7b16))
 * **responses:** update event handling for responses table to support AJAX loading ([9207983](https://github.com/LindemannRock/craft-campaign-manager/commit/920798372edab16987a390f77ebc3f052aa1e1af))
 
-## [5.10.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.1...v5.10.2) (2026-05-09)
+## [5.10.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.1...v5.10.2) - 2026-05-09
 
 
 ### Bug Fixes
 
 * **analytics:** update date range retrieval and improve chart initialization ([e1cceb9](https://github.com/LindemannRock/craft-campaign-manager/commit/e1cceb999c41da1e9261eaf6c5df77afa640dfe3))
 
-## [5.10.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.0...v5.10.1) (2026-05-09)
+## [5.10.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.0...v5.10.1) - 2026-05-09
 
 
 ### Bug Fixes
 
 * **campaigns:** ensure Chart.js is available before dispatching event ([4224510](https://github.com/LindemannRock/craft-campaign-manager/commit/4224510dca80eb10d63ea19dd5c48864f7be7a0b))
 
-## [5.10.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.9.1...v5.10.0) (2026-05-09)
+## [5.10.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.9.1...v5.10.0) - 2026-05-09
 
 
 ### Features
@@ -70,21 +70,21 @@
 * **campaigns:** add lazy-loading for analytics and responses tabs in campaign edit page ([2e13cdd](https://github.com/LindemannRock/craft-campaign-manager/commit/2e13cdd7dbcb22463ce215223e58b09ae19857b4))
 * **recipients:** add pagination and limit options for recipient queries ([a780221](https://github.com/LindemannRock/craft-campaign-manager/commit/a780221ee666058be292765ed6e4f4c630f37a4a))
 
-## [5.9.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.9.0...v5.9.1) (2026-05-09)
+## [5.9.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.9.0...v5.9.1) - 2026-05-09
 
 
 ### Bug Fixes
 
 * update plugin description and keywords for clarity ([d10169a](https://github.com/LindemannRock/craft-campaign-manager/commit/d10169a6d37970cfcaf772340e5e2b041b6dfc27))
 
-## [5.9.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.2...v5.9.0) (2026-05-09)
+## [5.9.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.2...v5.9.0) - 2026-05-09
 
 
 ### Features
 
 * add issue templates for bug reports, feature requests, and questions ([70b7e8b](https://github.com/LindemannRock/craft-campaign-manager/commit/70b7e8b6960e560eb80495cad683c1df553ad4d8))
 
-## [5.8.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.1...v5.8.2) (2026-05-06)
+## [5.8.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.1...v5.8.2) - 2026-05-06
 
 
 ### Bug Fixes
@@ -92,14 +92,14 @@
 * **recipients:** remove unnecessary form tags in add recipient template ([a64e719](https://github.com/LindemannRock/craft-campaign-manager/commit/a64e71908d05706146cb8c29d84e4526a49984c5))
 * **translations:** correct translations for various languages ([264bb02](https://github.com/LindemannRock/craft-campaign-manager/commit/264bb0285219e447197940f26f2fab2e14c9d217))
 
-## [5.8.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.0...v5.8.1) (2026-04-25)
+## [5.8.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.8.0...v5.8.1) - 2026-04-25
 
 
 ### Bug Fixes
 
 * **analytics:** localDateExpression usage for recipient dates ([b2d0c1f](https://github.com/LindemannRock/craft-campaign-manager/commit/b2d0c1f4a0c52a84e804ee6a781308becefc0797))
 
-## [5.8.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.4...v5.8.0) (2026-04-25)
+## [5.8.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.4...v5.8.0) - 2026-04-25
 
 
 ### Features
@@ -123,21 +123,21 @@
 * drop PAT requirement for release-please — use built-in GITHUB_TOKEN ([a1b0e8f](https://github.com/LindemannRock/craft-campaign-manager/commit/a1b0e8f5f42972c205d975a189404ba4f8970410))
 * **i18n:** remove outdated NPS-related strings from translations ([7b9296b](https://github.com/LindemannRock/craft-campaign-manager/commit/7b9296bee51f48a2fa92e7dec074e81006211c5c))
 
-## [5.7.4](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.3...v5.7.4) (2026-04-06)
+## [5.7.4](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.3...v5.7.4) - 2026-04-06
 
 
 ### Bug Fixes
 
 * campaign element check and remove unused settings ([9b3a052](https://github.com/LindemannRock/craft-campaign-manager/commit/9b3a052835284656f3ab474dc404472c20a9b9cb))
 
-## [5.7.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.2...v5.7.3) (2026-04-06)
+## [5.7.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.2...v5.7.3) - 2026-04-06
 
 
 ### Bug Fixes
 
 * **invite.twig:** update invitation template documentation and logic ([c61b439](https://github.com/LindemannRock/craft-campaign-manager/commit/c61b439f6d29f22de440aee7746bb1a858de880f))
 
-## [5.7.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.1...v5.7.2) (2026-04-06)
+## [5.7.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.1...v5.7.2) - 2026-04-06
 
 
 ### Bug Fixes
@@ -145,14 +145,14 @@
 * **CampaignManager:** correct invitation route handling in event rules ([39212b5](https://github.com/LindemannRock/craft-campaign-manager/commit/39212b5a7e1beb460d85ded684a9402c247ab17e))
 * **RecipientsController:** handle MultiOptionsFieldData and SingleOptionFieldData correctly ([5ab3d9c](https://github.com/LindemannRock/craft-campaign-manager/commit/5ab3d9c0ea68511d9d1dee91bce11e0f09dd9421))
 
-## [5.7.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.0...v5.7.1) (2026-04-05)
+## [5.7.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.7.0...v5.7.1) - 2026-04-05
 
 
 ### Bug Fixes
 
 * **AnalyticsService:** correct siteId usage in recipient query ([5b418b7](https://github.com/LindemannRock/craft-campaign-manager/commit/5b418b7ee844b4fdb7c8cf80cabe1b2b007843f9))
 
-## [5.7.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.6.0...v5.7.0) (2026-04-02)
+## [5.7.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.6.0...v5.7.0) - 2026-04-02
 
 
 ### Features
@@ -164,7 +164,7 @@
 
 * **CampaignManager:** read-only settings page accessibility flag ([1db49c4](https://github.com/LindemannRock/craft-campaign-manager/commit/1db49c4d317192683c9372f175d9aea3a9abbb83))
 
-## [5.6.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.4...v5.6.0) (2026-04-02)
+## [5.6.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.4...v5.6.0) - 2026-04-02
 
 
 ### Features
@@ -183,7 +183,7 @@
 
 * **assets:** update build configuration and package management ([d42c7f2](https://github.com/LindemannRock/craft-campaign-manager/commit/d42c7f229be28d2d28e62f75e975d7cd563adb8e))
 
-## [5.5.4](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.3...v5.5.4) (2026-03-04)
+## [5.5.4](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.3...v5.5.4) - 2026-03-04
 
 
 ### Bug Fixes
@@ -191,7 +191,7 @@
 * **jobs:** implement QueueTtrTrait in job classes ([4ce38d1](https://github.com/LindemannRock/craft-campaign-manager/commit/4ce38d118d4e1b428b2e70f94c8c2969b704bfa3))
 * **SettingsController:** enhance settings validation and error handling ([77ec426](https://github.com/LindemannRock/craft-campaign-manager/commit/77ec426c98c489abe011531e5d7232cc626ff763))
 
-## [5.5.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.2...v5.5.3) (2026-02-23)
+## [5.5.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.2...v5.5.3) - 2026-02-23
 
 
 ### Bug Fixes
@@ -199,14 +199,14 @@
 * **CampaignManager:** add no-op setSettings method for clarity ([06df6b7](https://github.com/LindemannRock/craft-campaign-manager/commit/06df6b7cbcf2d276c75e6ab1c08e2d303052287a))
 * **RecipientsController:** strip formula escape prefix from CSV import values ([81fb33a](https://github.com/LindemannRock/craft-campaign-manager/commit/81fb33ae1665107ac6695b95304eb1f736b817d8))
 
-## [5.5.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.1...v5.5.2) (2026-02-17)
+## [5.5.2](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.1...v5.5.2) - 2026-02-17
 
 
 ### Bug Fixes
 
 * **RecipientsService:** update key name for invitation data ([55cc08b](https://github.com/LindemannRock/craft-campaign-manager/commit/55cc08b33c51a6fb6ce3696c259d0d7d63516f49))
 
-## [5.5.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.0...v5.5.1) (2026-02-17)
+## [5.5.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.5.0...v5.5.1) - 2026-02-17
 
 
 ### Bug Fixes
@@ -218,7 +218,7 @@
 
 * update .gitignore for improved file management ([3500cd2](https://github.com/LindemannRock/craft-campaign-manager/commit/3500cd2d5182d397cefb28a2d57e049edd6383cc))
 
-## [5.5.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.4.1...v5.5.0) (2026-02-16)
+## [5.5.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.4.1...v5.5.0) - 2026-02-16
 
 
 ### Features
@@ -237,14 +237,14 @@
 * add .gitattributes with export-ignore for Packagist distribution ([16ae6d8](https://github.com/LindemannRock/craft-campaign-manager/commit/16ae6d8f2546f610bffaa190f10b34477af2bedc))
 * switch to Craft License for commercial release ([9c591c2](https://github.com/LindemannRock/craft-campaign-manager/commit/9c591c274d5a62b80274d2cee3a935bf74c6b4d7))
 
-## [5.4.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.4.0...v5.4.1) (2026-02-07)
+## [5.4.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.4.0...v5.4.1) - 2026-02-07
 
 
 ### Bug Fixes
 
 * **ActivityLogsController, AnalyticsService, Campaign:** replace DateTimeHelper with DateFormatHelper for date formatting ([fb386f1](https://github.com/LindemannRock/craft-campaign-manager/commit/fb386f1dee4d0f51603f6780d9435bbbd6a6ea48))
 
-## [5.4.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.3.0...v5.4.0) (2026-02-05)
+## [5.4.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.3.0...v5.4.0) - 2026-02-05
 
 
 ### Features
@@ -265,14 +265,14 @@
 
 * **package.json:** update package name to scoped version and add private flag ([41909bd](https://github.com/LindemannRock/craft-campaign-manager/commit/41909bd4987cd794eb8835915e28641e2d1bab63))
 
-## [5.3.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.2.0...v5.3.0) (2026-01-29)
+## [5.3.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.2.0...v5.3.0) - 2026-01-29
 
 
 ### Features
 
 * **campaign:** add method to check submissions across all sites ([8e9bc32](https://github.com/LindemannRock/craft-campaign-manager/commit/8e9bc32058ce9de32b4a26dea62172c485ab4055))
 
-## [5.2.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.1.0...v5.2.0) (2026-01-28)
+## [5.2.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.1.0...v5.2.0) - 2026-01-28
 
 
 ### Features
@@ -281,14 +281,14 @@
 * **config:** add initial configuration file for Campaign Manager plugin ([11008f2](https://github.com/LindemannRock/craft-campaign-manager/commit/11008f24ad793b5bcc957577cedba7fd4f6f93b3))
 * **recipients:** update language handling to site mapping ([ec32f95](https://github.com/LindemannRock/craft-campaign-manager/commit/ec32f95cd4113fbb9f792f66e5aee8b2077bf338))
 
-## [5.1.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.0.0...v5.1.0) (2026-01-27)
+## [5.1.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.0.0...v5.1.0) - 2026-01-27
 
 
 ### Features
 
 * **customers:** add global customer index and export functionality ([bc7230e](https://github.com/LindemannRock/craft-campaign-manager/commit/bc7230e5ab30797db4497de7f68d07cf616b1789))
 
-## 5.0.0 (2026-01-27)
+## 5.0.0 - 2026-01-27
 
 
 ### Features
