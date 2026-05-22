@@ -1,5 +1,44 @@
 # Changelog
 
+## [5.11.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.3...v5.11.0) (2026-05-22)
+
+
+### Added
+
+* **activity-logs:** optimize activity log retrieval with batch fetching ([9a45ec1](https://github.com/LindemannRock/craft-campaign-manager/commit/9a45ec1411a463dbeca36e8c626d4a0a68de88f2))
+* **analytics:** optimize recipient statistics aggregation with single query ([940d7ee](https://github.com/LindemannRock/craft-campaign-manager/commit/940d7ee6fa0742d37f1638799a6b29194256c0f2))
+* **analytics:** optimize recipient statistics retrieval with aggregate query ([f54f526](https://github.com/LindemannRock/craft-campaign-manager/commit/f54f5263fd3e2797710cfbf98ab5ac2468154c2d))
+* **analytics:** require login for export action and optimize data retrieval ([ecfa125](https://github.com/LindemannRock/craft-campaign-manager/commit/ecfa125f81c31e063fb10a7e70506f4e43cea3e9))
+* **campaigns:** enhance campaign job notifications with queue links ([1338e50](https://github.com/LindemannRock/craft-campaign-manager/commit/1338e50012a8d0535ae534a4e630d289ee0d7d90))
+* **campaigns:** require login for save and delete actions ([513b384](https://github.com/LindemannRock/craft-campaign-manager/commit/513b384dc63dee35563e08e2a14b58c29cdfb8d2))
+* **emails:** unify invitation template variables for SMS and email contexts ([48c716b](https://github.com/LindemannRock/craft-campaign-manager/commit/48c716b1ec87baf41d7b062b537bedba697d6c88))
+* **exceptions:** add SendBatchFailedException for handling batch failures ([991554d](https://github.com/LindemannRock/craft-campaign-manager/commit/991554d1730805bde5023774ef8e52b0a54d68ad))
+* **git-hooks:** add pre-commit hook for ECS and PHPStan checks ([5288543](https://github.com/LindemannRock/craft-campaign-manager/commit/5288543ebbc4bdfd07ee7b090addd2ae97081f42))
+* **i18n:** add error message for failed campaign batches in multiple languages ([72fc2f6](https://github.com/LindemannRock/craft-campaign-manager/commit/72fc2f64b292c9cb865c691ac581f55d8ae0c6d4))
+* **i18n:** add Japanese translations for campaign management features ([ee9670a](https://github.com/LindemannRock/craft-campaign-manager/commit/ee9670aafe725f778a28981c18c8e1a4b4ff20d1))
+* **i18n:** add translation issue template for reporting translations ([9ed4a5e](https://github.com/LindemannRock/craft-campaign-manager/commit/9ed4a5ef77e8f0d0e24bdf4e5de550b45578b83a))
+* **i18n:** add translations for campaign disabled message in multiple languages ([cb50827](https://github.com/LindemannRock/craft-campaign-manager/commit/cb508275379f0109aa979f131a23aba7a540036a))
+* **i18n:** update SMS invitation messages for multiple languages ([8e78629](https://github.com/LindemannRock/craft-campaign-manager/commit/8e786295c245324176530706fa43f6f59c3023ea))
+* **integration:** enhance SMS Manager integration with default provider and sender ID handling ([5c64fc3](https://github.com/LindemannRock/craft-campaign-manager/commit/5c64fc372d29ac3ce258c9a2526d70bb8b9556c9))
+* **migrations:** add indexes for improved query performance in recipients table ([fe247a1](https://github.com/LindemannRock/craft-campaign-manager/commit/fe247a153945ef4e6f0d2fdd06b6020fc84ad481))
+* **queue:** optimize recipient fetching and enhance error logging in SendBatchJob ([14bf712](https://github.com/LindemannRock/craft-campaign-manager/commit/14bf712541738cc881b65b1f6863d5511d7d9a3c))
+* **recipients:** enhance recipient deletion handling and logging ([420abf8](https://github.com/LindemannRock/craft-campaign-manager/commit/420abf82f09702258ffa92177fa1a4ea3d23e3ad))
+* **recipients:** enhance recipient listing with search, filtering, and pagination ([fb7a7eb](https://github.com/LindemannRock/craft-campaign-manager/commit/fb7a7eb72d573f866a3542aee500c62a1b96ad78))
+* **recipients:** optimize campaign retrieval for export by pre-fetching ([6a7742d](https://github.com/LindemannRock/craft-campaign-manager/commit/6a7742de2619097f45d17a215e5f8c712695647e))
+* **recipients:** optimize recipient data fetching to reduce N+1 queries ([9f46e03](https://github.com/LindemannRock/craft-campaign-manager/commit/9f46e031fbf02ff202b1cda255248616666b497c))
+* **recipients:** preserve original CSV filename in import preview ([66640d4](https://github.com/LindemannRock/craft-campaign-manager/commit/66640d48518cde6401a083153ca1eaec05fe22c9))
+* **recipients:** stream sample CSV download inline for fresh installs ([b2ddcd8](https://github.com/LindemannRock/craft-campaign-manager/commit/b2ddcd8deb5ddfc8588a29a5275c682757a68279))
+* **sms:** unify SMS provider handling and improve country validation ([1372c45](https://github.com/LindemannRock/craft-campaign-manager/commit/1372c45aab40ac0f82bad1c5a1e98f9c41462826))
+* **tests:** add integration tests for PhoneHelper sanitization and validation ([c5c4aad](https://github.com/LindemannRock/craft-campaign-manager/commit/c5c4aad4679a97c3c58fbb26f44e930394bfe3fb))
+
+
+### Fixed
+
+* correct phpstan configuration path in phpstan.neon ([fa155bf](https://github.com/LindemannRock/craft-campaign-manager/commit/fa155bf854b3c4bf9963cb978554eac29088ce07))
+* **i18n:** remove deprecated plugin name translations from multiple locales ([52db4df](https://github.com/LindemannRock/craft-campaign-manager/commit/52db4df105af5638bcb2c18b29c121a7d1cea498))
+* **integration:** resolve sender ID to handle for campaign usage reporting ([94dfd2f](https://github.com/LindemannRock/craft-campaign-manager/commit/94dfd2f431c16adc57ce92cfd8a5a8bf78507449))
+* **phone:** validate phone number input for letters before sanitization ([463e89d](https://github.com/LindemannRock/craft-campaign-manager/commit/463e89d2ea5e9bbc2a0f3c971026e1c0016d2e7c))
+
 ## [5.10.3](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.2...v5.10.3) (2026-05-10)
 
 
