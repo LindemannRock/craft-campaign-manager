@@ -54,7 +54,17 @@
         "phpstan": "phpstan --ansi --memory-limit=1G",
         "check-cs": "ecs check --ansi",
         "fix-cs": "ecs check --fix --ansi",
-        "test": "phpunit --colors=always"
+        "test": "phpunit --colors=always",
+        "install-hooks": "git config core.hooksPath .githooks 2>/dev/null || true",
+        "post-install-cmd": "@install-hooks",
+        "post-update-cmd": "@install-hooks"
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true,
+            "php-http/discovery": true
+        }
     },
     "extra": {
         "name": "Campaign Manager",
