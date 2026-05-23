@@ -240,8 +240,7 @@ class SmsService extends Component
      *   dropdown. The plugin's own UI (settings + per-campaign edit) now
      *   uses {@see getSenderIdOptionsWithGroups()} for a single dropdown
      *   with `<optgroup>` provider groupings — provider is implicit via
-     *   the chosen sender's `providerHandle`. Removal tracked in
-     *   `.internal/todo.md` (see "Dead SmsService methods").
+     *   the chosen sender's `providerHandle`.
      */
     public function getProviderOptions(bool $enabledOnly = true): array
     {
