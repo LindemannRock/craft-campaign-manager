@@ -111,7 +111,7 @@
                                         </td>
                                         <td class="lr-text-end">
                                             {% if recipient.submission %}
-                                                {{ recipient.submission.dateCreated|lrDatetime('short') }}
+                                                {{ recipient.submission.dateCreated|lrDatetime }}
                                             {% else %}
                                                 -
                                             {% endif %}

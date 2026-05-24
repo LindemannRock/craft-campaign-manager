@@ -128,7 +128,7 @@
         : (ratingFieldType == 'star' ? 'Star Rating'|t('campaign-manager') : 'Emoji Rating'|t('campaign-manager')) %}
     <h2 style="margin: 0 0 6px;">{{ selectedField.label }}</h2>
     <p class="lr-text-muted" style="margin: 0 0 16px; font-size: 13px;">
-        ({{ ratingTypeLabel }}) • {{ 'Last updated: {time}'|t('campaign-manager', {time: now|lrDatetime('short')}) }}
+        ({{ ratingTypeLabel }}) • {{ 'Last updated: {time}'|t('campaign-manager', {time: now|lrDatetime}) }}
     </p>
 
     {# Stat boxes — branch by field type #}
