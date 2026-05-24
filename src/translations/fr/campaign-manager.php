@@ -154,7 +154,7 @@ return [
     'Sent' => 'Envoyé',
     'Pending' => 'En attente',
     'Campaign Type' => 'Type de campagne',
-    'Are you sure you want to delete the selected campaigns?' => 'Êtes-vous sûr de vouloir supprimer les campagnes sélectionnées ?',
+    'Are you sure you want to delete the selected campaigns?' => 'Voulez-vous vraiment supprimer les campagnes sélectionnées ?',
     'Campaigns deleted.' => 'Campagnes supprimées.',
     'Campaigns restored.' => 'Campagnes restaurées.',
     'Some campaigns restored.' => 'Certaines campagnes restaurées.',
@@ -216,7 +216,7 @@ return [
     'Route cannot contain spaces.' => 'La route ne peut pas contenir d\'espaces.',
 
     // Campaigns: Edit page
-    'Are you sure you want to delete this campaign?' => 'Êtes-vous sûr de vouloir supprimer cette campagne ?',
+    'Are you sure you want to delete this campaign?' => 'Voulez-vous vraiment supprimer cette campagne ?',
     'Select a form' => 'Sélectionner un formulaire',
     'Select a Formie form to link with this campaign.' => 'Sélectionner un formulaire Formie à associer à cette campagne.',
     'The form cannot be changed because this campaign has responses. Changing the form would break existing response data.' => 'Le formulaire ne peut pas être modifié car cette campagne a des réponses. Modifier le formulaire endommagerait les données de réponses existantes.',
@@ -474,7 +474,7 @@ return [
     'items' => 'éléments',
     'Queued' => 'En file d\'attente',
     'Exported' => 'Exporté',
-    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Êtes-vous sûr de vouloir effacer tous les journaux d\'activité ? Cette action est irréversible.',
+    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Voulez-vous vraiment effacer tous les journaux d\'activité ? Cette action est irréversible.',
     'Failed to clear activity logs.' => 'Échec de la suppression des journaux d\'activité.',
 
     // Frontend / Invite

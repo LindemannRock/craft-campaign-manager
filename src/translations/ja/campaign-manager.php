@@ -40,7 +40,7 @@ return [
     'Download system logs' => 'システムログをダウンロードする',
     'View activity logs' => 'アクティビティログを表示する',
     'Download activity logs' => 'アクティビティログをダウンロードする',
-    'Clear activity logs' => 'アクティビティログをクリアする',
+    'Clear activity logs' => 'アクティビティログを削除する',
     'Manage settings' => '設定を管理する',
 
     // Common
@@ -168,7 +168,7 @@ return [
     'Settings saved.' => '設定が保存されました。',
     'Couldn\'t save field layout.' => 'フィールドレイアウトを保存できませんでした。',
     'Field layout saved.' => 'フィールドレイアウトが保存されました。',
-    'Activity logs cleared successfully.' => 'アクティビティログが正常にクリアされました。',
+    'Activity logs cleared successfully.' => 'アクティビティログが正常に削除されました。',
     '{count} recipients' => '{count} 件の受信者',
 
     // Validation messages
@@ -448,7 +448,7 @@ return [
     'Action' => 'アクション',
     'Source' => 'ソース',
     'No activity logs found yet.' => 'アクティビティログがまだありません。',
-    'Clear logs' => 'ログをクリアする',
+    'Clear logs' => 'ログを削除する',
     'Activity logs are currently disabled in settings.' => 'アクティビティログは現在設定で無効になっています。',
     'Invitations queued' => '招待がキューに追加されました',
     'Campaigns queued' => 'キャンペーンがキューに追加されました',
@@ -468,8 +468,8 @@ return [
     'items' => '件',
     'Queued' => 'キュー追加',
     'Exported' => 'エクスポート',
-    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'すべてのアクティビティログをクリアしてもよろしいですか？この操作は元に戻せません。',
-    'Failed to clear activity logs.' => 'アクティビティログのクリアに失敗しました。',
+    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'すべてのアクティビティログを削除してもよろしいですか？この操作は元に戻せません。',
+    'Failed to clear activity logs.' => 'アクティビティログの削除に失敗しました。',
 
     // Frontend
     'Invitation' => '招待',

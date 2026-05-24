@@ -131,7 +131,7 @@ return [
     'Field layout saved.' => 'Feldlayout gespeichert.',
 
     // Controller flash messages — Activity Logs
-    'Activity logs cleared successfully.' => 'Aktivitäts-Logs erfolgreich geleert.',
+    'Activity logs cleared successfully.' => 'Aktivitäts-Logs erfolgreich gelöscht.',
     '{count} recipients' => '{count} Empfänger',
 
     // Jobs
@@ -201,7 +201,7 @@ return [
     'This is being overridden by the <code>activityAutoTrimLogs</code> setting in <code>config/campaign-manager.php</code>.' => 'Dies wird durch die Einstellung <code>activityAutoTrimLogs</code> in <code>config/campaign-manager.php</code> überschrieben.',
 
     // Settings: Interface
-    'Interface Settings' => 'Interface-Einstellungen',
+    'Interface Settings' => 'Oberflächen-Einstellungen',
     'Interface' => 'Oberfläche',
 
     // Settings: Field Layout
@@ -475,7 +475,7 @@ return [
     'Queued' => 'In Warteschlange',
     'Exported' => 'Exportiert',
     'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Möchten Sie wirklich alle Aktivitäts-Logs löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
-    'Failed to clear activity logs.' => 'Aktivitäts-Logs konnten nicht geleert werden.',
+    'Failed to clear activity logs.' => 'Aktivitäts-Logs konnten nicht gelöscht werden.',
 
     // Frontend / Invite
     'Invitation' => 'Einladung',

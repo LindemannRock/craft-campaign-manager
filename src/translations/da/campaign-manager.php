@@ -186,7 +186,7 @@ return [
     'This is being overridden by the <code>invitationTemplate</code> setting in <code>config/campaign-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>invitationTemplate</code> i <code>config/campaign-manager.php</code>.',
     'Logging Settings' => 'Logindstillinger',
     'Activity Logs' => 'Aktivitetslogfiler',
-    'Enable Activity Logs' => 'Aktivér aktivitetslogfiler',
+    'Enable Activity Logs' => 'Aktiver aktivitetslogfiler',
     'Store activity records for auditing and debugging (recipients, imports, campaign runs).' => 'Gem aktivitetsposter til revision og fejlretning (modtagere, importer, kampagnekørsler).',
     'This is being overridden by the <code>enableActivityLogs</code> setting in <code>config/campaign-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>enableActivityLogs</code> i <code>config/campaign-manager.php</code>.',
     'Activity logs are stored in the database. IP, device, and user agent capture will be centralized in Base in a future update.' => 'Aktivitetslogfiler gemmes i databasen. Opsamling af IP, enhed og user agent vil blive centraliseret i Base i en fremtidig opdatering.',
@@ -201,7 +201,7 @@ return [
     'This is being overridden by the <code>activityAutoTrimLogs</code> setting in <code>config/campaign-manager.php</code>.' => 'Dette tilsidesættes af indstillingen <code>activityAutoTrimLogs</code> i <code>config/campaign-manager.php</code>.',
 
     // Settings: Interface
-    'Interface Settings' => 'Grænsefladeindstillinger',
+    'Interface Settings' => 'Brugerflade-indstillinger',
     'Interface' => 'Brugerflade',
 
     // Settings: Field Layout
@@ -303,21 +303,21 @@ return [
     'This cannot be undone.' => 'Dette kan ikke fortrydes.',
 
     // Recipients: Add
-    'This campaign is disabled for all sites. Enable it for at least one site before adding recipients.' => 'Denne kampagne er deaktiveret for alle websteder. Aktivér den for mindst ét websted, før du tilføjer modtagere.',
+    'This campaign is disabled for all sites. Enable it for at least one site before adding recipients.' => 'Denne kampagne er deaktiveret for alle websteder. Aktiver den for mindst ét websted, før du tilføjer modtagere.',
     'This campaign is disabled for the current site. Recipients can only be added for enabled sites.' => 'Denne kampagne er deaktiveret for det aktuelle websted. Modtagere kan kun tilføjes til aktiverede websteder.',
     'The recipient\'s full name' => 'Modtagerens fulde navn',
     'The recipient\'s email address (for email invitations)' => 'Modtagerens e-mailadresse (til e-mailinvitationer)',
     'Phone Number' => 'Telefonnummer',
     'Enter phone number. Paste with country code to auto-detect.' => 'Indtast telefonnummer. Indsæt med landekode for automatisk registrering.',
     'e.g., 94400999' => 'f.eks. 94400999',
-    'No SMS provider configured for this campaign. Configure a provider in the campaign settings to enable SMS invitations.' => 'Ingen SMS-udbyder konfigureret for denne kampagne. Konfigurér en udbyder i kampagneindstillingerne for at aktivere SMS-invitationer.',
+    'No SMS provider configured for this campaign. Configure a provider in the campaign settings to enable SMS invitations.' => 'Ingen SMS-udbyder konfigureret for denne kampagne. Konfigurer en udbyder i kampagneindstillingerne for at aktivere SMS-invitationer.',
     'The recipient\'s phone number (for SMS invitations)' => 'Modtagerens telefonnummer (til SMS-invitationer)',
     'The site for the invitation and response.' => 'Webstedet for invitationen og svaret.',
     'Send Invitation' => 'Send invitation',
     'Queue invitation to be sent after adding.' => 'Sæt invitation i kø til afsendelse efter tilføjelse.',
 
     // Recipients: Import
-    'This campaign is disabled for all sites. Enable it for at least one site before importing recipients.' => 'Denne kampagne er deaktiveret for alle websteder. Aktivér den for mindst ét websted, før du importerer modtagere.',
+    'This campaign is disabled for all sites. Enable it for at least one site before importing recipients.' => 'Denne kampagne er deaktiveret for alle websteder. Aktiver den for mindst ét websted, før du importerer modtagere.',
     'Error:' => 'Fejl:',
     'Import Recipients from CSV' => 'Importer modtagere fra CSV',
     'Upload a CSV file to import recipients into this campaign. You will be able to map columns and preview before importing.' => 'Upload en CSV-fil for at importere modtagere til denne kampagne. Du kan tilknytte kolonner og se en forhåndsvisning inden import.',
@@ -339,7 +339,7 @@ return [
     'Comma (,)' => 'Komma (,)',
     'Semicolon (;)' => 'Semikolon (;)',
     'Tab' => 'Tab',
-    'Pipe (|)' => 'Lodret streg (|)',
+    'Pipe (|)' => 'Pipe (|)',
     'The maximum file size is {size} and the import is limited to {rows} rows per file.' => 'Den maksimale filstørrelse er {size}, og importen er begrænset til {rows} rækker pr. fil.',
     'Upload & Map Columns' => 'Upload og tilknyt kolonner',
     'Template' => 'Skabelon',
