@@ -261,7 +261,16 @@ class Settings extends Model
      */
     public function attributeLabels(): array
     {
-        return array_merge(
+        return array_merge([
+            'invitationRoute' => Craft::t('campaign-manager', 'Invitation Route'),
+            'invitationTemplate' => Craft::t('campaign-manager', 'Invitation Template'),
+            'defaultSenderIdId' => Craft::t('campaign-manager', 'Default Sender ID'),
+            'defaultSenderIdHandle' => Craft::t('campaign-manager', 'Default Sender ID'),
+            'enableActivityLogs' => Craft::t('campaign-manager', 'Enable Activity Logs'),
+            'activityLogsRetention' => Craft::t('campaign-manager', 'Logs Retention (Days)'),
+            'activityLogsLimit' => Craft::t('campaign-manager', 'Logs Limit'),
+            'activityAutoTrimLogs' => Craft::t('campaign-manager', 'Auto Trim Logs'),
+        ],
             $this->pluginNameSettingsLabel(),
             $this->logLevelSettingsLabel(),
             $this->itemsPerPageSettingsLabel(),
