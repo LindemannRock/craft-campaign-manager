@@ -15,8 +15,10 @@ use craft\elements\actions\Restore;
 use craft\elements\actions\SetStatus;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
+use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
+use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\db\CampaignQuery;
 use lindemannrock\campaignmanager\records\CampaignContentRecord;
@@ -36,6 +38,8 @@ use verbb\formie\Formie;
 class Campaign extends Element
 {
     use LoggingTrait;
+
+    private const DATE_FORMAT_PLUGIN_HANDLE = 'campaign-manager';
 
     // Constants
     // =========================================================================
@@ -810,9 +814,28 @@ class Campaign extends Element
                     Craft::t('app', 'Actions'),
                     implode('', $menuItems)
                 );
+
+            case 'dateCreated':
+                return $this->renderDateAttributeHtml($this->dateCreated);
+
+            case 'dateUpdated':
+                return $this->renderDateAttributeHtml($this->dateUpdated);
         }
 
         return parent::attributeHtml($attribute);
+    }
+
+    private function renderDateAttributeHtml(?\DateTime $date): string
+    {
+        if ($date === null) {
+            return '—';
+        }
+
+        return Html::tag(
+            'span',
+            DateFormatHelper::formatDate($date, pluginHandle: self::DATE_FORMAT_PLUGIN_HANDLE) ?? '',
+            ['title' => DateFormatHelper::formatDatetime($date, pluginHandle: self::DATE_FORMAT_PLUGIN_HANDLE) ?? ''],
+        );
     }
 
     /**
