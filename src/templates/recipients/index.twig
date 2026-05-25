@@ -262,7 +262,7 @@
     <td>
         {% set sentDate = item.smsSendDate ?? item.emailSendDate %}
         {% if sentDate %}
-            {{ sentDate|lrDatetime('medium') }}
+            {{ sentDate|lrDatetime }}
         {% else %}
             <span class="light">-</span>
         {% endif %}
@@ -272,7 +272,7 @@
     <td>
         {% set openedDate = item.smsOpenDate ?? item.emailOpenDate %}
         {% if openedDate %}
-            {{ openedDate|lrDatetime('medium') }}
+            {{ openedDate|lrDatetime }}
         {% else %}
             <span class="light">-</span>
         {% endif %}
