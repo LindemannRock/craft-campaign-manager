@@ -3,36 +3,17 @@
  #
  # Scoped to a single campaign + site (locked via URL, not filterable).
  # Filters available: status, date range, search. Sort + paginate handled
- # by base cp-table. All filter/sort/pagination data is prepared by the
- # controller (no per-row queries in this template).
+ # by base cp-table.
+ #
+ # Follows the canonical CP table index-page pattern (SQL-paginated
+ # variant) — see plugins/base/docs/template-guides/cp-table-index-pattern.md.
+ # RecipientsController::actionIndex() owns query-param parsing, allowlist
+ # validation, filter, sort, and pagination. This template stays
+ # presentational. Permission booleans (`canAdd`, `canImport`, `canDelete`,
+ # `canRun`, `canExport`) likewise arrive from the controller.
  #}
 
 {% extends 'lindemannrock-base/_layouts/cp-table' %}
-
-{# ============================================================================
-   PERMISSION CHECKS
-   ============================================================================ #}
-
-{% set canAdd = currentUser.can('campaignManager:addRecipients') %}
-{% set canImport = currentUser.can('campaignManager:importRecipients') %}
-{% set canDelete = currentUser.can('campaignManager:deleteRecipients') %}
-{% set canRun = currentUser.can('campaignManager:runCampaigns') %}
-{% set canExport = currentUser.can('campaignManager:exportRecipients') %}
-
-{# ============================================================================
-   FALLBACKS (controller passes these, but guard against direct render)
-   ============================================================================ #}
-
-{% set search = search ?? craft.app.request.getParam('search', '') %}
-{% set statusFilter = statusFilter ?? craft.app.request.getParam('status', 'all') %}
-{% set dateRange = dateRange ?? craft.app.request.getParam('dateRange', defaultDateRange ?? 'last30days') %}
-{% set sort = sort ?? craft.app.request.getParam('sort', 'sent') %}
-{% set dir = dir ?? craft.app.request.getParam('dir', 'desc') %}
-{% set page = page ?? craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
-{% set limit = limit ?? 50 %}
-{% set totalCount = totalCount ?? 0 %}
-{% set recipients = recipients ?? [] %}
-{% set submissionMap = submissionMap ?? {} %}
 
 {# ============================================================================
    CRUMBS — site switcher (if multi-site) + plugin + campaign + page label
@@ -122,6 +103,8 @@
         totalCount: totalCount,
         itemLabel: {singular: 'recipient'|t('campaign-manager'), plural: 'recipients'|t('campaign-manager')},
     },
+    checkboxes: false,
+    rowActions: canDelete,
 } %}
 
 
@@ -182,18 +165,22 @@
 
 {% block rowActions %}
     {% if canDelete %}
-        <td class="thin" style="text-align: right;">
-            <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('campaign-manager') }}"></button>
-            <div class="menu">
-                <ul>
-                    <li>
-                        <a class="recipient-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.name }}">
-                            {{ 'Delete'|t('campaign-manager') }}
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </td>
+        {% include 'lindemannrock-base/_components/row-actions' with {
+            item: item,
+            actions: {
+                type: 'menu',
+                icon: 'settings',
+                title: 'Actions'|t('campaign-manager'),
+                items: [
+                    {
+                        label: 'Delete'|t('campaign-manager'),
+                        class: 'error',
+                        jsAction: 'delete',
+                        data: {name: item.name},
+                    },
+                ],
+            },
+        } only %}
     {% endif %}
 {% endblock %}
 
@@ -278,57 +265,74 @@
 {% block scripts %}
     <script>
     (function() {
+        if (typeof Craft === 'undefined') return;
+
+        // Pre-translated strings: keep |t() in Twig and emit as JSON-encoded
+        // JS literals via |json_encode|raw — avoids the |e('js') trap.
+        const T = {
+            deleteConfirmTemplate: {{ 'Delete recipient "{name}"? This cannot be undone.'|t('campaign-manager')|json_encode|raw }},
+            recipientDeleted: {{ 'Recipient deleted'|t('campaign-manager')|json_encode|raw }},
+            failedToDeleteRecipient: {{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }},
+            campaignQueued: {{ 'Campaign job queued. Check the queue for progress.'|t('campaign-manager')|json_encode|raw }},
+            noPending: {{ 'No pending recipients to process.'|t('campaign-manager')|json_encode|raw }},
+            failedToRunCampaign: {{ 'Failed to run campaign'|t('campaign-manager')|json_encode|raw }},
+        };
+
         // Run campaign button
         document.getElementById('run-campaign-btn')?.addEventListener('click', function() {
             const campaignId = this.dataset.campaignId;
             const siteId = this.dataset.siteId;
 
             Craft.sendActionRequest('POST', 'campaign-manager/campaigns/run-all', {
-                data: { campaignId: campaignId, siteId: siteId }
+                data: { campaignId: campaignId, siteId: siteId },
             }).then(function(response) {
                 if (response.data.success) {
                     const jobsQueued = response.data.jobsQueued || 0;
                     if (jobsQueued > 0) {
                         const queueUrl = {{ cpUrl('utilities/queue-manager')|json_encode|raw }};
-                        const queueMsg = {{ 'Campaign job queued. Check the queue for progress.'|t('campaign-manager')|json_encode|raw }};
-                        Craft.cp.displayNotice(queueMsg, {
+                        Craft.cp.displayNotice(T.campaignQueued, {
                             details: $('<a/>', {href: queueUrl, text: Craft.t('app', 'View')}),
                         });
                     } else {
-                        Craft.cp.displayNotice({{ 'No pending recipients to process.'|t('campaign-manager')|json_encode|raw }});
+                        Craft.cp.displayNotice(T.noPending);
                     }
                 }
-            }).catch(function(error) {
-                Craft.cp.displayError({{ 'Failed to run campaign'|t('campaign-manager')|json_encode|raw }});
+            }).catch(function() {
+                Craft.cp.displayError(T.failedToRunCampaign);
             });
         });
 
-        // Per-row delete
-        document.querySelectorAll('.recipient-action').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const action = this.dataset.action;
-                const recipientId = this.dataset.id;
-                const recipientName = this.dataset.name;
+        // ---------------------------------------------------------------------
+        // Row-action handlers. Delegated listener on `document`, narrowed by
+        // `a[data-action]` + an explicit action-name allowlist. preventDefault
+        // only after the match. See cp-table-index-pattern.md.
+        // ---------------------------------------------------------------------
+        document.addEventListener('click', function(e) {
+            const trigger = e.target.closest('a[data-action]');
+            if (!trigger) return;
 
-                if (action !== 'delete') return;
-                if (!confirm({{ 'Delete recipient "{name}"? This cannot be undone.'|t('campaign-manager')|json_encode|raw }}.replace('{name}', recipientName))) {
-                    return;
+            const action = trigger.dataset.action;
+            if (action !== 'delete') return;
+
+            const id = trigger.dataset.id;
+            const name = trigger.dataset.name || '';
+            if (!id) return;
+            e.preventDefault();
+
+            if (!confirm(T.deleteConfirmTemplate.replace('{name}', name))) return;
+
+            Craft.sendActionRequest('POST', 'campaign-manager/recipients/delete-from-cp', {
+                data: { id: id },
+            }).then(function(response) {
+                const data = response && response.data;
+                if (data && data.success) {
+                    Craft.cp.displayNotice(T.recipientDeleted);
+                    setTimeout(function() { window.location.reload(); }, 1000);
+                } else {
+                    Craft.cp.displayError((data && data.error) || T.failedToDeleteRecipient);
                 }
-
-                Craft.sendActionRequest('POST', 'campaign-manager/recipients/delete-from-cp', {
-                    data: { id: recipientId }
-                }).then(function(response) {
-                    var data = response && response.data;
-                    if (data && data.success) {
-                        Craft.cp.displayNotice({{ 'Recipient deleted'|t('campaign-manager')|json_encode|raw }});
-                        setTimeout(() => window.location.reload(), 1000);
-                    } else {
-                        Craft.cp.displayError((data && data.error) || {{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
-                    }
-                }).catch(function(error) {
-                    Craft.cp.displayError({{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
-                });
+            }).catch(function() {
+                Craft.cp.displayError(T.failedToDeleteRecipient);
             });
         });
     })();
