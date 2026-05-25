@@ -221,8 +221,8 @@ class Campaign extends Element
     public static function statuses(): array
     {
         return [
-            self::STATUS_ENABLED => Craft::t('app', 'Enabled'),
-            self::STATUS_DISABLED => Craft::t('app', 'Disabled'),
+            self::STATUS_ENABLED => Craft::t('campaign-manager', 'Enabled'),
+            self::STATUS_DISABLED => Craft::t('campaign-manager', 'Disabled'),
         ];
     }
 
@@ -356,20 +356,20 @@ class Campaign extends Element
     protected static function defineSortOptions(): array
     {
         return [
-            'title' => Craft::t('app', 'Title'),
+            'title' => Craft::t('campaign-manager', 'Title'),
             [
                 'label' => Craft::t('campaign-manager', 'Campaign Type'),
                 'orderBy' => 'campaignmanager_campaigns.campaignType',
                 'attribute' => 'campaignType',
             ],
             [
-                'label' => Craft::t('app', 'Date Created'),
+                'label' => Craft::t('campaign-manager', 'Date Created'),
                 'orderBy' => 'elements.dateCreated',
                 'attribute' => 'dateCreated',
                 'defaultDir' => 'desc',
             ],
             [
-                'label' => Craft::t('app', 'Date Updated'),
+                'label' => Craft::t('campaign-manager', 'Date Updated'),
                 'orderBy' => 'elements.dateUpdated',
                 'attribute' => 'dateUpdated',
                 'defaultDir' => 'desc',
@@ -383,16 +383,16 @@ class Campaign extends Element
     protected static function defineTableAttributes(): array
     {
         return [
-            'title' => ['label' => Craft::t('app', 'Title')],
-            'status' => ['label' => Craft::t('app', 'Status')],
+            'title' => ['label' => Craft::t('campaign-manager', 'Title')],
+            'status' => ['label' => Craft::t('campaign-manager', 'Status')],
             'campaignType' => ['label' => Craft::t('campaign-manager', 'Type')],
             'form' => ['label' => Craft::t('campaign-manager', 'Form')],
             'sentCount' => ['label' => Craft::t('campaign-manager', 'Sent')],
             'pendingCount' => ['label' => Craft::t('campaign-manager', 'Pending')],
             'submissionCount' => ['label' => Craft::t('campaign-manager', 'Submissions')],
-            'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
-            'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
-            'actions' => ['label' => Craft::t('app', 'Actions')],
+            'dateCreated' => ['label' => Craft::t('campaign-manager', 'Date Created')],
+            'dateUpdated' => ['label' => Craft::t('campaign-manager', 'Date Updated')],
+            'actions' => ['label' => Craft::t('campaign-manager', 'Actions')],
         ];
     }
 
@@ -811,7 +811,7 @@ class Campaign extends Element
                             <ul>%s</ul>
                         </div>
                     </div>',
-                    Craft::t('app', 'Actions'),
+                    Craft::t('campaign-manager', 'Actions'),
                     implode('', $menuItems)
                 );
 
