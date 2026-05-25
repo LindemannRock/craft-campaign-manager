@@ -26,13 +26,17 @@
         items: sidebarItems,
         selected: 'activity',
     },
+    sort: {
+        field: sort,
+        direction: dir,
+    },
     table: {
         columns: [
-            {key: 'date', label: 'Date'|t('campaign-manager')},
-            {key: 'user', label: 'User'|t('campaign-manager')},
-            {key: 'actionLabel', label: 'Action'|t('campaign-manager')},
-            {key: 'campaignName', label: 'Campaign'|t('campaign-manager')},
-            {key: 'source', label: 'Source'|t('campaign-manager')},
+            {key: 'date', label: 'Date'|t('campaign-manager'), sortable: true},
+            {key: 'user', label: 'User'|t('campaign-manager'), sortable: true},
+            {key: 'actionLabel', label: 'Action'|t('campaign-manager'), sortable: true},
+            {key: 'campaignName', label: 'Campaign'|t('campaign-manager'), sortable: true},
+            {key: 'source', label: 'Source'|t('campaign-manager'), sortable: true},
         ],
         items: logs ?? [],
         emptyMessage: 'No activity logs found yet.'|t('campaign-manager'),
@@ -44,6 +48,8 @@
         totalCount: pagination.totalCount,
         itemLabel: { singular: 'log', plural: 'logs' },
     } : null,
+    checkboxes: false,
+    rowActions: false,
 } %}
 
 {% block toolbarActions %}
