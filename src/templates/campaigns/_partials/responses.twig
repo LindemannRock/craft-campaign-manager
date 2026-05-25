@@ -290,7 +290,7 @@
                                         <h4>{{ 'Form Responses'|t('campaign-manager') }}</h4>
                                         {% if submission %}
                                             <a href="{{ cpUrl('formie/submissions/' ~ form.handle ~ '/' ~ submission.id) }}" class="btn small">
-                                                {{ 'View'|t('app') }}
+                                                {{ 'View'|t('campaign-manager') }}
                                             </a>
                                         {% endif %}
                                     </div>
@@ -339,10 +339,10 @@
                 <div class="responses-pagination-links">
                     {% if page > 1 %}
                         <a class="btn" href="{{ baseUrl }}?{{ pageQuery }}{{ page - 1 }}#responses">
-                            {{ 'Previous'|t('app') }}
+                            {{ 'Previous'|t('campaign-manager') }}
                         </a>
                     {% else %}
-                        <span class="btn disabled">{{ 'Previous'|t('app') }}</span>
+                        <span class="btn disabled">{{ 'Previous'|t('campaign-manager') }}</span>
                     {% endif %}
 
                     <span class="responses-pagination-current">
@@ -351,10 +351,10 @@
 
                     {% if page < totalPages %}
                         <a class="btn" href="{{ baseUrl }}?{{ pageQuery }}{{ page + 1 }}#responses">
-                            {{ 'Next'|t('app') }}
+                            {{ 'Next'|t('campaign-manager') }}
                         </a>
                     {% else %}
-                        <span class="btn disabled">{{ 'Next'|t('app') }}</span>
+                        <span class="btn disabled">{{ 'Next'|t('campaign-manager') }}</span>
                     {% endif %}
                 </div>
             </div>

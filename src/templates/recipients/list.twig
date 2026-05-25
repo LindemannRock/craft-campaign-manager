@@ -52,7 +52,7 @@
         id: 'site-crumb',
         icon: 'world',
         label: site.name|t('site'),
-        menu: { items: siteMenuItems, label: 'Select site'|t('app') },
+        menu: { items: siteMenuItems, label: 'Select site'|t('campaign-manager') },
     }] %}
 {% endif %}
 {% set crumbs = crumbs|merge([
@@ -183,12 +183,12 @@
 {% block rowActions %}
     {% if canDelete %}
         <td class="thin" style="text-align: right;">
-            <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('app') }}"></button>
+            <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('campaign-manager') }}"></button>
             <div class="menu">
                 <ul>
                     <li>
                         <a class="recipient-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.name }}">
-                            {{ 'Delete'|t('app') }}
+                            {{ 'Delete'|t('campaign-manager') }}
                         </a>
                     </li>
                 </ul>

@@ -159,7 +159,7 @@
 {% block bulkActions %}
     {% if canDelete %}
         <button type="button" class="btn secondary" id="lr-bulk-delete-btn">
-            {{ 'Delete'|t('app') }} (<span id="lr-selected-count">0</span>)
+            {{ 'Delete'|t('campaign-manager') }} (<span id="lr-selected-count">0</span>)
         </button>
     {% endif %}
 {% endblock %}
@@ -171,7 +171,7 @@
 
 {% block rowActions %}
     <td class="thin" style="text-align: right;">
-        <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('app') }}"></button>
+        <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('campaign-manager') }}"></button>
         <div class="menu">
             <ul>
                 {% if item.submissionId %}
@@ -188,7 +188,7 @@
                 {% if canDelete %}
                     <li>
                         <a class="lr-recipient-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.name }}">
-                            {{ 'Delete'|t('app') }}
+                            {{ 'Delete'|t('campaign-manager') }}
                         </a>
                     </li>
                 {% endif %}

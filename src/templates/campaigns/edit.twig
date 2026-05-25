@@ -21,7 +21,7 @@
         label: currentSite.name|t('site'),
         menu: {
             items: siteMenuItems(null, currentSite),
-            label: 'Select site'|t('app')
+            label: 'Select site'|t('campaign-manager')
         }
     }] %}
 {% endif %}
@@ -69,13 +69,13 @@
 
 {% block actionButton %}
     <div class="btngroup submit">
-        <button type="submit" class="btn submit">{{ 'Save'|t('app') }}</button>
+        <button type="submit" class="btn submit">{{ 'Save'|t('campaign-manager') }}</button>
         <button type="button" class="btn submit menubtn"></button>
         <div class="menu">
             <ul role="listbox">
                 <li>
                     <a class="formsubmit" role="option" tabindex="0" data-redirect="{{ url('campaign-manager/campaigns/{id}', {site: currentSite.handle})|hash }}">
-                        <span class="label">{{ 'Save and continue editing'|t('app') }}</span>
+                        <span class="label">{{ 'Save and continue editing'|t('campaign-manager') }}</span>
                         <span class="shortcut" id="save-shortcut"></span>
                     </a>
                 </li>
@@ -83,13 +83,13 @@
         </div>
     </div>
     {% if campaign.id and currentUser.can('campaignManager:deleteCampaigns') %}
-        <button type="button" id="action-btn" class="btn menubtn action-btn hairline-dark m" title="{{ 'Actions'|t('app') }}" aria-controls="action-menu" aria-label="{{ 'Actions'|t('app') }}" data-disclosure-trigger="true" aria-expanded="false"></button>
+        <button type="button" id="action-btn" class="btn menubtn action-btn hairline-dark m" title="{{ 'Actions'|t('campaign-manager') }}" aria-controls="action-menu" aria-label="{{ 'Actions'|t('campaign-manager') }}" data-disclosure-trigger="true" aria-expanded="false"></button>
         <div id="action-menu" class="menu menu--disclosure">
             <ul>
                 <li>
                     <button class="menu-item error formsubmit" data-destructive data-action="campaign-manager/campaigns/delete" data-params='{"campaignId":{{ campaign.id }}}' data-confirm="{{ 'Are you sure you want to delete this campaign?'|t('campaign-manager') }}" data-redirect="{{ 'campaign-manager'|hash }}" data-headers='{"Accept":"application/json"}'>
                         <span class="icon">{{ svg('@app/icons/trash.svg') }}</span>
-                        <span class="menu-item-label">{{ 'Delete'|t('app') }}</span>
+                        <span class="menu-item-label">{{ 'Delete'|t('campaign-manager') }}</span>
                     </button>
                 </li>
             </ul>
@@ -149,7 +149,7 @@
     <div id="fields">
         {# Title #}
         {{ forms.textField({
-            label: 'Title'|t('app'),
+            label: 'Title'|t('campaign-manager'),
             id: 'title',
             name: 'title',
             value: campaign.title,
@@ -669,7 +669,7 @@
     <div class="meta">
         {# Enabled #}
         {{ forms.lightswitchField({
-            label: 'Enabled'|t('app'),
+            label: 'Enabled'|t('campaign-manager'),
             id: 'enabled',
             name: 'enabled',
             on: campaign.getEnabledForSite(),
@@ -681,7 +681,7 @@
         {% if campaign.id and (canViewRecipients or canAddRecipients or canImportRecipients) %}
             <div class="field" style="margin-top: 15px;">
                 <div class="heading">
-                    <label>{{ 'Actions'|t('app') }}</label>
+                    <label>{{ 'Actions'|t('campaign-manager') }}</label>
                 </div>
                 <div class="input">
                     <div class="btngroup" style="width: 100%;">
@@ -734,11 +734,11 @@
                 <div class="value">{{ campaign.pendingCount }}</div>
             </div>
             <div class="data">
-                <h5 class="heading">{{ 'Created at'|t('app') }}</h5>
+                <h5 class="heading">{{ 'Created at'|t('campaign-manager') }}</h5>
                 <div class="value">{{ campaign.dateCreated|lrDatetime }}</div>
             </div>
             <div class="data">
-                <h5 class="heading">{{ 'Updated at'|t('app') }}</h5>
+                <h5 class="heading">{{ 'Updated at'|t('campaign-manager') }}</h5>
                 <div class="value">{{ campaign.dateUpdated|lrDatetime }}</div>
             </div>
         </div>
