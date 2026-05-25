@@ -44,11 +44,36 @@ class ActivityLogsController extends Controller
 
         $user = Craft::$app->getUser();
         $settings = Craft::$app->getPlugins()->getPlugin('campaign-manager')->getSettings();
-        $page = (int) Craft::$app->getRequest()->getParam('page', 1);
-        $limit = $settings->itemsPerPage ?? 50;
-        $offset = max(0, ($page - 1) * $limit);
+        $request = Craft::$app->getRequest();
 
-        $query = ActivityLogRecord::find()->orderBy(['dateCreated' => SORT_DESC]);
+        // ---- Param parsing + allowlist validation -------------------------
+        // `date` maps to the underlying `dateCreated` column; the other four
+        // map to their natural columns. Off-list values snap to `date`.
+        $validSortFields = ['date', 'user', 'actionLabel', 'campaignName', 'source'];
+        $sort = (string) $request->getParam('sort', 'date');
+        if (!in_array($sort, $validSortFields, true)) {
+            $sort = 'date';
+        }
+        $dir = strtolower((string) $request->getParam('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $page = max(1, (int) $request->getParam('page', 1));
+        $limit = max(1, (int) ($settings->itemsPerPage ?? 50));
+        $offset = ($page - 1) * $limit;
+
+        // Map sort key → underlying SQL column. `user` and `campaignName` sort
+        // by the foreign-key id columns rather than the joined names — close
+        // enough for grouping, avoids a JOIN. `actionLabel` sorts by `action`
+        // (the machine slug), which keeps action types grouped together.
+        $sortColumn = match ($sort) {
+            'user' => 'userId',
+            'actionLabel' => 'action',
+            'campaignName' => 'campaignId',
+            'source' => 'source',
+            default => 'dateCreated',
+        };
+        $direction = $dir === 'asc' ? SORT_ASC : SORT_DESC;
+
+        $query = ActivityLogRecord::find()->orderBy([$sortColumn => $direction]);
         $totalCount = $query->count();
 
         /** @var ActivityLogRecord[] $records */
@@ -186,6 +211,8 @@ class ActivityLogsController extends Controller
             'logMenuItems' => $logMenuItems,
             'logMenuLabel' => $logMenuLabel,
             'logs' => $items,
+            'sort' => $sort,
+            'dir' => $dir,
             'pagination' => [
                 'page' => $page,
                 'limit' => $limit,
