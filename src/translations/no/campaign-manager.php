@@ -399,6 +399,18 @@ return [
     'No Valid Recipients to Import' => 'Ingen gyldige mottakere å importere',
     'Yes' => 'Ja',
     'No' => 'Nei',
+    'Created at' => 'Opprettet',
+    'Date Updated' => 'Oppdateringsdato',
+    'Disabled' => 'Deaktivert',
+    'Enabled' => 'Aktivert',
+    'Next' => 'Neste',
+    'Previous' => 'Forrige',
+    'Save' => 'Lagre',
+    'Save and continue editing' => 'Lagre og fortsett redigering',
+    'Select site' => 'Velg nettsted',
+    'Title' => 'Tittel',
+    'Updated at' => 'Oppdatert',
+    'View' => 'Vis',
 
     // Analytics page
     'Overview' => 'Oversikt',

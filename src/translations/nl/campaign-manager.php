@@ -399,6 +399,18 @@ return [
     'No Valid Recipients to Import' => 'Geen geldige ontvangers om te importeren',
     'Yes' => 'Ja',
     'No' => 'Nee',
+    'Created at' => 'Gemaakt op',
+    'Date Updated' => 'Datum geüpdate',
+    'Disabled' => 'Uitgeschakeld',
+    'Enabled' => 'Ingeschakeld',
+    'Next' => 'Volgende',
+    'Previous' => 'Vorige',
+    'Save' => 'Opslaan',
+    'Save and continue editing' => 'Opslaan en doorgaan met aanpassen',
+    'Select site' => 'Site kiezen',
+    'Title' => 'Titel',
+    'Updated at' => 'Geüpdatet op',
+    'View' => 'Bekijken',
 
     // Analytics page
     'Overview' => 'Overzicht',

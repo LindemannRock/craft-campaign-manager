@@ -64,6 +64,18 @@ return [
     'Submissions' => '送信件数',
     'Total Recipients' => '受信者合計',
     'Yes' => 'はい',
+    'Created at' => '作成日時',
+    'Date Updated' => '更新日',
+    'Disabled' => '無効',
+    'Enabled' => '有効',
+    'Next' => '次へ',
+    'Previous' => '前へ',
+    'Save' => '保存する',
+    'Save and continue editing' => '保存して編集を続ける',
+    'Select site' => 'サイトを選択する',
+    'Title' => 'タイトル',
+    'Updated at' => '更新日時',
+    'View' => '表示',
 
     // Element
     'campaign' => 'キャンペーン',

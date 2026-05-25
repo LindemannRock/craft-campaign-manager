@@ -399,6 +399,18 @@ return [
     'No Valid Recipients to Import' => 'لا يوجد مستلمون صالحون للاستيراد',
     'Yes' => 'نعم',
     'No' => 'لا',
+    'Created at' => 'تم الإنشاء في',
+    'Date Updated' => 'تاريخ التحديث',
+    'Disabled' => 'معطّل',
+    'Enabled' => 'مفعّل',
+    'Next' => 'التالي',
+    'Previous' => 'السابق',
+    'Save' => 'حفظ',
+    'Save and continue editing' => 'حفظ وإكمال التحرير',
+    'Select site' => 'اختيار الموقع',
+    'Title' => 'العنوان',
+    'Updated at' => 'تم التحديث في',
+    'View' => 'عرض',
 
     // Analytics page
     'Overview' => 'نظرة عامة',

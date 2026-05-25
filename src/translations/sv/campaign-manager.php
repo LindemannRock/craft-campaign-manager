@@ -399,6 +399,18 @@ return [
     'No Valid Recipients to Import' => 'Inga giltiga mottagare att importera',
     'Yes' => 'Ja',
     'No' => 'Nej',
+    'Created at' => 'Skapad',
+    'Date Updated' => 'Uppdateringsdatum',
+    'Disabled' => 'Inaktiverad',
+    'Enabled' => 'Aktiverad',
+    'Next' => 'Nästa',
+    'Previous' => 'Föregående',
+    'Save' => 'Spara',
+    'Save and continue editing' => 'Spara och fortsätt redigera',
+    'Select site' => 'Välj webbplats',
+    'Title' => 'Titel',
+    'Updated at' => 'Uppdaterad',
+    'View' => 'Visa',
 
     // Analytics page
     'Overview' => 'Översikt',

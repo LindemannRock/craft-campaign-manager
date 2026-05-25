@@ -64,6 +64,18 @@ return [
     'Submissions' => 'Submissions',
     'Total Recipients' => 'Total Recipients',
     'Yes' => 'Yes',
+    'Created at' => 'Created at',
+    'Date Updated' => 'Date Updated',
+    'Disabled' => 'Disabled',
+    'Enabled' => 'Enabled',
+    'Next' => 'Next',
+    'Previous' => 'Previous',
+    'Save' => 'Save',
+    'Save and continue editing' => 'Save and continue editing',
+    'Select site' => 'Select site',
+    'Title' => 'Title',
+    'Updated at' => 'Updated at',
+    'View' => 'View',
 
     // Element
     'campaign' => 'campaign',

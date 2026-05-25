@@ -399,6 +399,18 @@ return [
     'No Valid Recipients to Import' => 'Nenhum destinatário válido para importar',
     'Yes' => 'Sim',
     'No' => 'Não',
+    'Created at' => 'Criado a',
+    'Date Updated' => 'Data de atualização',
+    'Disabled' => 'Desativado',
+    'Enabled' => 'Ativado',
+    'Next' => 'Seguinte',
+    'Previous' => 'Anterior',
+    'Save' => 'Guardar',
+    'Save and continue editing' => 'Guardar e continuar a editar',
+    'Select site' => 'Selecionar site',
+    'Title' => 'Título',
+    'Updated at' => 'Atualizado a',
+    'View' => 'Ver',
 
     // Analytics page
     'Overview' => 'Visão geral',
