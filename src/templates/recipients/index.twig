@@ -1,34 +1,19 @@
 {#
- # Recipients Index - Using cp-table layout
+ # Recipients Index — Using cp-table layout
  #
  # Global view of all recipients across all campaigns with filters,
  # sorting, and bulk actions.
+ #
+ # Follows the canonical CP table index-page pattern (SQL-paginated
+ # variant) — see plugins/base/docs/template-guides/cp-table-index-pattern.md.
+ # RecipientsController::actionGlobalIndex() owns query-param parsing,
+ # allowlist validation, filter, sort, and pagination. This template stays
+ # presentational and renders the already-sliced `recipients` plus the
+ # filter/sort state handed in. Permission booleans (`canView`, `canDelete`,
+ # `canExport`) likewise arrive from the controller.
  #}
 
 {% extends 'lindemannrock-base/_layouts/cp-table' %}
-
-{# ============================================================================
-   PERMISSION CHECKS
-   ============================================================================ #}
-
-{% set canView = currentUser.can('campaignManager:manageRecipients') %}
-{% set canDelete = currentUser.can('campaignManager:deleteRecipients') %}
-
-{# ============================================================================
-   GET QUERY PARAMETERS (from controller, fallback to request for safety)
-   ============================================================================ #}
-
-{% set search = search ?? craft.app.request.getParam('search', '') %}
-{% set campaignFilter = campaignFilter ?? craft.app.request.getParam('campaign', 'all') %}
-{% set statusFilter = statusFilter ?? craft.app.request.getParam('status', 'all') %}
-{% set siteFilterParam = siteFilterParam ?? craft.app.request.getParam('siteFilter', 'all') %}
-{% set dateRange = dateRange ?? craft.app.request.getParam('dateRange', defaultDateRange ?? 'last30days') %}
-{% set sort = sort ?? craft.app.request.getParam('sort', 'sent') %}
-{% set dir = dir ?? craft.app.request.getParam('dir', 'desc') %}
-{% set page = page ?? craft.app.request.getParam('page', 1)|number_format(0, '', '') %}
-{% set limit = limit ?? 50 %}
-{% set totalCount = totalCount ?? 0 %}
-{% set paginatedRecipients = recipients %}
 
 {# ============================================================================
    BUILD FILTER OPTIONS
@@ -121,7 +106,7 @@
             {key: 'opened', label: 'Opened'|t('campaign-manager'), sortable: true},
             {key: 'response', label: 'Response'|t('campaign-manager')},
         ],
-        items: paginatedRecipients,
+        items: recipients,
         emptyMessage: 'No recipients found.'|t('campaign-manager'),
     },
     pagination: {
@@ -131,6 +116,7 @@
         itemLabel: {singular: 'recipient'|t('campaign-manager'), plural: 'recipients'|t('campaign-manager')},
     },
     checkboxes: canDelete,
+    rowActions: canDelete,
 } %}
 
 
@@ -139,16 +125,18 @@
    ============================================================================ #}
 
 {% block toolbarActions %}
-    {% include 'lindemannrock-base/_components/export-menu' with {
-        action: 'campaign-manager/recipients/export',
-        permission: 'campaignManager:exportRecipients',
-        pluginHandle: pluginHandle,
-        extraParams: {
-            campaign: campaignFilter,
-            siteFilter: siteFilterParam,
-            status: statusFilter,
-        },
-    } only %}
+    {% if canExport %}
+        {% include 'lindemannrock-base/_components/export-menu' with {
+            action: 'campaign-manager/recipients/export',
+            permission: 'campaignManager:exportRecipients',
+            pluginHandle: pluginHandle,
+            extraParams: {
+                campaign: campaignFilter,
+                siteFilter: siteFilterParam,
+                status: statusFilter,
+            },
+        } only %}
+    {% endif %}
 {% endblock %}
 
 
@@ -170,31 +158,41 @@
    ============================================================================ #}
 
 {% block rowActions %}
-    <td class="thin" style="text-align: right;">
-        <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('campaign-manager') }}"></button>
-        <div class="menu">
-            <ul>
-                {% if item.submissionId %}
-                    {% set submission = submissionMap[item.submissionId] ?? null %}
-                    {% if submission %}
-                        <li>
-                            <a href="{{ submission.cpEditUrl }}">
-                                {{ 'View Response'|t('campaign-manager') }}
-                            </a>
-                        </li>
-                        <li><hr class="padded"></li>
-                    {% endif %}
-                {% endif %}
-                {% if canDelete %}
-                    <li>
-                        <a class="lr-recipient-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.name }}">
-                            {{ 'Delete'|t('campaign-manager') }}
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-    </td>
+    {% set actionItems = [] %}
+
+    {% if item.submissionId %}
+        {% set submission = submissionMap[item.submissionId] ?? null %}
+        {% if submission %}
+            {% set actionItems = actionItems|merge([{
+                label: 'View Response'|t('campaign-manager'),
+                url: submission.cpEditUrl,
+            }]) %}
+        {% endif %}
+    {% endif %}
+
+    {% if canDelete %}
+        {% if actionItems|length %}
+            {% set actionItems = actionItems|merge([{type: 'divider'}]) %}
+        {% endif %}
+        {% set actionItems = actionItems|merge([{
+            label: 'Delete'|t('campaign-manager'),
+            class: 'error',
+            jsAction: 'delete',
+            data: {name: item.name},
+        }]) %}
+    {% endif %}
+
+    {% if actionItems|length > 0 %}
+        {% include 'lindemannrock-base/_components/row-actions' with {
+            item: item,
+            actions: {
+                type: 'menu',
+                icon: 'settings',
+                title: 'Actions'|t('campaign-manager'),
+                items: actionItems,
+            },
+        } only %}
+    {% endif %}
 {% endblock %}
 
 
@@ -301,71 +299,86 @@
 {% block scripts %}
     <script>
     (function() {
+        if (typeof Craft === 'undefined') return;
+
+        // Pre-translated strings: keep |t() in Twig and emit as JSON-encoded
+        // JS literals via |json_encode|raw — avoids the |e('js') trap.
+        const T = {
+            deleteConfirmTemplate: {{ 'Delete recipient "{name}"? This cannot be undone.'|t('campaign-manager')|json_encode|raw }},
+            recipientDeleted: {{ 'Recipient deleted'|t('campaign-manager')|json_encode|raw }},
+            failedToDeleteRecipient: {{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }},
+            bulkDeleteConfirmTemplate: {{ 'Delete {count} recipient(s)? This cannot be undone.'|t('campaign-manager')|json_encode|raw }},
+            bulkDeletedTemplate: {{ 'Deleted {count} recipients'|t('campaign-manager')|json_encode|raw }},
+            bulkDeleteFailed: {{ 'Failed to delete recipients'|t('campaign-manager')|json_encode|raw }},
+        };
+
+        function selectedIds() {
+            return window.lrTableSelection ? window.lrTableSelection.getSelectedIds() : [];
+        }
+
         // Update selected count when selection changes
         document.addEventListener('lr:selectionChanged', function(e) {
             const countSpan = document.getElementById('lr-selected-count');
             if (countSpan) {
-                countSpan.textContent = e.detail.count;
+                countSpan.textContent = e.detail && typeof e.detail.count === 'number' ? e.detail.count : 0;
             }
         });
 
-        // Bulk delete
-        document.getElementById('lr-bulk-delete-btn')?.addEventListener('click', function(e) {
+        // ---------------------------------------------------------------------
+        // Row-action handlers. Delegated listener on `document`, narrowed by
+        // `a[data-action]` + an explicit action-name allowlist. preventDefault
+        // only after the match. See cp-table-index-pattern.md.
+        // ---------------------------------------------------------------------
+        document.addEventListener('click', function(e) {
+            const trigger = e.target.closest('a[data-action]');
+            if (!trigger) return;
+
+            const action = trigger.dataset.action;
+            if (action !== 'delete') return;
+
+            const id = trigger.dataset.id;
+            const name = trigger.dataset.name || '';
+            if (!id) return;
             e.preventDefault();
-            if (!window.lrTableSelection) return;
 
-            const ids = window.lrTableSelection.getSelectedIds();
-            const count = window.lrTableSelection.getCount();
+            if (!confirm(T.deleteConfirmTemplate.replace('{name}', name))) return;
 
-            if (count === 0) return;
-
-            if (!confirm({{ 'Delete {count} recipient(s)? This cannot be undone.'|t('campaign-manager')|json_encode|raw }}.replace('{count}', count))) {
-                return;
-            }
-
-            Craft.sendActionRequest('POST', 'campaign-manager/recipients/bulk-delete', {
-                data: { recipientIds: ids }
+            Craft.sendActionRequest('POST', 'campaign-manager/recipients/delete-from-cp', {
+                data: { id: id },
             }).then(function(response) {
-                if (response.data.count > 0) {
-                    Craft.cp.displayNotice({{ 'Deleted {count} recipients'|t('campaign-manager')|json_encode|raw }}.replace('{count}', response.data.count));
+                const data = response && response.data;
+                if (data && data.success) {
+                    Craft.cp.displayNotice(T.recipientDeleted);
+                    setTimeout(function() { window.location.reload(); }, 1000);
+                } else {
+                    Craft.cp.displayError((data && data.error) || T.failedToDeleteRecipient);
                 }
-                if (response.data.errors && response.data.errors.length > 0) {
-                    response.data.errors.forEach(err => Craft.cp.displayError(err));
-                }
-                if (response.data.count > 0) {
-                    setTimeout(() => window.location.reload(), 1000);
-                }
-            }).catch(function(error) {
-                Craft.cp.displayError({{ 'Failed to delete recipients'|t('campaign-manager')|json_encode|raw }});
+            }).catch(function() {
+                Craft.cp.displayError(T.failedToDeleteRecipient);
             });
         });
 
-        // Individual recipient action menu clicks
-        document.querySelectorAll('.lr-recipient-action').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
+        // Bulk delete
+        document.getElementById('lr-bulk-delete-btn')?.addEventListener('click', function() {
+            const ids = selectedIds();
+            if (!ids.length) return;
+            if (!confirm(T.bulkDeleteConfirmTemplate.replace('{count}', ids.length))) return;
 
-                const action = this.dataset.action;
-                const recipientId = this.dataset.id;
-                const recipientName = this.dataset.name;
-
-                if (action === 'delete') {
-                    if (confirm({{ 'Delete recipient "{name}"? This cannot be undone.'|t('campaign-manager')|json_encode|raw }}.replace('{name}', recipientName))) {
-                        Craft.sendActionRequest('POST', 'campaign-manager/recipients/delete-from-cp', {
-                            data: { id: recipientId }
-                        }).then(function(response) {
-                            var data = response && response.data;
-                            if (data && data.success) {
-                                Craft.cp.displayNotice({{ 'Recipient deleted'|t('campaign-manager')|json_encode|raw }});
-                                setTimeout(() => window.location.reload(), 1000);
-                            } else {
-                                Craft.cp.displayError((data && data.error) || {{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
-                            }
-                        }).catch(function(error) {
-                            Craft.cp.displayError({{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }});
-                        });
-                    }
+            Craft.sendActionRequest('POST', 'campaign-manager/recipients/bulk-delete', {
+                data: { recipientIds: ids },
+            }).then(function(response) {
+                const count = response.data.count || 0;
+                if (count > 0) {
+                    Craft.cp.displayNotice(T.bulkDeletedTemplate.replace('{count}', count));
                 }
+                if (Array.isArray(response.data.errors)) {
+                    response.data.errors.forEach(function(err) { Craft.cp.displayError(err); });
+                }
+                if (count > 0) {
+                    setTimeout(function() { window.location.reload(); }, 1000);
+                }
+            }).catch(function() {
+                Craft.cp.displayError(T.bulkDeleteFailed);
             });
         });
     })();
