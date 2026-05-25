@@ -44,19 +44,41 @@ class RecipientsController extends Controller
 
         $settings = CampaignManager::$plugin->getSettings();
         $request = Craft::$app->getRequest();
+        $user = Craft::$app->getUser();
 
-        $search = $request->getParam('search', '');
-        $campaignFilter = $request->getParam('campaign', 'all');
-        $statusFilter = $request->getParam('status', 'all');
-        $siteFilter = $request->getParam('siteFilter', 'all');
-        $dateRange = $request->getParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
-        $sort = $request->getParam('sort', 'sent');
-        $dir = $request->getParam('dir', 'desc');
-        $page = (int)$request->getParam('page', 1);
-        if ($page < 1) {
-            $page = 1;
+        // ---- Param parsing + allowlist validation -------------------------
+        // Every parameter that controls filtering or sorting goes through an
+        // explicit allowlist. Off-list values snap back to the default.
+
+        $statusFilter = (string) $request->getParam('status', 'all');
+        $validStatuses = ['all', 'pending', 'sent'];
+        if (!in_array($statusFilter, $validStatuses, true)) {
+            $statusFilter = 'all';
         }
-        $limit = 50;
+
+        // 64-char defensive clamp on free-text search. Keeps a runaway payload
+        // (URL of any length) from reaching the LIKE comparison.
+        $search = trim((string) $request->getParam('search', ''));
+        if (mb_strlen($search) > 64) {
+            $search = mb_substr($search, 0, 64);
+        }
+
+        $dateRange = (string) $request->getParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
+
+        // `campaign` and `siteFilter` accept dynamic id values; validated below
+        // after we know the legal value space. Default 'all' for both.
+        $campaignFilter = (string) $request->getParam('campaign', 'all');
+        $siteFilter = (string) $request->getParam('siteFilter', 'all');
+
+        $validSortFields = ['name', 'campaign', 'sent', 'opened'];
+        $sort = (string) $request->getParam('sort', 'sent');
+        if (!in_array($sort, $validSortFields, true)) {
+            $sort = 'sent';
+        }
+        $dir = strtolower((string) $request->getParam('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $page = max(1, (int) $request->getParam('page', 1));
+        $limit = max(1, (int) ($settings->itemsPerPage ?? 50));
         $offset = ($page - 1) * $limit;
 
         // Get campaigns for filter dropdown (scoped to editable sites)
@@ -67,23 +89,33 @@ class RecipientsController extends Controller
             ->all();
 
         $campaignOptions = [];
+        $validCampaignIds = [];
         foreach ($campaigns as $campaign) {
             $campaignOptions[] = [
                 'value' => $campaign->id,
                 'label' => $campaign->title,
             ];
+            $validCampaignIds[] = (string) $campaign->id;
         }
 
+        // Validate `campaign` against the in-scope campaign IDs so stale URL
+        // params (or values for campaigns the user can't see) snap to 'all'.
+        if ($campaignFilter !== 'all' && !in_array($campaignFilter, $validCampaignIds, true)) {
+            $campaignFilter = 'all';
+        }
+
+        // ---- Load + filter ------------------------------------------------
         $query = RecipientRecord::find();
 
         if ($campaignFilter !== 'all') {
             $query->andWhere(['campaignId' => $campaignFilter]);
         }
 
-        // Scope to editable sites
+        // Scope to editable sites. `siteFilter` is validated against the
+        // editable-sites allowlist below before reaching SQL.
         $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
         if ($siteFilter !== 'all') {
-            $siteId = (int)$siteFilter;
+            $siteId = (int) $siteFilter;
             if (!in_array($siteId, $editableSiteIds, true)) {
                 throw new \yii\web\ForbiddenHttpException('You do not have permission to view recipients for this site.');
             }
@@ -120,13 +152,12 @@ class RecipientsController extends Controller
             ]);
         }
 
-        $direction = strtolower($dir) === 'asc' ? 'ASC' : 'DESC';
+        // ---- Sort + paginate ----------------------------------------------
+        $direction = $dir === 'asc' ? 'ASC' : 'DESC';
         $sortField = match ($sort) {
             'name' => 'name',
             'campaign' => 'campaignId',
-            'sent' => 'sent',
             'opened' => 'opened',
-            'dateCreated' => 'dateCreated',
             default => 'sent',
         };
 
@@ -202,7 +233,7 @@ class RecipientsController extends Controller
             'siteFilterParam' => $siteFilter,
             'dateRange' => $dateRange,
             'sort' => $sort,
-            'dir' => strtolower($dir),
+            'dir' => $dir,
             'campaignOptions' => $campaignOptions,
             'campaignMap' => $campaignMap,
             'siteMap' => $siteMap,
@@ -210,6 +241,9 @@ class RecipientsController extends Controller
             'settings' => $settings,
             'pluginHandle' => CampaignManager::$plugin->id,
             'defaultDateRange' => DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id),
+            'canView' => $user->checkPermission('campaignManager:manageRecipients'),
+            'canDelete' => $user->checkPermission('campaignManager:deleteRecipients'),
+            'canExport' => $user->checkPermission('campaignManager:exportRecipients'),
         ]);
     }
 
@@ -582,6 +616,7 @@ class RecipientsController extends Controller
 
         $settings = CampaignManager::$plugin->getSettings();
         $request = Craft::$app->getRequest();
+        $user = Craft::$app->getUser();
 
         $siteHandle = $request->getQueryParam('site');
         if ($siteHandle) {
@@ -600,18 +635,36 @@ class RecipientsController extends Controller
             throw new \yii\web\NotFoundHttpException('Campaign not found');
         }
 
-        $search = $request->getParam('search', '');
-        $statusFilter = $request->getParam('status', 'all');
-        $dateRange = $request->getParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
-        $sort = $request->getParam('sort', 'sent');
-        $dir = $request->getParam('dir', 'desc');
-        $page = (int)$request->getParam('page', 1);
-        if ($page < 1) {
-            $page = 1;
+        // ---- Param parsing + allowlist validation -------------------------
+        // Every parameter that controls filtering or sorting goes through an
+        // explicit allowlist. Off-list values snap back to the default.
+
+        $statusFilter = (string) $request->getParam('status', 'all');
+        $validStatuses = ['all', 'pending', 'sent'];
+        if (!in_array($statusFilter, $validStatuses, true)) {
+            $statusFilter = 'all';
         }
-        $limit = 50;
+
+        // 64-char defensive clamp on free-text search.
+        $search = trim((string) $request->getParam('search', ''));
+        if (mb_strlen($search) > 64) {
+            $search = mb_substr($search, 0, 64);
+        }
+
+        $dateRange = (string) $request->getParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
+
+        $validSortFields = ['name', 'sent', 'opened'];
+        $sort = (string) $request->getParam('sort', 'sent');
+        if (!in_array($sort, $validSortFields, true)) {
+            $sort = 'sent';
+        }
+        $dir = strtolower((string) $request->getParam('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $page = max(1, (int) $request->getParam('page', 1));
+        $limit = max(1, (int) ($settings->itemsPerPage ?? 50));
         $offset = ($page - 1) * $limit;
 
+        // ---- Load + filter ------------------------------------------------
         $query = RecipientRecord::find()
             ->where([
                 'campaignId' => $campaignId,
@@ -646,22 +699,15 @@ class RecipientsController extends Controller
             ]);
         }
 
-        $direction = strtolower($dir) === 'asc' ? 'ASC' : 'DESC';
-        $sortField = match ($sort) {
-            'name' => 'name',
-            'email' => 'email',
-            'sms' => 'sms',
-            'sent' => 'sent',
-            'opened' => 'opened',
-            default => 'sent',
-        };
+        // ---- Sort + paginate ----------------------------------------------
+        $direction = $dir === 'asc' ? 'ASC' : 'DESC';
 
-        if ($sortField === 'sent') {
+        if ($sort === 'sent') {
             $query->orderBy(new \yii\db\Expression('COALESCE([[smsSendDate]], [[emailSendDate]]) ' . $direction));
-        } elseif ($sortField === 'opened') {
+        } elseif ($sort === 'opened') {
             $query->orderBy(new \yii\db\Expression('COALESCE([[smsOpenDate]], [[emailOpenDate]]) ' . $direction));
         } else {
-            $query->orderBy([$sortField => $direction === 'ASC' ? SORT_ASC : SORT_DESC]);
+            $query->orderBy(['name' => $direction === 'ASC' ? SORT_ASC : SORT_DESC]);
         }
 
         $totalCount = (clone $query)->count();
@@ -701,10 +747,15 @@ class RecipientsController extends Controller
             'statusFilter' => $statusFilter,
             'dateRange' => $dateRange,
             'sort' => $sort,
-            'dir' => strtolower($dir),
+            'dir' => $dir,
             'settings' => $settings,
             'pluginHandle' => CampaignManager::$plugin->id,
             'defaultDateRange' => DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id),
+            'canAdd' => $user->checkPermission('campaignManager:addRecipients'),
+            'canImport' => $user->checkPermission('campaignManager:importRecipients'),
+            'canDelete' => $user->checkPermission('campaignManager:deleteRecipients'),
+            'canRun' => $user->checkPermission('campaignManager:runCampaigns'),
+            'canExport' => $user->checkPermission('campaignManager:exportRecipients'),
         ]);
     }
 
