@@ -241,7 +241,7 @@ class RecipientsController extends Controller
             'settings' => $settings,
             'pluginHandle' => CampaignManager::$plugin->id,
             'defaultDateRange' => DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id),
-            'canView' => $user->checkPermission('campaignManager:manageRecipients'),
+            'canManage' => $user->checkPermission('campaignManager:manageRecipients'),
             'canDelete' => $user->checkPermission('campaignManager:deleteRecipients'),
             'canExport' => $user->checkPermission('campaignManager:exportRecipients'),
         ]);
