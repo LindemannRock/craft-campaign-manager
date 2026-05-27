@@ -88,19 +88,19 @@ class Campaign extends Element
      * @var int|null Precomputed sent-recipient count from element queries.
      * @since 5.12.0
      */
-    public ?int $sentCount = null;
+    public ?int $precomputedSentCount = null;
 
     /**
      * @var int|null Precomputed pending-recipient count from element queries.
      * @since 5.12.0
      */
-    public ?int $pendingCount = null;
+    public ?int $precomputedPendingCount = null;
 
     /**
      * @var int|null Precomputed submission count from element queries.
      * @since 5.12.0
      */
-    public ?int $submissionCount = null;
+    public ?int $precomputedSubmissionCount = null;
 
     /**
      * @var string|null Invitation delay period (non-translatable)
@@ -541,8 +541,8 @@ class Campaign extends Element
      */
     public function getSentCount(): int
     {
-        if ($this->sentCount !== null) {
-            return $this->sentCount;
+        if ($this->precomputedSentCount !== null) {
+            return $this->precomputedSentCount;
         }
 
         return $this->_countRecipients([
@@ -559,8 +559,8 @@ class Campaign extends Element
      */
     public function getPendingCount(): int
     {
-        if ($this->pendingCount !== null) {
-            return $this->pendingCount;
+        if ($this->precomputedPendingCount !== null) {
+            return $this->precomputedPendingCount;
         }
 
         return $this->_countRecipients([
@@ -575,8 +575,8 @@ class Campaign extends Element
      */
     public function getSubmissionCount(): int
     {
-        if ($this->submissionCount !== null) {
-            return $this->submissionCount;
+        if ($this->precomputedSubmissionCount !== null) {
+            return $this->precomputedSubmissionCount;
         }
 
         return $this->_countRecipients(['not', ['submissionId' => null]]);

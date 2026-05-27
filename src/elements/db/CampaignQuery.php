@@ -90,7 +90,7 @@ class CampaignQuery extends ElementQuery
             'campaignmanager_campaigns.invitationDelayPeriod',
             'campaignmanager_campaigns.invitationExpiryPeriod',
             'campaignmanager_campaigns.senderId',
-            'sentCount' => (new Query())
+            'precomputedSentCount' => (new Query())
                 ->select('COUNT(*)')
                 ->from(['recipients_sent' => $recipientTable])
                 ->where('[[recipients_sent.campaignId]] = [[elements.id]]')
@@ -100,7 +100,7 @@ class CampaignQuery extends ElementQuery
                     ['and', ['not', ['recipients_sent.email' => null]], ['not', ['recipients_sent.email' => '']], ['not', ['recipients_sent.emailSendDate' => null]]],
                     ['and', ['not', ['recipients_sent.sms' => null]], ['not', ['recipients_sent.sms' => '']], ['not', ['recipients_sent.smsSendDate' => null]]],
                 ]),
-            'pendingCount' => (new Query())
+            'precomputedPendingCount' => (new Query())
                 ->select('COUNT(*)')
                 ->from(['recipients_pending' => $recipientTable])
                 ->where('[[recipients_pending.campaignId]] = [[elements.id]]')
@@ -110,7 +110,7 @@ class CampaignQuery extends ElementQuery
                     ['and', ['not', ['recipients_pending.email' => null]], ['not', ['recipients_pending.email' => '']], ['recipients_pending.emailSendDate' => null]],
                     ['and', ['not', ['recipients_pending.sms' => null]], ['not', ['recipients_pending.sms' => '']], ['recipients_pending.smsSendDate' => null]],
                 ]),
-            'submissionCount' => (new Query())
+            'precomputedSubmissionCount' => (new Query())
                 ->select('COUNT(*)')
                 ->from(['recipients_submissions' => $recipientTable])
                 ->where('[[recipients_submissions.campaignId]] = [[elements.id]]')
