@@ -675,10 +675,10 @@
             on: campaign.getEnabledForSite(),
         }) }}
 
-        {% set canViewRecipients = currentUser.can('campaignManager:manageRecipients') %}
+        {% set canManageRecipients = currentUser.can('campaignManager:manageRecipients') %}
         {% set canAddRecipients = currentUser.can('campaignManager:addRecipients') %}
         {% set canImportRecipients = currentUser.can('campaignManager:importRecipients') %}
-        {% if campaign.id and (canViewRecipients or canAddRecipients or canImportRecipients) %}
+        {% if campaign.id and (canManageRecipients or canAddRecipients or canImportRecipients) %}
             <div class="field" style="margin-top: 15px;">
                 <div class="heading">
                     <label>{{ 'Actions'|t('campaign-manager') }}</label>
