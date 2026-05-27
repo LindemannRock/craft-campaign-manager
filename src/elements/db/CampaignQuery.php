@@ -8,9 +8,11 @@
 
 namespace lindemannrock\campaignmanager\elements\db;
 
+use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 use lindemannrock\campaignmanager\elements\Campaign;
+use lindemannrock\campaignmanager\records\RecipientRecord;
 
 /**
  * CampaignQuery represents a SELECT SQL statement for campaigns.
@@ -79,6 +81,8 @@ class CampaignQuery extends ElementQuery
         // Join the campaigns table (just on id, like SmartLinks)
         $this->joinElementTable('campaignmanager_campaigns');
 
+        $recipientTable = RecipientRecord::tableName();
+
         // Select the columns from main table (non-translatable fields)
         $this->query->select([
             'campaignmanager_campaigns.campaignType',
@@ -86,6 +90,32 @@ class CampaignQuery extends ElementQuery
             'campaignmanager_campaigns.invitationDelayPeriod',
             'campaignmanager_campaigns.invitationExpiryPeriod',
             'campaignmanager_campaigns.senderId',
+            'sentCount' => (new Query())
+                ->select('COUNT(*)')
+                ->from(['recipients_sent' => $recipientTable])
+                ->where('[[recipients_sent.campaignId]] = [[elements.id]]')
+                ->andWhere('[[recipients_sent.siteId]] = [[elements_sites.siteId]]')
+                ->andWhere([
+                    'or',
+                    ['and', ['not', ['recipients_sent.email' => null]], ['not', ['recipients_sent.email' => '']], ['not', ['recipients_sent.emailSendDate' => null]]],
+                    ['and', ['not', ['recipients_sent.sms' => null]], ['not', ['recipients_sent.sms' => '']], ['not', ['recipients_sent.smsSendDate' => null]]],
+                ]),
+            'pendingCount' => (new Query())
+                ->select('COUNT(*)')
+                ->from(['recipients_pending' => $recipientTable])
+                ->where('[[recipients_pending.campaignId]] = [[elements.id]]')
+                ->andWhere('[[recipients_pending.siteId]] = [[elements_sites.siteId]]')
+                ->andWhere([
+                    'or',
+                    ['and', ['not', ['recipients_pending.email' => null]], ['not', ['recipients_pending.email' => '']], ['recipients_pending.emailSendDate' => null]],
+                    ['and', ['not', ['recipients_pending.sms' => null]], ['not', ['recipients_pending.sms' => '']], ['recipients_pending.smsSendDate' => null]],
+                ]),
+            'submissionCount' => (new Query())
+                ->select('COUNT(*)')
+                ->from(['recipients_submissions' => $recipientTable])
+                ->where('[[recipients_submissions.campaignId]] = [[elements.id]]')
+                ->andWhere('[[recipients_submissions.siteId]] = [[elements_sites.siteId]]')
+                ->andWhere(['not', ['recipients_submissions.submissionId' => null]]),
             // Ensure we get the enabled status from elements_sites
             'elements_sites.enabled',
         ]);
