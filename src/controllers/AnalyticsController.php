@@ -227,7 +227,7 @@ class AnalyticsController extends Controller
 
         $analyticsService = CampaignManager::$plugin->analytics;
         $settings = CampaignManager::$plugin->getSettings();
-        $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
+        $extension = ExportHelper::extensionForFormat($format);
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
 
         if ($scope === 'ratings') {
@@ -305,14 +305,15 @@ class AnalyticsController extends Controller
 
         $filename = ExportHelper::filename($settings, $filenameParts, $extension);
 
-        return match ($format) {
-            'csv' => ExportHelper::toCsv($rows, $headers, $filename),
-            'json' => ExportHelper::toJson($rows, $filename),
-            'xlsx', 'excel' => ExportHelper::toExcel($rows, $headers, $filename, [], [
+        return ExportHelper::dispatchTable(
+            rows: $rows,
+            headers: $headers,
+            format: $format,
+            filename: $filename,
+            excelOptions: [
                 'sheetTitle' => 'Analytics',
-            ]),
-            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
-        };
+            ],
+        );
     }
 
     /**
