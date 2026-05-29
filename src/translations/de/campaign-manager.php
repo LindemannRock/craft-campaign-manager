@@ -16,7 +16,7 @@ return [
     // Navigation
     'Campaigns' => 'Kampagnen',
     'Recipients' => 'Empfänger',
-    'Analytics' => 'Analytik',
+    'Analytics' => 'Analytics',
     'Logs' => 'Protokolle',
     'System' => 'System',
     'Activity' => 'Aktivität',
@@ -33,8 +33,8 @@ return [
     'Import recipients' => 'Empfänger importieren',
     'Export recipients' => 'Empfänger exportieren',
     'Delete recipients' => 'Empfänger löschen',
-    'View analytics' => 'Analytik anzeigen',
-    'Export analytics' => 'Analytik exportieren',
+    'View analytics' => 'Analytics anzeigen',
+    'Export analytics' => 'Analysedaten exportieren',
     'View logs' => 'Logs anzeigen',
     'View system logs' => 'System-Logs anzeigen',
     'Download system logs' => 'System-Logs herunterladen',
@@ -111,7 +111,7 @@ return [
     'Date Created' => 'Erstellungsdatum',
 
     // Controller flash messages — Analytics
-    'No analytics data to export for the selected filters.' => 'Keine Analytik-Daten für die gewählten Filter zum Exportieren vorhanden.',
+    'No analytics data to export for the selected filters.' => 'Keine Analysedaten für die gewählten Filter zum Exportieren vorhanden.',
     'Campaign' => 'Kampagne',
     'Total Recipients' => 'Empfänger gesamt',
     'Emails Sent' => 'E-Mails gesendet',
@@ -255,7 +255,7 @@ return [
     'Site' => 'Website',
     'Responded' => 'Geantwortet',
     'No data available yet.' => 'Noch keine Daten verfügbar.',
-    'Analytics will appear here once recipients are added to this campaign.' => 'Analytik wird hier angezeigt, sobald Empfänger zu dieser Kampagne hinzugefügt wurden.',
+    'Analytics will appear here once recipients are added to this campaign.' => 'Analytics wird hier angezeigt, sobald Empfänger zu dieser Kampagne hinzugefügt wurden.',
     'SMS' => 'SMS',
     'Opened' => 'Geöffnet',
 
