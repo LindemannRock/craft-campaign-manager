@@ -386,7 +386,7 @@ class RecipientsController extends Controller
         // Build filename
         $settings = CampaignManager::$plugin->getSettings();
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
+        $extension = ExportHelper::extensionForFormat($format);
         $filenameParts = ['recipients'];
 
         if ($campaignFilter !== 'all') {
@@ -433,14 +433,16 @@ class RecipientsController extends Controller
             ],
         ]);
 
-        return match ($format) {
-            'csv' => ExportHelper::toCsv($rows, $headers, $filename, $dateColumns),
-            'json' => ExportHelper::toJson($rows, $filename, $dateColumns),
-            'xlsx', 'excel' => ExportHelper::toExcel($rows, $headers, $filename, $dateColumns, [
+        return ExportHelper::dispatchTable(
+            rows: $rows,
+            headers: $headers,
+            format: $format,
+            filename: $filename,
+            dateColumns: $dateColumns,
+            excelOptions: [
                 'sheetTitle' => 'Recipients',
-            ]),
-            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
-        };
+            ],
+        );
     }
 
     /**
@@ -572,7 +574,7 @@ class RecipientsController extends Controller
 
         // Build filename
         $settings = CampaignManager::$plugin->getSettings();
-        $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
+        $extension = ExportHelper::extensionForFormat($format);
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
         $campaignSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($campaign->title ?? 'campaign'));
         $filenameParts = ['responses', $campaignSlug];
@@ -596,14 +598,16 @@ class RecipientsController extends Controller
 
         $dateColumns = ['submitted'];
 
-        return match ($format) {
-            'csv' => ExportHelper::toCsv($rows, $headers, $filename, $dateColumns),
-            'json' => ExportHelper::toJson($rows, $filename, $dateColumns),
-            'xlsx', 'excel' => ExportHelper::toExcel($rows, $headers, $filename, $dateColumns, [
+        return ExportHelper::dispatchTable(
+            rows: $rows,
+            headers: $headers,
+            format: $format,
+            filename: $filename,
+            dateColumns: $dateColumns,
+            excelOptions: [
                 'sheetTitle' => 'Responses',
-            ]),
-            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
-        };
+            ],
+        );
     }
 
     /**
@@ -1894,7 +1898,7 @@ class RecipientsController extends Controller
         // Build filename
         $settings = CampaignManager::$plugin->getSettings();
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $extension = in_array($format, ['xlsx', 'excel'], true) ? 'xlsx' : $format;
+        $extension = ExportHelper::extensionForFormat($format);
         $filename = ExportHelper::filename($settings, ['recipients', 'campaign-' . $campaignId, $dateRangeLabel], $extension);
 
         $dateColumns = ['emailSendDate', 'smsSendDate', 'emailOpenDate', 'smsOpenDate', 'dateCreated'];
@@ -1911,14 +1915,16 @@ class RecipientsController extends Controller
             ],
         ]);
 
-        return match ($format) {
-            'csv' => ExportHelper::toCsv($rows, $headers, $filename, $dateColumns),
-            'json' => ExportHelper::toJson($rows, $filename, $dateColumns),
-            'xlsx', 'excel' => ExportHelper::toExcel($rows, $headers, $filename, $dateColumns, [
+        return ExportHelper::dispatchTable(
+            rows: $rows,
+            headers: $headers,
+            format: $format,
+            filename: $filename,
+            dateColumns: $dateColumns,
+            excelOptions: [
                 'sheetTitle' => 'Recipients',
-            ]),
-            default => throw new BadRequestHttpException("Unknown export format: {$format}"),
-        };
+            ],
+        );
     }
 
     /**
