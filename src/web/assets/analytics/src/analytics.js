@@ -3,6 +3,7 @@
 
     window.lrCampaignManagerAnalyticsInit = function(initConfig) {
         const config = initConfig || {};
+        window.lrCampaignManagerAnalyticsConfig = config;
 
         if (window.lrCampaignManagerAnalyticsBound) {
             if (window.lrAnalyticsInit) {
@@ -332,14 +333,19 @@
             if (!window._lrExportConfigs) return;
             var hash = (window.location.hash || '').replace(/^#/, '');
             var search = new URLSearchParams(window.location.search || '');
-            var isRatings = hash === 'ratings';
+            var analyticsConfig = window.lrCampaignManagerAnalyticsConfig || window.lrAnalyticsConfig || {};
+            var customFilters = analyticsConfig.customFilters || {};
+            var isRatings = hash === 'ratings' || window.currentTab === 'ratings';
+            var ratingFieldId = search.get('rating') || customFilters.fieldId || '';
+            var dateBasis = search.get('dateBasis') || analyticsConfig.dateBasis || 'sent';
+
             Object.keys(window._lrExportConfigs).forEach(function(id) {
                 var cfg = window._lrExportConfigs[id];
                 if (!cfg || !cfg.params) return;
                 if (isRatings) {
                     cfg.params.scope = 'ratings';
-                    cfg.params.fieldId = search.get('rating') || '';
-                    cfg.params.dateBasis = search.get('dateBasis') || 'sent';
+                    cfg.params.fieldId = ratingFieldId;
+                    cfg.params.dateBasis = dateBasis;
                 } else {
                     delete cfg.params.scope;
                     delete cfg.params.fieldId;
@@ -350,6 +356,7 @@
 
         document.addEventListener('DOMContentLoaded', updateExportScope);
         window.addEventListener('hashchange', updateExportScope);
+        document.addEventListener('lr:tabChanged', updateExportScope);
 
         document.addEventListener('lr:analyticsInit', function(e) {
             const eventConfig = e.detail && e.detail.config ? e.detail.config : (window.lrAnalyticsConfig || {});
