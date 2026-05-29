@@ -413,58 +413,10 @@ class AnalyticsController extends Controller
 
             $raw = $analyticsService->getRawRatingResponses($campaignId, $effectiveSiteId, $dateRange, $dateBasis, $fieldId);
 
-            if ($format === 'xlsx' || $format === 'excel') {
-                $filename = ExportHelper::filename($settings, $filenameParts, 'xlsx');
-
-                $sheets = [
-                    [
-                        'title' => Craft::t('campaign-manager', 'Summary'),
-                        'headers' => $summary['headers'],
-                        'rows' => $summary['rows'],
-                    ],
-                    [
-                        'title' => Craft::t('campaign-manager', 'Per Campaign'),
-                        'headers' => $perCampaign['headers'],
-                        'rows' => $perCampaign['rows'],
-                    ],
-                    [
-                        'title' => Craft::t('campaign-manager', 'Raw Responses'),
-                        'headers' => $raw['headers'],
-                        'rows' => $raw['rows'],
-                    ],
-                ];
-
-                return ExportHelper::toExcelMulti($sheets, $filename);
-            }
-
-            if ($format === 'json') {
-                $filename = ExportHelper::filename($settings, $filenameParts, 'json');
-
-                $payload = [
-                    'exported' => date('c'),
-                    'ratingField' => [
-                        'id' => $fieldId,
-                        'handle' => $ratingFieldInfo['handle'],
-                        'label' => $ratingFieldInfo['label'],
-                        'type' => $stats['fieldType'] ?? null,
-                    ],
-                    'filters' => [
-                        'campaignId' => $campaignId,
-                        'siteId' => is_array($effectiveSiteId) ? 'all' : $effectiveSiteId,
-                        'dateRange' => $dateRange,
-                        'dateBasis' => $dateBasis,
-                    ],
-                    'summary' => ['columns' => $summary['headers'], 'rows' => $summary['rows']],
-                    'perCampaign' => ['columns' => $perCampaign['headers'], 'rows' => $perCampaign['rows']],
-                    'rawResponses' => ['columns' => $raw['headers'], 'rows' => $raw['rows']],
-                ];
-
-                return ExportHelper::toJson($payload, $filename);
-            }
-
-            // CSV: ZIP of three CSV files
-            $csvFilenameParts = array_merge($filenameParts, ['csv']);
-            $filename = ExportHelper::filename($settings, $csvFilenameParts, 'zip');
+            $normalizedFormat = ExportHelper::normalizeFormat($format);
+            $filenameExtension = $normalizedFormat === 'csv' ? 'zip' : ExportHelper::extensionForFormat($format);
+            $outputFilenameParts = $normalizedFormat === 'csv' ? array_merge($filenameParts, ['csv']) : $filenameParts;
+            $filename = ExportHelper::filename($settings, $outputFilenameParts, $filenameExtension);
 
             $suffix = implode('-', array_filter([
                 $fieldHandleSlug,
@@ -472,13 +424,50 @@ class AnalyticsController extends Controller
                 $dateBasis,
             ]));
 
-            $files = [
-                "summary-{$suffix}.csv" => ExportHelper::csvContent($summary['rows'], $summary['headers']),
-                "per-campaign-{$suffix}.csv" => ExportHelper::csvContent($perCampaign['rows'], $perCampaign['headers']),
-                "raw-responses-{$suffix}.csv" => ExportHelper::csvContent($raw['rows'], $raw['headers']),
+            $sections = [
+                [
+                    'key' => 'summary',
+                    'title' => Craft::t('campaign-manager', 'Summary'),
+                    'filename' => "summary-{$suffix}.csv",
+                    'headers' => $summary['headers'],
+                    'rows' => $summary['rows'],
+                ],
+                [
+                    'key' => 'perCampaign',
+                    'title' => Craft::t('campaign-manager', 'Per Campaign'),
+                    'filename' => "per-campaign-{$suffix}.csv",
+                    'headers' => $perCampaign['headers'],
+                    'rows' => $perCampaign['rows'],
+                ],
+                [
+                    'key' => 'rawResponses',
+                    'title' => Craft::t('campaign-manager', 'Raw Responses'),
+                    'filename' => "raw-responses-{$suffix}.csv",
+                    'headers' => $raw['headers'],
+                    'rows' => $raw['rows'],
+                ],
             ];
 
-            return ExportHelper::toZip($files, $filename);
+            $payload = [
+                'exported' => date('c'),
+                'ratingField' => [
+                    'id' => $fieldId,
+                    'handle' => $ratingFieldInfo['handle'],
+                    'label' => $ratingFieldInfo['label'],
+                    'type' => $stats['fieldType'] ?? null,
+                ],
+                'filters' => [
+                    'campaignId' => $campaignId,
+                    'siteId' => is_array($effectiveSiteId) ? 'all' : $effectiveSiteId,
+                    'dateRange' => $dateRange,
+                    'dateBasis' => $dateBasis,
+                ],
+                'summary' => ['columns' => $summary['headers'], 'rows' => $summary['rows']],
+                'perCampaign' => ['columns' => $perCampaign['headers'], 'rows' => $perCampaign['rows']],
+                'rawResponses' => ['columns' => $raw['headers'], 'rows' => $raw['rows']],
+            ];
+
+            return ExportHelper::dispatchSections($sections, $format, $filename, $payload);
         } catch (\Exception $e) {
             Craft::error('Ratings export failed: ' . $e->getMessage(), __METHOD__);
 
