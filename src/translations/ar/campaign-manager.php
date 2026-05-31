@@ -180,6 +180,16 @@ return [
     'Field layout saved.' => 'تم حفظ تخطيط الحقول.',
     'Activity logs cleared successfully.' => 'تم مسح سجلات النشاط بنجاح.',
     '{count} recipients' => '{count} مستلمين',
+    'Campaign not found' => 'لم يتم العثور على الحملة',
+    'Site not found' => 'لم يتم العثور على الموقع',
+    'Invalid site handle: {handle}' => 'معرّف الموقع غير صالح: {handle}',
+    'Administrative changes are disallowed in this environment.' => 'التغييرات الإدارية غير مسموح بها في هذه البيئة.',
+    'User does not have permission to access this area.' => 'ليس لدى المستخدم صلاحية للوصول إلى هذه المنطقة.',
+    'User does not have permission to view this campaign.' => 'ليس لدى المستخدم صلاحية لعرض هذه الحملة.',
+    'User does not have permission to view recipients for this site.' => 'ليس لدى المستخدم صلاحية لعرض المستلمين لهذا الموقع.',
+    'User does not have permission to export recipients for this site.' => 'ليس لدى المستخدم صلاحية لتصدير المستلمين لهذا الموقع.',
+    'User does not have permission to export responses for this site.' => 'ليس لدى المستخدم صلاحية لتصدير الردود لهذا الموقع.',
+    'User does not have permission to view analytics for this site.' => 'ليس لدى المستخدم صلاحية لعرض تحليلات هذا الموقع.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => 'تم العثور على {count, number} {count, plural, =1{خطأ} other{أخطاء}}',

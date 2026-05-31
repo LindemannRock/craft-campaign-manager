@@ -180,6 +180,16 @@ return [
     'Field layout saved.' => 'Feldlayout gespeichert.',
     'Activity logs cleared successfully.' => 'Aktivitäts-Logs erfolgreich gelöscht.',
     '{count} recipients' => '{count} Empfänger',
+    'Campaign not found' => 'Kampagne nicht gefunden',
+    'Site not found' => 'Website nicht gefunden',
+    'Invalid site handle: {handle}' => 'Ungültiges Website-Handle: {handle}',
+    'Administrative changes are disallowed in this environment.' => 'Administrative Änderungen sind in dieser Umgebung nicht erlaubt.',
+    'User does not have permission to access this area.' => 'Der Benutzer hat keine Berechtigung, auf diesen Bereich zuzugreifen.',
+    'User does not have permission to view this campaign.' => 'Der Benutzer hat keine Berechtigung, diese Kampagne anzuzeigen.',
+    'User does not have permission to view recipients for this site.' => 'Der Benutzer hat keine Berechtigung, Empfänger für diese Website anzuzeigen.',
+    'User does not have permission to export recipients for this site.' => 'Der Benutzer hat keine Berechtigung, Empfänger für diese Website zu exportieren.',
+    'User does not have permission to export responses for this site.' => 'Der Benutzer hat keine Berechtigung, Antworten für diese Website zu exportieren.',
+    'User does not have permission to view analytics for this site.' => 'Der Benutzer hat keine Berechtigung, Analytics für diese Website anzuzeigen.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Es wurde {count, number} {count, plural, =1{Fehler} other{Fehler}} gefunden',

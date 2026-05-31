@@ -59,7 +59,7 @@ class CampaignsController extends Controller
             }
 
             // No accessible sections - throw forbidden
-            throw new ForbiddenHttpException('You do not have permission to access this area.');
+            throw new ForbiddenHttpException(Craft::t('campaign-manager', 'User does not have permission to access this area.'));
         }
 
         return $this->renderTemplate('campaign-manager/campaigns/index', [
@@ -77,7 +77,7 @@ class CampaignsController extends Controller
         if ($siteHandle) {
             $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
             if (!$site) {
-                throw new NotFoundHttpException('Invalid site handle: ' . $siteHandle);
+                throw new NotFoundHttpException(Craft::t('campaign-manager', 'Invalid site handle: {handle}', ['handle' => $siteHandle]));
             }
             $siteId = $site->id;
         } else {
@@ -94,7 +94,7 @@ class CampaignsController extends Controller
                     ->one();
 
                 if (!$campaign) {
-                    throw new NotFoundHttpException('Campaign not found');
+                    throw new NotFoundHttpException(Craft::t('campaign-manager', 'Campaign not found'));
                 }
 
                 $this->requirePermission('campaignManager:editCampaigns');
@@ -114,7 +114,7 @@ class CampaignsController extends Controller
 
         // Check if the user can view/edit this campaign
         if ($campaign->id && !Craft::$app->getUser()->checkPermission('campaignManager:manageCampaigns')) {
-            throw new ForbiddenHttpException('You don\'t have permission to view this campaign.');
+            throw new ForbiddenHttpException(Craft::t('campaign-manager', 'User does not have permission to view this campaign.'));
         }
 
         // Get available forms for dropdown
@@ -175,7 +175,7 @@ class CampaignsController extends Controller
                 ->one();
 
             if (!$campaign) {
-                throw new NotFoundHttpException('Campaign not found');
+                throw new NotFoundHttpException(Craft::t('campaign-manager', 'Campaign not found'));
             }
 
             $this->requirePermission('campaignManager:editCampaigns');
@@ -275,7 +275,7 @@ class CampaignsController extends Controller
             ->one();
 
         if (!$campaign) {
-            throw new NotFoundHttpException('Campaign not found');
+            throw new NotFoundHttpException(Craft::t('campaign-manager', 'Campaign not found'));
         }
 
         if (!Craft::$app->getElements()->deleteElement($campaign)) {
@@ -338,7 +338,7 @@ class CampaignsController extends Controller
             : Craft::$app->getSites()->getCurrentSite();
 
         if (!$site) {
-            throw new NotFoundHttpException('Site not found.');
+            throw new NotFoundHttpException(Craft::t('campaign-manager', 'Site not found'));
         }
 
         $campaign = Campaign::find()
@@ -348,7 +348,7 @@ class CampaignsController extends Controller
             ->one();
 
         if (!$campaign) {
-            throw new NotFoundHttpException('Campaign not found.');
+            throw new NotFoundHttpException(Craft::t('campaign-manager', 'Campaign not found'));
         }
 
         // Build the campaign edit page URL so filter/pagination links inside the

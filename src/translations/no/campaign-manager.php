@@ -180,6 +180,16 @@ return [
     'Field layout saved.' => 'Feltoppsett lagret.',
     'Activity logs cleared successfully.' => 'Aktivitetslogger tømt.',
     '{count} recipients' => '{count} mottakere',
+    'Campaign not found' => 'Kampanje ikke funnet',
+    'Site not found' => 'Nettsted ikke funnet',
+    'Invalid site handle: {handle}' => 'Ugyldig nettstedidentifikator: {handle}',
+    'Administrative changes are disallowed in this environment.' => 'Administrative endringer er ikke tillatt i dette miljøet.',
+    'User does not have permission to access this area.' => 'Brukeren har ikke tillatelse til å få tilgang til dette området.',
+    'User does not have permission to view this campaign.' => 'Brukeren har ikke tillatelse til å se denne kampanjen.',
+    'User does not have permission to view recipients for this site.' => 'Brukeren har ikke tillatelse til å se mottakere for dette nettstedet.',
+    'User does not have permission to export recipients for this site.' => 'Brukeren har ikke tillatelse til å eksportere mottakere for dette nettstedet.',
+    'User does not have permission to export responses for this site.' => 'Brukeren har ikke tillatelse til å eksportere svar for dette nettstedet.',
+    'User does not have permission to view analytics for this site.' => 'Brukeren har ikke tillatelse til å se analyse for dette nettstedet.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{feil} other{feil}} funnet',

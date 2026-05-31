@@ -117,7 +117,7 @@ class RecipientsController extends Controller
         if ($siteFilter !== 'all') {
             $siteId = (int) $siteFilter;
             if (!in_array($siteId, $editableSiteIds, true)) {
-                throw new \yii\web\ForbiddenHttpException('You do not have permission to view recipients for this site.');
+                throw new \yii\web\ForbiddenHttpException(Craft::t('campaign-manager', 'User does not have permission to view recipients for this site.'));
             }
             $query->andWhere(['siteId' => $siteId]);
         } else {
@@ -285,7 +285,7 @@ class RecipientsController extends Controller
         if ($siteFilter !== 'all') {
             $siteId = (int)$siteFilter;
             if (!in_array($siteId, $editableSiteIds, true)) {
-                throw new \yii\web\ForbiddenHttpException('You do not have permission to export recipients for this site.');
+                throw new \yii\web\ForbiddenHttpException(Craft::t('campaign-manager', 'User does not have permission to export recipients for this site.'));
             }
             $query->andWhere(['siteId' => $siteId]);
         } else {
@@ -478,7 +478,7 @@ class RecipientsController extends Controller
         if ($siteFilter !== 'all') {
             $filterSiteId = (int)$siteFilter;
             if (!in_array($filterSiteId, $editableSiteIds, true)) {
-                throw new \yii\web\ForbiddenHttpException('You do not have permission to export responses for this site.');
+                throw new \yii\web\ForbiddenHttpException(Craft::t('campaign-manager', 'User does not have permission to export responses for this site.'));
             }
         } else {
             $filterSiteId = null;
@@ -636,7 +636,7 @@ class RecipientsController extends Controller
             ->one();
 
         if (!$campaign) {
-            throw new \yii\web\NotFoundHttpException('Campaign not found');
+            throw new \yii\web\NotFoundHttpException(Craft::t('campaign-manager', 'Campaign not found'));
         }
 
         // ---- Param parsing + allowlist validation -------------------------
@@ -785,7 +785,7 @@ class RecipientsController extends Controller
             ->one();
 
         if (!$campaign) {
-            throw new \yii\web\NotFoundHttpException('Campaign not found');
+            throw new \yii\web\NotFoundHttpException(Craft::t('campaign-manager', 'Campaign not found'));
         }
 
         return $this->renderTemplate('campaign-manager/recipients/add', [
@@ -817,7 +817,7 @@ class RecipientsController extends Controller
             ->one();
 
         if (!$campaign) {
-            throw new \yii\web\NotFoundHttpException('Campaign not found');
+            throw new \yii\web\NotFoundHttpException(Craft::t('campaign-manager', 'Campaign not found'));
         }
 
         return $this->renderTemplate('campaign-manager/recipients/import', [
@@ -1238,7 +1238,7 @@ class RecipientsController extends Controller
             ->one();
 
         if (!$campaign) {
-            throw new \yii\web\NotFoundHttpException('Campaign not found');
+            throw new \yii\web\NotFoundHttpException(Craft::t('campaign-manager', 'Campaign not found'));
         }
 
         // Get data from session
@@ -1338,7 +1338,7 @@ class RecipientsController extends Controller
             ->one();
 
         if (!$campaign) {
-            throw new \yii\web\NotFoundHttpException('Campaign not found');
+            throw new \yii\web\NotFoundHttpException(Craft::t('campaign-manager', 'Campaign not found'));
         }
 
         // Get data from session
@@ -1831,7 +1831,7 @@ class RecipientsController extends Controller
         // Validate site is editable
         $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
         if (!in_array($site->id, $editableSiteIds, true)) {
-            throw new \yii\web\ForbiddenHttpException('You do not have permission to export recipients for this site.');
+            throw new \yii\web\ForbiddenHttpException(Craft::t('campaign-manager', 'User does not have permission to export recipients for this site.'));
         }
 
         // Validate format is enabled

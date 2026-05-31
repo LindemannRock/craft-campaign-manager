@@ -180,6 +180,16 @@ return [
     'Field layout saved.' => 'Feltlayout gemt.',
     'Activity logs cleared successfully.' => 'Aktivitetslogfiler ryddet.',
     '{count} recipients' => '{count} modtagere',
+    'Campaign not found' => 'Kampagne ikke fundet',
+    'Site not found' => 'Websted ikke fundet',
+    'Invalid site handle: {handle}' => 'Ugyldig webstedsidentifikator: {handle}',
+    'Administrative changes are disallowed in this environment.' => 'Administrative ændringer er ikke tilladt i dette miljø.',
+    'User does not have permission to access this area.' => 'Brugeren har ikke tilladelse til at få adgang til dette område.',
+    'User does not have permission to view this campaign.' => 'Brugeren har ikke tilladelse til at se denne kampagne.',
+    'User does not have permission to view recipients for this site.' => 'Brugeren har ikke tilladelse til at se modtagere for dette websted.',
+    'User does not have permission to export recipients for this site.' => 'Brugeren har ikke tilladelse til at eksportere modtagere for dette websted.',
+    'User does not have permission to export responses for this site.' => 'Brugeren har ikke tilladelse til at eksportere svar for dette websted.',
+    'User does not have permission to view analytics for this site.' => 'Brugeren har ikke tilladelse til at se analyser for dette websted.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fejl} other{fejl}} fundet',

@@ -180,6 +180,16 @@ return [
     'Field layout saved.' => 'Veldindeling opgeslagen.',
     'Activity logs cleared successfully.' => 'Activiteitenlogboeken succesvol gewist.',
     '{count} recipients' => '{count} ontvangers',
+    'Campaign not found' => 'Campagne niet gevonden',
+    'Site not found' => 'Site niet gevonden',
+    'Invalid site handle: {handle}' => 'Ongeldige site-handle: {handle}',
+    'Administrative changes are disallowed in this environment.' => 'Beheerwijzigingen zijn niet toegestaan in deze omgeving.',
+    'User does not have permission to access this area.' => 'De gebruiker heeft geen toestemming om toegang te krijgen tot dit gebied.',
+    'User does not have permission to view this campaign.' => 'De gebruiker heeft geen toestemming om deze campagne te bekijken.',
+    'User does not have permission to view recipients for this site.' => 'De gebruiker heeft geen toestemming om ontvangers voor deze site te bekijken.',
+    'User does not have permission to export recipients for this site.' => 'De gebruiker heeft geen toestemming om ontvangers voor deze site te exporteren.',
+    'User does not have permission to export responses for this site.' => 'De gebruiker heeft geen toestemming om reacties voor deze site te exporteren.',
+    'User does not have permission to view analytics for this site.' => 'De gebruiker heeft geen toestemming om analyses voor deze site te bekijken.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fout} other{fouten}} gevonden',

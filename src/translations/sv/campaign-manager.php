@@ -180,6 +180,16 @@ return [
     'Field layout saved.' => 'Fältlayout sparad.',
     'Activity logs cleared successfully.' => 'Aktivitetsloggar rensade.',
     '{count} recipients' => '{count} mottagare',
+    'Campaign not found' => 'Kampanjen hittades inte',
+    'Site not found' => 'Webbplatsen hittades inte',
+    'Invalid site handle: {handle}' => 'Ogiltigt webbplatshandtag: {handle}',
+    'Administrative changes are disallowed in this environment.' => 'Administrativa ändringar är inte tillåtna i denna miljö.',
+    'User does not have permission to access this area.' => 'Användaren har inte behörighet att komma åt detta område.',
+    'User does not have permission to view this campaign.' => 'Användaren har inte behörighet att visa den här kampanjen.',
+    'User does not have permission to view recipients for this site.' => 'Användaren har inte behörighet att visa mottagare för den här webbplatsen.',
+    'User does not have permission to export recipients for this site.' => 'Användaren har inte behörighet att exportera mottagare för den här webbplatsen.',
+    'User does not have permission to export responses for this site.' => 'Användaren har inte behörighet att exportera svar för den här webbplatsen.',
+    'User does not have permission to view analytics for this site.' => 'Användaren har inte behörighet att visa analys för den här webbplatsen.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fel} other{fel}} hittades',

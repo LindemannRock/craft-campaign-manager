@@ -180,6 +180,16 @@ return [
     'Field layout saved.' => 'Field layout saved.',
     'Activity logs cleared successfully.' => 'Activity logs cleared successfully.',
     '{count} recipients' => '{count} recipients',
+    'Campaign not found' => 'Campaign not found',
+    'Site not found' => 'Site not found',
+    'Invalid site handle: {handle}' => 'Invalid site handle: {handle}',
+    'Administrative changes are disallowed in this environment.' => 'Administrative changes are disallowed in this environment.',
+    'User does not have permission to access this area.' => 'User does not have permission to access this area.',
+    'User does not have permission to view this campaign.' => 'User does not have permission to view this campaign.',
+    'User does not have permission to view recipients for this site.' => 'User does not have permission to view recipients for this site.',
+    'User does not have permission to export recipients for this site.' => 'User does not have permission to export recipients for this site.',
+    'User does not have permission to export responses for this site.' => 'User does not have permission to export responses for this site.',
+    'User does not have permission to view analytics for this site.' => 'User does not have permission to view analytics for this site.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Found {count, number} {count, plural, =1{error} other{errors}}',

@@ -505,7 +505,7 @@ class AnalyticsController extends Controller
         }
 
         if ($siteId === null || !in_array($siteId, $editableSiteIds, true)) {
-            throw new ForbiddenHttpException('You do not have permission to view analytics for this site.');
+            throw new ForbiddenHttpException(Craft::t('campaign-manager', 'User does not have permission to view analytics for this site.'));
         }
 
         return $siteId;

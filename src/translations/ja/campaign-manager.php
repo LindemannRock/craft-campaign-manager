@@ -180,6 +180,16 @@ return [
     'Field layout saved.' => 'フィールドレイアウトが保存されました。',
     'Activity logs cleared successfully.' => 'アクティビティログが正常に削除されました。',
     '{count} recipients' => '{count} 件の受信者',
+    'Campaign not found' => 'キャンペーンが見つかりません',
+    'Site not found' => 'サイトが見つかりません',
+    'Invalid site handle: {handle}' => '無効なサイトハンドル: {handle}',
+    'Administrative changes are disallowed in this environment.' => 'この環境では管理者による変更は許可されていません。',
+    'User does not have permission to access this area.' => 'ユーザーにこの領域へアクセスする権限がありません。',
+    'User does not have permission to view this campaign.' => 'ユーザーにこのキャンペーンを表示する権限がありません。',
+    'User does not have permission to view recipients for this site.' => 'ユーザーにこのサイトの受信者を表示する権限がありません。',
+    'User does not have permission to export recipients for this site.' => 'ユーザーにこのサイトの受信者をエクスポートする権限がありません。',
+    'User does not have permission to export responses for this site.' => 'ユーザーにこのサイトの回答をエクスポートする権限がありません。',
+    'User does not have permission to view analytics for this site.' => 'ユーザーにこのサイトのアナリティクスを表示する権限がありません。',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} 件の{count, plural, =1{エラー} other{エラー}}が見つかりました',

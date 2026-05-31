@@ -56,7 +56,7 @@ class SettingsController extends Controller
         // Regular settings are stored in DB and should always be editable
         if ($action->id === 'save-field-layout') {
             if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-                throw new ForbiddenHttpException('Administrative changes are disallowed in this environment.');
+                throw new ForbiddenHttpException(Craft::t('campaign-manager', 'Administrative changes are disallowed in this environment.'));
             }
         }
 

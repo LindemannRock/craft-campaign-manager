@@ -180,6 +180,16 @@ return [
     'Field layout saved.' => 'Disposition des champs enregistrée.',
     'Activity logs cleared successfully.' => 'Journaux d\'activité effacés avec succès.',
     '{count} recipients' => '{count} destinataires',
+    'Campaign not found' => 'Campagne introuvable',
+    'Site not found' => 'Site introuvable',
+    'Invalid site handle: {handle}' => 'Handle du site non valide : {handle}',
+    'Administrative changes are disallowed in this environment.' => 'Les modifications administratives ne sont pas autorisées dans cet environnement.',
+    'User does not have permission to access this area.' => 'L\'utilisateur n\'a pas la permission d\'accéder à cette zone.',
+    'User does not have permission to view this campaign.' => 'L\'utilisateur n\'a pas la permission de consulter cette campagne.',
+    'User does not have permission to view recipients for this site.' => 'L\'utilisateur n\'a pas la permission de consulter les destinataires de ce site.',
+    'User does not have permission to export recipients for this site.' => 'L\'utilisateur n\'a pas la permission d\'exporter les destinataires de ce site.',
+    'User does not have permission to export responses for this site.' => 'L\'utilisateur n\'a pas la permission d\'exporter les réponses de ce site.',
+    'User does not have permission to view analytics for this site.' => 'L\'utilisateur n\'a pas la permission de consulter les analytiques de ce site.',
 
     // Validation messages
     'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{erreur trouvée} other{erreurs trouvées}}',
