@@ -494,6 +494,14 @@ return [
     'Trend Over Time' => 'Trend Over Time',
     'Last updated: {time}' => 'Last updated: {time}',
 
+    // Frontend
+    'Invitation' => 'Invitation',
+    'You have already responded to this invitation.' => 'You have already responded to this invitation.',
+    'This invitation has expired.' => 'This invitation has expired.',
+    'Welcome! Please complete the form below.' => 'Welcome! Please complete the form below.',
+    'Invalid Invitation' => 'Invalid Invitation',
+    'This invitation link is not valid or has expired.' => 'This invitation link is not valid or has expired.',
+
     // Activity Logs
     'User' => 'User',
     'Action' => 'Action',
@@ -522,14 +530,6 @@ return [
     'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Are you sure you want to clear all activity logs? This action cannot be undone.',
     'Failed to clear activity logs.' => 'Failed to clear activity logs.',
 
-    // Frontend
-    'Invitation' => 'Invitation',
-    'You have already responded to this invitation.' => 'You have already responded to this invitation.',
-    'This invitation has expired.' => 'This invitation has expired.',
-    'Welcome! Please complete the form below.' => 'Welcome! Please complete the form below.',
-    'Invalid Invitation' => 'Invalid Invitation',
-    'This invitation link is not valid or has expired.' => 'This invitation link is not valid or has expired.',
-
     // Config overrides
     'This is being overridden by the <code>defaultSenderIdHandle</code> setting in <code>config/campaign-manager.php</code>.' => 'This is being overridden by the <code>defaultSenderIdHandle</code> setting in <code>config/campaign-manager.php</code>.',
     'This is being overridden by the <code>invitationRoute</code> setting in <code>config/campaign-manager.php</code>.' => 'This is being overridden by the <code>invitationRoute</code> setting in <code>config/campaign-manager.php</code>.',
@@ -538,5 +538,4 @@ return [
     'This is being overridden by the <code>activityLogsRetention</code> setting in <code>config/campaign-manager.php</code>.' => 'This is being overridden by the <code>activityLogsRetention</code> setting in <code>config/campaign-manager.php</code>.',
     'This is being overridden by the <code>activityLogsLimit</code> setting in <code>config/campaign-manager.php</code>.' => 'This is being overridden by the <code>activityLogsLimit</code> setting in <code>config/campaign-manager.php</code>.',
     'This is being overridden by the <code>activityAutoTrimLogs</code> setting in <code>config/campaign-manager.php</code>.' => 'This is being overridden by the <code>activityAutoTrimLogs</code> setting in <code>config/campaign-manager.php</code>.',
-
 ];

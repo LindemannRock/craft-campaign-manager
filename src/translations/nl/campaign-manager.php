@@ -494,6 +494,14 @@ return [
     'Trend Over Time' => 'Trend in de tijd',
     'Last updated: {time}' => 'Laatst bijgewerkt: {time}',
 
+    // Frontend
+    'Invitation' => 'Uitnodiging',
+    'You have already responded to this invitation.' => 'U heeft al gereageerd op deze uitnodiging.',
+    'This invitation has expired.' => 'Deze uitnodiging is verlopen.',
+    'Welcome! Please complete the form below.' => 'Welkom! Vul het onderstaande formulier in.',
+    'Invalid Invitation' => 'Ongeldige uitnodiging',
+    'This invitation link is not valid or has expired.' => 'Deze uitnodigingslink is niet geldig of is verlopen.',
+
     // Activity Logs
     'User' => 'Gebruiker',
     'Action' => 'Actie',
@@ -522,14 +530,6 @@ return [
     'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Weet u zeker dat u alle activiteitenlogboeken wilt wissen? Deze actie kan niet ongedaan worden gemaakt.',
     'Failed to clear activity logs.' => 'Wissen van activiteitenlogboeken mislukt.',
 
-    // Frontend
-    'Invitation' => 'Uitnodiging',
-    'You have already responded to this invitation.' => 'U heeft al gereageerd op deze uitnodiging.',
-    'This invitation has expired.' => 'Deze uitnodiging is verlopen.',
-    'Welcome! Please complete the form below.' => 'Welkom! Vul het onderstaande formulier in.',
-    'Invalid Invitation' => 'Ongeldige uitnodiging',
-    'This invitation link is not valid or has expired.' => 'Deze uitnodigingslink is niet geldig of is verlopen.',
-
     // Config overrides
     'This is being overridden by the <code>defaultSenderIdHandle</code> setting in <code>config/campaign-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>defaultSenderIdHandle</code> in <code>config/campaign-manager.php</code>.',
     'This is being overridden by the <code>invitationRoute</code> setting in <code>config/campaign-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>invitationRoute</code> in <code>config/campaign-manager.php</code>.',
@@ -538,5 +538,4 @@ return [
     'This is being overridden by the <code>activityLogsRetention</code> setting in <code>config/campaign-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>activityLogsRetention</code> in <code>config/campaign-manager.php</code>.',
     'This is being overridden by the <code>activityLogsLimit</code> setting in <code>config/campaign-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>activityLogsLimit</code> in <code>config/campaign-manager.php</code>.',
     'This is being overridden by the <code>activityAutoTrimLogs</code> setting in <code>config/campaign-manager.php</code>.' => 'Dit wordt overschreven door de instelling <code>activityAutoTrimLogs</code> in <code>config/campaign-manager.php</code>.',
-
 ];

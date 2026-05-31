@@ -494,6 +494,14 @@ return [
     'Trend Over Time' => 'Tendencia a lo largo del tiempo',
     'Last updated: {time}' => 'Última actualización: {time}',
 
+    // Frontend
+    'Invitation' => 'Invitación',
+    'You have already responded to this invitation.' => 'Ya ha respondido a esta invitación.',
+    'This invitation has expired.' => 'Esta invitación ha expirado.',
+    'Welcome! Please complete the form below.' => '¡Bienvenido! Complete el formulario a continuación.',
+    'Invalid Invitation' => 'Invitación no válida',
+    'This invitation link is not valid or has expired.' => 'Este enlace de invitación no es válido o ha expirado.',
+
     // Activity Logs
     'User' => 'Usuario',
     'Action' => 'Acción',
@@ -522,14 +530,6 @@ return [
     'Are you sure you want to clear all activity logs? This action cannot be undone.' => '¿Está seguro de que desea borrar todos los registros de actividad? Esta acción no se puede deshacer.',
     'Failed to clear activity logs.' => 'No se pudieron borrar los registros de actividad.',
 
-    // Frontend
-    'Invitation' => 'Invitación',
-    'You have already responded to this invitation.' => 'Ya ha respondido a esta invitación.',
-    'This invitation has expired.' => 'Esta invitación ha expirado.',
-    'Welcome! Please complete the form below.' => '¡Bienvenido! Complete el formulario a continuación.',
-    'Invalid Invitation' => 'Invitación no válida',
-    'This invitation link is not valid or has expired.' => 'Este enlace de invitación no es válido o ha expirado.',
-
     // Config overrides
     'This is being overridden by the <code>defaultSenderIdHandle</code> setting in <code>config/campaign-manager.php</code>.' => 'Este ajuste está siendo reemplazado por el parámetro <code>defaultSenderIdHandle</code> en <code>config/campaign-manager.php</code>.',
     'This is being overridden by the <code>invitationRoute</code> setting in <code>config/campaign-manager.php</code>.' => 'Este ajuste está siendo reemplazado por el parámetro <code>invitationRoute</code> en <code>config/campaign-manager.php</code>.',
@@ -538,5 +538,4 @@ return [
     'This is being overridden by the <code>activityLogsRetention</code> setting in <code>config/campaign-manager.php</code>.' => 'Este ajuste está siendo reemplazado por el parámetro <code>activityLogsRetention</code> en <code>config/campaign-manager.php</code>.',
     'This is being overridden by the <code>activityLogsLimit</code> setting in <code>config/campaign-manager.php</code>.' => 'Este ajuste está siendo reemplazado por el parámetro <code>activityLogsLimit</code> en <code>config/campaign-manager.php</code>.',
     'This is being overridden by the <code>activityAutoTrimLogs</code> setting in <code>config/campaign-manager.php</code>.' => 'Este ajuste está siendo reemplazado por el parámetro <code>activityAutoTrimLogs</code> en <code>config/campaign-manager.php</code>.',
-
 ];

@@ -494,6 +494,14 @@ return [
     'Trend Over Time' => '時系列トレンド',
     'Last updated: {time}' => '最終更新: {time}',
 
+    // Frontend
+    'Invitation' => '招待',
+    'You have already responded to this invitation.' => 'この招待にはすでに回答済みです。',
+    'This invitation has expired.' => 'この招待は期限切れです。',
+    'Welcome! Please complete the form below.' => 'ようこそ！以下のフォームにご記入ください。',
+    'Invalid Invitation' => '無効な招待',
+    'This invitation link is not valid or has expired.' => 'この招待リンクは無効または期限切れです。',
+
     // Activity Logs
     'User' => 'ユーザー',
     'Action' => 'アクション',
@@ -522,14 +530,6 @@ return [
     'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'すべてのアクティビティログを削除してもよろしいですか？この操作は元に戻せません。',
     'Failed to clear activity logs.' => 'アクティビティログの削除に失敗しました。',
 
-    // Frontend
-    'Invitation' => '招待',
-    'You have already responded to this invitation.' => 'この招待にはすでに回答済みです。',
-    'This invitation has expired.' => 'この招待は期限切れです。',
-    'Welcome! Please complete the form below.' => 'ようこそ！以下のフォームにご記入ください。',
-    'Invalid Invitation' => '無効な招待',
-    'This invitation link is not valid or has expired.' => 'この招待リンクは無効または期限切れです。',
-
     // Config overrides
     'This is being overridden by the <code>defaultSenderIdHandle</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>defaultSenderIdHandle</code> 設定で上書きされています。',
     'This is being overridden by the <code>invitationRoute</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>invitationRoute</code> 設定で上書きされています。',
@@ -538,5 +538,4 @@ return [
     'This is being overridden by the <code>activityLogsRetention</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>activityLogsRetention</code> 設定で上書きされています。',
     'This is being overridden by the <code>activityLogsLimit</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>activityLogsLimit</code> 設定で上書きされています。',
     'This is being overridden by the <code>activityAutoTrimLogs</code> setting in <code>config/campaign-manager.php</code>.' => '<code>config/campaign-manager.php</code> の <code>activityAutoTrimLogs</code> 設定で上書きされています。',
-
 ];
