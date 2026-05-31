@@ -43,7 +43,71 @@ return [
     'Clear activity logs' => 'Activiteitenlogboeken wissen',
     'Manage settings' => 'Instellingen beheren',
 
-    // Controller flash messages — Campaigns
+    // Common
+    'Actions' => 'Acties',
+    'All' => 'Alle',
+    'Cancel' => 'Annuleren',
+    'Campaign' => 'Campagne',
+    'Conversion Rate' => 'Conversiepercentage',
+    'Date' => 'Datum',
+    'Delete' => 'Verwijderen',
+    'Email' => 'E-mail',
+    'Error' => 'Fout',
+    'Name' => 'Naam',
+    'No' => 'Nee',
+    'Opened' => 'Geopend',
+    'Phone' => 'Telefoon',
+    'Responses' => 'Reacties',
+    'Site' => 'Site',
+    'SMS' => 'SMS',
+    'Status' => 'Status',
+    'Submissions' => 'Inzendingen',
+    'Total Recipients' => 'Totaal ontvangers',
+    'Yes' => 'Ja',
+    'Created at' => 'Gemaakt op',
+    'Date Updated' => 'Datum geüpdate',
+    'Disabled' => 'Uitgeschakeld',
+    'Enabled' => 'Ingeschakeld',
+    'Next' => 'Volgende',
+    'Previous' => 'Vorige',
+    'Save' => 'Opslaan',
+    'Save and continue editing' => 'Opslaan en doorgaan met aanpassen',
+    'Select site' => 'Site kiezen',
+    'Title' => 'Titel',
+    'Updated at' => 'Geüpdatet op',
+    'View' => 'Bekijken',
+
+    // Element
+    'campaign' => 'campagne',
+    'campaigns' => 'campagnes',
+    'All Campaigns' => 'Alle campagnes',
+    'Campaign Types' => 'Campagnetypen',
+    'Type' => 'Type',
+    'Form' => 'Formulier',
+    'Sent' => 'Verzonden',
+    'Pending' => 'In behandeling',
+    'Campaign Type' => 'Campagnetype',
+    'Are you sure you want to delete the selected campaigns?' => 'Weet u zeker dat u de geselecteerde campagnes wilt verwijderen?',
+    'Campaigns deleted.' => 'Campagnes verwijderd.',
+    'Campaigns restored.' => 'Campagnes hersteld.',
+    'Some campaigns restored.' => 'Enkele campagnes hersteld.',
+    'Campaigns not restored.' => 'Campagnes niet hersteld.',
+    'View Recipients' => 'Ontvangers bekijken',
+    'Add Recipient' => 'Ontvanger toevoegen',
+    'Import Recipients' => 'Ontvangers importeren',
+    'Run Campaign' => 'Campagne uitvoeren',
+
+    // Jobs
+    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Campagne-uitnodigingen activeren',
+    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Ontvangers importeren voor campagne #{id}',
+    '{pluginName}: Processing campaign #{id}' => '{pluginName}: Campagne #{id} verwerken',
+    'Campaign batches queued' => 'Campagnebatches in wachtrij geplaatst',
+    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Uitnodigingen verzenden naar {count} ontvangers',
+    'Invitation batch sent' => 'Uitnodigingsbatch verzonden',
+    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Campagne {campaignId} batch mislukt: {errors} van {total} ontvangers konden niet worden verzonden. Raadpleeg het plugin-logboek voor details.',
+    'Campaign is disabled for site {site}.' => 'Campagne is uitgeschakeld voor site {site}.',
+
+    // Controller messages
     'New Campaign' => 'Nieuwe campagne',
     'Select a provider first...' => 'Selecteer eerst een provider...',
     'Couldn\'t save campaign.' => 'Campagne kon niet worden opgeslagen.',
@@ -56,8 +120,6 @@ return [
     'Campaign jobs queued' => 'Campagnetaken in wachtrij geplaatst',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} campagnetaak/taken in wachtrij geplaatst. Controleer de wachtrij voor de voortgang.',
     'No campaigns to process.' => 'Geen campagnes te verwerken.',
-
-    // Controller flash messages — Recipients
     'No recipients to export for the selected filters.' => 'Geen ontvangers te exporteren voor de geselecteerde filters.',
     'No responses to export.' => 'Geen reacties te exporteren.',
     'Recipients exported' => 'Ontvangers geëxporteerd',
@@ -66,7 +128,6 @@ return [
     'Invalid email address.' => 'Ongeldig e-mailadres.',
     'Please select a phone country.' => 'Selecteer een telefoonland.',
     'Country {country} is not allowed for this campaign\'s SMS provider.' => 'Land {country} is niet toegestaan voor de SMS-provider van deze campagne.',
-    'Invalid phone number.' => 'Ongeldig telefoonnummer.',
     'Email or phone number is required.' => 'E-mailadres of telefoonnummer is verplicht.',
     'Couldn\'t add recipient.' => 'Ontvanger kon niet worden toegevoegd.',
     'Could not save recipient.' => 'Ontvanger kon niet worden opgeslagen.',
@@ -100,69 +161,32 @@ return [
     'No recipients to export.' => 'Geen ontvangers te exporteren.',
     'Campaign recipients exported' => 'Campagne-ontvangers geëxporteerd',
     'ID' => 'ID',
-    'Name' => 'Naam',
-    'Email' => 'E-mail',
-    'Phone' => 'Telefoon',
     'Email Sent Date' => 'Verzenddatum e-mail',
     'SMS Sent Date' => 'Verzenddatum SMS',
     'Email Opened Date' => 'Openingsdatum e-mail',
     'SMS Opened Date' => 'Openingsdatum SMS',
     'Submission ID' => 'Inzending-ID',
     'Date Created' => 'Aanmaakdatum',
-
-    // Controller flash messages — Analytics
     'No analytics data to export for the selected filters.' => 'Geen analysegegevens te exporteren voor de geselecteerde filters.',
-    'Campaign' => 'Campagne',
-    'Total Recipients' => 'Totaal ontvangers',
     'Emails Sent' => 'E-mails verzonden',
     'SMS Sent' => 'SMS verzonden',
     'Emails Opened' => 'E-mails geopend',
     'SMS Opened' => 'SMS geopend',
     'Email Open Rate' => 'E-mail openingspercentage',
     'SMS Open Rate' => 'SMS openingspercentage',
-    'Submissions' => 'Inzendingen',
-    'Conversion Rate' => 'Conversiepercentage',
     'Expired' => 'Verlopen',
-
-    // Controller flash messages — Settings
     'Couldn\'t save settings.' => 'Instellingen konden niet worden opgeslagen.',
     'Settings saved.' => 'Instellingen opgeslagen.',
     'Couldn\'t save field layout.' => 'Veldindeling kon niet worden opgeslagen.',
     'Field layout saved.' => 'Veldindeling opgeslagen.',
-
-    // Controller flash messages — Activity Logs
     'Activity logs cleared successfully.' => 'Activiteitenlogboeken succesvol gewist.',
     '{count} recipients' => '{count} ontvangers',
 
-    // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Campagne-uitnodigingen activeren',
-    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Ontvangers importeren voor campagne #{id}',
-    '{pluginName}: Processing campaign #{id}' => '{pluginName}: Campagne #{id} verwerken',
-    'Campaign batches queued' => 'Campagnebatches in wachtrij geplaatst',
-    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Uitnodigingen verzenden naar {count} ontvangers',
-    'Invitation batch sent' => 'Uitnodigingsbatch verzonden',
-    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Campagne {campaignId} batch mislukt: {errors} van {total} ontvangers konden niet worden verzonden. Raadpleeg het plugin-logboek voor details.',
-    'Campaign is disabled for site {site}.' => 'Campagne is uitgeschakeld voor site {site}.',
-
-    // Element (Campaign)
-    'campaign' => 'campagne',
-    'campaigns' => 'campagnes',
-    'All Campaigns' => 'Alle campagnes',
-    'Campaign Types' => 'Campagnetypen',
-    'Type' => 'Type',
-    'Form' => 'Formulier',
-    'Sent' => 'Verzonden',
-    'Pending' => 'In behandeling',
-    'Campaign Type' => 'Campagnetype',
-    'Are you sure you want to delete the selected campaigns?' => 'Weet u zeker dat u de geselecteerde campagnes wilt verwijderen?',
-    'Campaigns deleted.' => 'Campagnes verwijderd.',
-    'Campaigns restored.' => 'Campagnes hersteld.',
-    'Some campaigns restored.' => 'Enkele campagnes hersteld.',
-    'Campaigns not restored.' => 'Campagnes niet hersteld.',
-    'View Recipients' => 'Ontvangers bekijken',
-    'Add Recipient' => 'Ontvanger toevoegen',
-    'Import Recipients' => 'Ontvangers importeren',
-    'Run Campaign' => 'Campagne uitvoeren',
+    // Validation messages
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fout} other{fouten}} gevonden',
+    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Alleen letters, cijfers, koppeltekens, underscores en schuine strepen zijn toegestaan.',
+    'Route cannot contain double slashes.' => 'Route mag geen dubbele schuine strepen bevatten.',
+    'Route cannot contain spaces.' => 'Route mag geen spaties bevatten.',
 
     // Settings: General
     'General Settings' => 'Algemene instellingen',
@@ -209,13 +233,10 @@ return [
     'Add custom fields to Campaign elements. Any fields you add here will appear in the Campaign edit screen.' => 'Voeg aangepaste velden toe aan campagne-elementen. Alle velden die u hier toevoegt, verschijnen in het campagnebewerksscherm.',
     'No field layout available.' => 'Geen veldindeling beschikbaar.',
 
-    // Settings: Validation messages (Settings model)
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fout} other{fouten}} gevonden',
-    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Alleen letters, cijfers, koppeltekens, underscores en schuine strepen zijn toegestaan.',
-    'Route cannot contain double slashes.' => 'Route mag geen dubbele schuine strepen bevatten.',
-    'Route cannot contain spaces.' => 'Route mag geen spaties bevatten.',
+    // Campaigns: Index
+    'New campaign' => 'Nieuwe campagne',
 
-    // Campaigns: Edit page
+    // Campaigns: Edit
     'Are you sure you want to delete this campaign?' => 'Weet u zeker dat u deze campagne wilt verwijderen?',
     'Select a form' => 'Selecteer een formulier',
     'Select a Formie form to link with this campaign.' => 'Selecteer een Formie-formulier om aan deze campagne te koppelen.',
@@ -244,22 +265,16 @@ return [
     'Campaign job queued. Check the queue for progress.' => 'Campagnetaak in wachtrij geplaatst. Controleer de wachtrij voor de voortgang.',
     'Failed to run campaign' => 'Campagne uitvoeren mislukt',
 
-    // Campaigns: Index
-    'New campaign' => 'Nieuwe campagne',
-
-    // Campaign: Analytics partial
+    // Campaign: Analytics
     'Daily Activity' => 'Dagelijkse activiteit',
     'Channel Breakdown' => 'Kanaaloverzicht',
     'Recent Responses' => 'Recente reacties',
     'Recipient' => 'Ontvanger',
-    'Site' => 'Site',
     'Responded' => 'Gereageerd',
     'No data available yet.' => 'Nog geen gegevens beschikbaar.',
     'Analytics will appear here once recipients are added to this campaign.' => 'Analyses verschijnen hier zodra ontvangers aan deze campagne zijn toegevoegd.',
-    'SMS' => 'SMS',
-    'Opened' => 'Geopend',
 
-    // Campaign: Responses partial
+    // Campaign: Responses
     'All Sites' => 'Alle sites',
     'Toggle Details' => 'Details in-/uitschakelen',
     'Submitted' => 'Ingediend',
@@ -269,12 +284,10 @@ return [
     'No responses yet.' => 'Nog geen reacties.',
     'Recipients who submit the form will appear here.' => 'Ontvangers die het formulier indienen, verschijnen hier.',
 
-    // Recipients: Index (global)
-    'All' => 'Alle',
+    // Recipients: Index
     'Date Range' => 'Datumbereik',
     'Search recipients...' => 'Ontvangers zoeken...',
     'Contact' => 'Contact',
-    'Status' => 'Status',
     'Response' => 'Reactie',
     'No recipients found.' => 'Geen ontvangers gevonden.',
     'recipient' => 'ontvanger',
@@ -285,7 +298,7 @@ return [
     'Delete recipient "{name}"? This cannot be undone.' => 'Ontvanger "{name}" verwijderen? Dit kan niet ongedaan worden gemaakt.',
     'Failed to delete recipient' => 'Verwijderen van ontvanger mislukt',
 
-    // Recipients: List (campaign-specific)
+    // Recipients: List
     'Today' => 'Vandaag',
     'Yesterday' => 'Gisteren',
     'Last 7 days' => 'Afgelopen 7 dagen',
@@ -293,12 +306,10 @@ return [
     'Last 90 days' => 'Afgelopen 90 dagen',
     'All time' => 'Alle tijd',
     'Code' => 'Code',
-    'Actions' => 'Acties',
     'Add' => 'Toevoegen',
     'no recipients' => 'geen ontvangers',
     'of' => 'van',
     'No pending recipients to process.' => 'Geen in behandeling zijnde ontvangers te verwerken.',
-    'Delete' => 'Verwijderen',
     'Delete recipient' => 'Ontvanger verwijderen',
     'This cannot be undone.' => 'Dit kan niet ongedaan worden gemaakt.',
 
@@ -368,13 +379,12 @@ return [
     'No SMS provider configured. Phone numbers will be skipped during import.' => 'Geen SMS-provider geconfigureerd. Telefoonnummers worden overgeslagen tijdens het importeren.',
     'Default Site' => 'Standaard site',
     'Used as fallback when the Site column is not mapped, or when a row has an empty/invalid site value.' => 'Gebruikt als terugvaloptie wanneer de Sitekolom niet is gekoppeld of een rij een lege/ongeldige sitewaarde heeft.',
-    'Cancel' => 'Annuleren',
     'Preview Import' => 'Voorbeeld van importeren',
     'Send Invitations' => 'Uitnodigingen verzenden',
     'Queue invitation sending after import.' => 'Verzenden van uitnodigingen na het importeren in de wachtrij plaatsen.',
     'Rows to Import' => 'Te importeren rijen',
 
-    // Recipients: Preview import
+    // Recipients: Preview
     'Total Rows' => 'Totaal rijen',
     'Valid' => 'Geldig',
     'Duplicates' => 'Duplicaten',
@@ -389,7 +399,6 @@ return [
     'Phone/Email' => 'Telefoon/E-mail',
     'Reason' => 'Reden',
     'Invalid Rows (will be skipped)' => 'Ongeldige rijen (worden overgeslagen)',
-    'Error' => 'Fout',
     'Ready to Import' => 'Klaar om te importeren',
     'Click the button below to import {count} valid recipient(s).' => 'Klik op de knop hieronder om {count} geldige ontvanger(s) te importeren.',
     '{duplicates} duplicate(s) will be skipped.' => '{duplicates} duplicaat/duplicaten worden overgeslagen.',
@@ -397,20 +406,6 @@ return [
     'No valid recipients found to import.' => 'Geen geldige ontvangers gevonden om te importeren.',
     'Import {count} Recipients' => '{count} ontvangers importeren',
     'No Valid Recipients to Import' => 'Geen geldige ontvangers om te importeren',
-    'Yes' => 'Ja',
-    'No' => 'Nee',
-    'Created at' => 'Gemaakt op',
-    'Date Updated' => 'Datum geüpdate',
-    'Disabled' => 'Uitgeschakeld',
-    'Enabled' => 'Ingeschakeld',
-    'Next' => 'Volgende',
-    'Previous' => 'Vorige',
-    'Save' => 'Opslaan',
-    'Save and continue editing' => 'Opslaan en doorgaan met aanpassen',
-    'Select site' => 'Site kiezen',
-    'Title' => 'Titel',
-    'Updated at' => 'Geüpdatet op',
-    'View' => 'Bekijken',
 
     // Analytics page
     'Overview' => 'Overzicht',
@@ -425,7 +420,6 @@ return [
     'No rating distribution data available for the selected filters.' => 'Geen beoordelingsverdelingsgegevens beschikbaar voor de geselecteerde filters.',
     'No rating trend data available for the selected filters.' => 'Geen beoordelingstrendgegevens beschikbaar voor de geselecteerde filters.',
     'Recipients Added' => 'Ontvangers toegevoegd',
-    'Responses' => 'Reacties',
     'Email Opens' => 'E-mail geopend',
     'SMS Opens' => 'SMS geopend',
     'Count' => 'Aantal',
@@ -459,51 +453,6 @@ return [
     'Percentage' => 'Percentage',
     'Drop-off' => 'Uitval',
     'To improve conversion rates, consider: personalized messaging, shorter forms, mobile optimization, and timely follow-ups.' => 'Om conversiepercentages te verbeteren, overweeg: gepersonaliseerde berichten, kortere formulieren, mobiele optimalisatie en tijdige follow-ups.',
-
-    // Activity Logs
-    'Date' => 'Datum',
-    'User' => 'Gebruiker',
-    'Action' => 'Actie',
-    'Source' => 'Bron',
-    'No activity logs found yet.' => 'Nog geen activiteitenlogboeken gevonden.',
-    'Clear logs' => 'Logboeken wissen',
-    'Activity logs are currently disabled in settings.' => 'Activiteitenlogboeken zijn momenteel uitgeschakeld in de instellingen.',
-    'Invitations queued' => 'Uitnodigingen in wachtrij geplaatst',
-    'Campaigns queued' => 'Campagnes in wachtrij geplaatst',
-    'Added' => 'Toegevoegd',
-    'Invitation queued' => 'Uitnodiging in wachtrij geplaatst',
-    'Deleted' => 'Verwijderd',
-    'recipient(s)' => 'ontvanger(s)',
-    'Imported' => 'Geïmporteerd',
-    'from' => 'van',
-    'failed' => 'mislukt',
-    'email' => 'e-mail',
-    'batches' => 'batches',
-    'campaign job(s)' => 'campagnetaak/taken',
-    'records' => 'records',
-    'as' => 'als',
-    'Deleted campaign' => 'Campagne verwijderd',
-    'items' => 'items',
-    'Queued' => 'In wachtrij',
-    'Exported' => 'Geëxporteerd',
-    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Weet u zeker dat u alle activiteitenlogboeken wilt wissen? Deze actie kan niet ongedaan worden gemaakt.',
-    'Failed to clear activity logs.' => 'Wissen van activiteitenlogboeken mislukt.',
-
-    // Frontend / Invite
-    'Invitation' => 'Uitnodiging',
-    'You have already responded to this invitation.' => 'U heeft al gereageerd op deze uitnodiging.',
-    'This invitation has expired.' => 'Deze uitnodiging is verlopen.',
-    'Welcome! Please complete the form below.' => 'Welkom! Vul het onderstaande formulier in.',
-    'Invalid Invitation' => 'Ongeldige uitnodiging',
-    'This invitation link is not valid or has expired.' => 'Deze uitnodigingslink is niet geldig of is verlopen.',
-
-    // SmsService
-    'Select a provider...' => 'Selecteer een provider...',
-
-    // AnalyticsService
-    'Email Only' => 'Alleen e-mail',
-    'SMS Only' => 'Alleen SMS',
-    'Both' => 'Beide',
 
     // Analytics: Date basis filter
     'Date based on' => 'Datum op basis van',
@@ -549,4 +498,46 @@ return [
     'Rating Distribution' => 'Beoordelingsverdeling',
     'Trend Over Time' => 'Trend in de tijd',
     'Last updated: {time}' => 'Laatst bijgewerkt: {time}',
+
+    // Activity Logs
+    'User' => 'Gebruiker',
+    'Action' => 'Actie',
+    'Source' => 'Bron',
+    'No activity logs found yet.' => 'Nog geen activiteitenlogboeken gevonden.',
+    'Clear logs' => 'Logboeken wissen',
+    'Activity logs are currently disabled in settings.' => 'Activiteitenlogboeken zijn momenteel uitgeschakeld in de instellingen.',
+    'Invitations queued' => 'Uitnodigingen in wachtrij geplaatst',
+    'Campaigns queued' => 'Campagnes in wachtrij geplaatst',
+    'Added' => 'Toegevoegd',
+    'Invitation queued' => 'Uitnodiging in wachtrij geplaatst',
+    'Deleted' => 'Verwijderd',
+    'recipient(s)' => 'ontvanger(s)',
+    'Imported' => 'Geïmporteerd',
+    'from' => 'van',
+    'failed' => 'mislukt',
+    'email' => 'e-mail',
+    'batches' => 'batches',
+    'campaign job(s)' => 'campagnetaak/taken',
+    'records' => 'records',
+    'as' => 'als',
+    'Deleted campaign' => 'Campagne verwijderd',
+    'items' => 'items',
+    'Queued' => 'In wachtrij',
+    'Exported' => 'Geëxporteerd',
+    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Weet u zeker dat u alle activiteitenlogboeken wilt wissen? Deze actie kan niet ongedaan worden gemaakt.',
+    'Failed to clear activity logs.' => 'Wissen van activiteitenlogboeken mislukt.',
+
+    // Frontend
+    'Invitation' => 'Uitnodiging',
+    'You have already responded to this invitation.' => 'U heeft al gereageerd op deze uitnodiging.',
+    'This invitation has expired.' => 'Deze uitnodiging is verlopen.',
+    'Welcome! Please complete the form below.' => 'Welkom! Vul het onderstaande formulier in.',
+    'Invalid Invitation' => 'Ongeldige uitnodiging',
+    'This invitation link is not valid or has expired.' => 'Deze uitnodigingslink is niet geldig of is verlopen.',
+
+    // Services
+    'Select a provider...' => 'Selecteer een provider...',
+    'Email Only' => 'Alleen e-mail',
+    'SMS Only' => 'Alleen SMS',
+    'Both' => 'Beide',
 ];

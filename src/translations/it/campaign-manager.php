@@ -43,7 +43,71 @@ return [
     'Clear activity logs' => 'Cancella log di attività',
     'Manage settings' => 'Gestisci impostazioni',
 
-    // Controller flash messages — Campaigns
+    // Common
+    'Actions' => 'Azioni',
+    'All' => 'Tutti',
+    'Cancel' => 'Annulla',
+    'Campaign' => 'Campagna',
+    'Conversion Rate' => 'Tasso di conversione',
+    'Date' => 'Data',
+    'Delete' => 'Elimina',
+    'Email' => 'Email',
+    'Error' => 'Errore',
+    'Name' => 'Nome',
+    'No' => 'No',
+    'Opened' => 'Aperto',
+    'Phone' => 'Telefono',
+    'Responses' => 'Risposte',
+    'Site' => 'Sito',
+    'SMS' => 'SMS',
+    'Status' => 'Stato',
+    'Submissions' => 'Invii',
+    'Total Recipients' => 'Totale destinatari',
+    'Yes' => 'Sì',
+    'Created at' => 'Creato il',
+    'Date Updated' => 'Data di aggiornamento',
+    'Disabled' => 'Disabilitato',
+    'Enabled' => 'Abilitato',
+    'Next' => 'Successivo',
+    'Previous' => 'Precedente',
+    'Save' => 'Salva',
+    'Save and continue editing' => 'Salva e continua la modifica',
+    'Select site' => 'Seleziona sito',
+    'Title' => 'Titolo',
+    'Updated at' => 'Aggiornato il',
+    'View' => 'Visualizza',
+
+    // Element
+    'campaign' => 'campagna',
+    'campaigns' => 'campagne',
+    'All Campaigns' => 'Tutte le campagne',
+    'Campaign Types' => 'Tipi di campagna',
+    'Type' => 'Tipo',
+    'Form' => 'Modulo',
+    'Sent' => 'Inviato',
+    'Pending' => 'In attesa',
+    'Campaign Type' => 'Tipo di campagna',
+    'Are you sure you want to delete the selected campaigns?' => 'Sei sicuro di voler eliminare le campagne selezionate?',
+    'Campaigns deleted.' => 'Campagne eliminate.',
+    'Campaigns restored.' => 'Campagne ripristinate.',
+    'Some campaigns restored.' => 'Alcune campagne ripristinate.',
+    'Campaigns not restored.' => 'Campagne non ripristinate.',
+    'View Recipients' => 'Visualizza destinatari',
+    'Add Recipient' => 'Aggiungi destinatario',
+    'Import Recipients' => 'Importa destinatari',
+    'Run Campaign' => 'Esegui campagna',
+
+    // Jobs
+    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Attivazione invito/i campagna',
+    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Importazione destinatari per la campagna #{id}',
+    '{pluginName}: Processing campaign #{id}' => '{pluginName}: Elaborazione campagna #{id}',
+    'Campaign batches queued' => 'Batch di campagna accodati',
+    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Invio inviti a {count} destinatari',
+    'Invitation batch sent' => 'Batch di inviti inviato',
+    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Batch della campagna {campaignId} non riuscito: {errors} su {total} destinatari non hanno potuto essere inviati. Controllare il registro del plugin per i dettagli.',
+    'Campaign is disabled for site {site}.' => 'La campagna è disabilitata per il sito {site}.',
+
+    // Controller messages
     'New Campaign' => 'Nuova campagna',
     'Select a provider first...' => 'Seleziona prima un provider...',
     'Couldn\'t save campaign.' => 'Impossibile salvare la campagna.',
@@ -56,8 +120,6 @@ return [
     'Campaign jobs queued' => 'Job di campagna accodati',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} job di campagna accodati. Controlla la coda per lo stato di avanzamento.',
     'No campaigns to process.' => 'Nessuna campagna da elaborare.',
-
-    // Controller flash messages — Recipients
     'No recipients to export for the selected filters.' => 'Nessun destinatario da esportare per i filtri selezionati.',
     'No responses to export.' => 'Nessuna risposta da esportare.',
     'Recipients exported' => 'Destinatari esportati',
@@ -66,7 +128,6 @@ return [
     'Invalid email address.' => 'Indirizzo email non valido.',
     'Please select a phone country.' => 'Seleziona un paese per il numero di telefono.',
     'Country {country} is not allowed for this campaign\'s SMS provider.' => 'Il paese {country} non è consentito per il provider SMS di questa campagna.',
-    'Invalid phone number.' => 'Numero di telefono non valido.',
     'Email or phone number is required.' => 'L\'email o il numero di telefono è obbligatorio.',
     'Couldn\'t add recipient.' => 'Impossibile aggiungere il destinatario.',
     'Could not save recipient.' => 'Impossibile salvare il destinatario.',
@@ -100,69 +161,32 @@ return [
     'No recipients to export.' => 'Nessun destinatario da esportare.',
     'Campaign recipients exported' => 'Destinatari della campagna esportati',
     'ID' => 'ID',
-    'Name' => 'Nome',
-    'Email' => 'Email',
-    'Phone' => 'Telefono',
     'Email Sent Date' => 'Data invio email',
     'SMS Sent Date' => 'Data invio SMS',
     'Email Opened Date' => 'Data apertura email',
     'SMS Opened Date' => 'Data apertura SMS',
     'Submission ID' => 'ID invio',
     'Date Created' => 'Data creazione',
-
-    // Controller flash messages — Analytics
     'No analytics data to export for the selected filters.' => 'Nessun dato di analisi da esportare per i filtri selezionati.',
-    'Campaign' => 'Campagna',
-    'Total Recipients' => 'Totale destinatari',
     'Emails Sent' => 'Email inviate',
     'SMS Sent' => 'SMS inviati',
     'Emails Opened' => 'Email aperte',
     'SMS Opened' => 'SMS aperti',
     'Email Open Rate' => 'Tasso di apertura email',
     'SMS Open Rate' => 'Tasso di apertura SMS',
-    'Submissions' => 'Invii',
-    'Conversion Rate' => 'Tasso di conversione',
     'Expired' => 'Scaduto',
-
-    // Controller flash messages — Settings
     'Couldn\'t save settings.' => 'Impossibile salvare le impostazioni.',
     'Settings saved.' => 'Impostazioni salvate.',
     'Couldn\'t save field layout.' => 'Impossibile salvare il layout dei campi.',
     'Field layout saved.' => 'Layout dei campi salvato.',
-
-    // Controller flash messages — Activity Logs
     'Activity logs cleared successfully.' => 'Log di attività cancellati con successo.',
     '{count} recipients' => '{count} destinatari',
 
-    // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Attivazione invito/i campagna',
-    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Importazione destinatari per la campagna #{id}',
-    '{pluginName}: Processing campaign #{id}' => '{pluginName}: Elaborazione campagna #{id}',
-    'Campaign batches queued' => 'Batch di campagna accodati',
-    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Invio inviti a {count} destinatari',
-    'Invitation batch sent' => 'Batch di inviti inviato',
-    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Batch della campagna {campaignId} non riuscito: {errors} su {total} destinatari non hanno potuto essere inviati. Controllare il registro del plugin per i dettagli.',
-    'Campaign is disabled for site {site}.' => 'La campagna è disabilitata per il sito {site}.',
-
-    // Element (Campaign)
-    'campaign' => 'campagna',
-    'campaigns' => 'campagne',
-    'All Campaigns' => 'Tutte le campagne',
-    'Campaign Types' => 'Tipi di campagna',
-    'Type' => 'Tipo',
-    'Form' => 'Modulo',
-    'Sent' => 'Inviato',
-    'Pending' => 'In attesa',
-    'Campaign Type' => 'Tipo di campagna',
-    'Are you sure you want to delete the selected campaigns?' => 'Sei sicuro di voler eliminare le campagne selezionate?',
-    'Campaigns deleted.' => 'Campagne eliminate.',
-    'Campaigns restored.' => 'Campagne ripristinate.',
-    'Some campaigns restored.' => 'Alcune campagne ripristinate.',
-    'Campaigns not restored.' => 'Campagne non ripristinate.',
-    'View Recipients' => 'Visualizza destinatari',
-    'Add Recipient' => 'Aggiungi destinatario',
-    'Import Recipients' => 'Importa destinatari',
-    'Run Campaign' => 'Esegui campagna',
+    // Validation messages
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{errore trovato} other{errori trovati}}',
+    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Sono consentiti solo lettere, numeri, trattini, trattini bassi e barre.',
+    'Route cannot contain double slashes.' => 'Il percorso non può contenere barre doppie.',
+    'Route cannot contain spaces.' => 'Il percorso non può contenere spazi.',
 
     // Settings: General
     'General Settings' => 'Impostazioni generali',
@@ -209,13 +233,10 @@ return [
     'Add custom fields to Campaign elements. Any fields you add here will appear in the Campaign edit screen.' => 'Aggiungi campi personalizzati agli elementi Campaign. I campi aggiunti qui verranno visualizzati nella schermata di modifica della campagna.',
     'No field layout available.' => 'Nessun layout dei campi disponibile.',
 
-    // Settings: Validation messages (Settings model)
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{errore trovato} other{errori trovati}}',
-    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Sono consentiti solo lettere, numeri, trattini, trattini bassi e barre.',
-    'Route cannot contain double slashes.' => 'Il percorso non può contenere barre doppie.',
-    'Route cannot contain spaces.' => 'Il percorso non può contenere spazi.',
+    // Campaigns: Index
+    'New campaign' => 'Nuova campagna',
 
-    // Campaigns: Edit page
+    // Campaigns: Edit
     'Are you sure you want to delete this campaign?' => 'Sei sicuro di voler eliminare questa campagna?',
     'Select a form' => 'Seleziona un modulo',
     'Select a Formie form to link with this campaign.' => 'Seleziona un modulo Formie da collegare a questa campagna.',
@@ -244,22 +265,16 @@ return [
     'Campaign job queued. Check the queue for progress.' => 'Job di campagna accodato. Controlla la coda per lo stato di avanzamento.',
     'Failed to run campaign' => 'Impossibile eseguire la campagna',
 
-    // Campaigns: Index
-    'New campaign' => 'Nuova campagna',
-
-    // Campaign: Analytics partial
+    // Campaign: Analytics
     'Daily Activity' => 'Attività giornaliera',
     'Channel Breakdown' => 'Suddivisione per canale',
     'Recent Responses' => 'Risposte recenti',
     'Recipient' => 'Destinatario',
-    'Site' => 'Sito',
     'Responded' => 'Ha risposto',
     'No data available yet.' => 'Nessun dato disponibile.',
     'Analytics will appear here once recipients are added to this campaign.' => 'Le analisi verranno visualizzate qui una volta che i destinatari sono stati aggiunti a questa campagna.',
-    'SMS' => 'SMS',
-    'Opened' => 'Aperto',
 
-    // Campaign: Responses partial
+    // Campaign: Responses
     'All Sites' => 'Tutti i siti',
     'Toggle Details' => 'Mostra/nascondi dettagli',
     'Submitted' => 'Inviato',
@@ -269,12 +284,10 @@ return [
     'No responses yet.' => 'Nessuna risposta.',
     'Recipients who submit the form will appear here.' => 'I destinatari che inviano il modulo verranno visualizzati qui.',
 
-    // Recipients: Index (global)
-    'All' => 'Tutti',
+    // Recipients: Index
     'Date Range' => 'Intervallo di date',
     'Search recipients...' => 'Cerca destinatari...',
     'Contact' => 'Contatto',
-    'Status' => 'Stato',
     'Response' => 'Risposta',
     'No recipients found.' => 'Nessun destinatario trovato.',
     'recipient' => 'destinatario',
@@ -285,7 +298,7 @@ return [
     'Delete recipient "{name}"? This cannot be undone.' => 'Eliminare il destinatario "{name}"? Questa azione non può essere annullata.',
     'Failed to delete recipient' => 'Impossibile eliminare il destinatario',
 
-    // Recipients: List (campaign-specific)
+    // Recipients: List
     'Today' => 'Oggi',
     'Yesterday' => 'Ieri',
     'Last 7 days' => 'Ultimi 7 giorni',
@@ -293,12 +306,10 @@ return [
     'Last 90 days' => 'Ultimi 90 giorni',
     'All time' => 'Tutto il periodo',
     'Code' => 'Codice',
-    'Actions' => 'Azioni',
     'Add' => 'Aggiungi',
     'no recipients' => 'nessun destinatario',
     'of' => 'di',
     'No pending recipients to process.' => 'Nessun destinatario in attesa da elaborare.',
-    'Delete' => 'Elimina',
     'Delete recipient' => 'Elimina destinatario',
     'This cannot be undone.' => 'Questa azione non può essere annullata.',
 
@@ -368,13 +379,12 @@ return [
     'No SMS provider configured. Phone numbers will be skipped during import.' => 'Nessun provider SMS configurato. I numeri di telefono verranno ignorati durante l\'importazione.',
     'Default Site' => 'Sito predefinito',
     'Used as fallback when the Site column is not mapped, or when a row has an empty/invalid site value.' => 'Utilizzato come fallback quando la colonna Site non è mappata o quando una riga ha un valore del sito vuoto/non valido.',
-    'Cancel' => 'Annulla',
     'Preview Import' => 'Anteprima importazione',
     'Send Invitations' => 'Invia inviti',
     'Queue invitation sending after import.' => 'Accoda l\'invio degli inviti dopo l\'importazione.',
     'Rows to Import' => 'Righe da importare',
 
-    // Recipients: Preview import
+    // Recipients: Preview
     'Total Rows' => 'Righe totali',
     'Valid' => 'Validi',
     'Duplicates' => 'Duplicati',
@@ -389,7 +399,6 @@ return [
     'Phone/Email' => 'Telefono/Email',
     'Reason' => 'Motivo',
     'Invalid Rows (will be skipped)' => 'Righe non valide (verranno ignorate)',
-    'Error' => 'Errore',
     'Ready to Import' => 'Pronto per l\'importazione',
     'Click the button below to import {count} valid recipient(s).' => 'Clicca il pulsante qui sotto per importare {count} destinatario/i valido/i.',
     '{duplicates} duplicate(s) will be skipped.' => '{duplicates} duplicato/i verrà/verranno ignorato/i.',
@@ -397,20 +406,6 @@ return [
     'No valid recipients found to import.' => 'Nessun destinatario valido trovato da importare.',
     'Import {count} Recipients' => 'Importa {count} destinatari',
     'No Valid Recipients to Import' => 'Nessun destinatario valido da importare',
-    'Yes' => 'Sì',
-    'No' => 'No',
-    'Created at' => 'Creato il',
-    'Date Updated' => 'Data di aggiornamento',
-    'Disabled' => 'Disabilitato',
-    'Enabled' => 'Abilitato',
-    'Next' => 'Successivo',
-    'Previous' => 'Precedente',
-    'Save' => 'Salva',
-    'Save and continue editing' => 'Salva e continua la modifica',
-    'Select site' => 'Seleziona sito',
-    'Title' => 'Titolo',
-    'Updated at' => 'Aggiornato il',
-    'View' => 'Visualizza',
 
     // Analytics page
     'Overview' => 'Panoramica',
@@ -425,7 +420,6 @@ return [
     'No rating distribution data available for the selected filters.' => 'Nessun dato di distribuzione valutazioni disponibile per i filtri selezionati.',
     'No rating trend data available for the selected filters.' => 'Nessun dato di andamento valutazioni disponibile per i filtri selezionati.',
     'Recipients Added' => 'Destinatari aggiunti',
-    'Responses' => 'Risposte',
     'Email Opens' => 'Aperture email',
     'SMS Opens' => 'Aperture SMS',
     'Count' => 'Conteggio',
@@ -459,51 +453,6 @@ return [
     'Percentage' => 'Percentuale',
     'Drop-off' => 'Abbandono',
     'To improve conversion rates, consider: personalized messaging, shorter forms, mobile optimization, and timely follow-ups.' => 'Per migliorare i tassi di conversione, considera: messaggi personalizzati, moduli più brevi, ottimizzazione mobile e follow-up tempestivi.',
-
-    // Activity Logs
-    'Date' => 'Data',
-    'User' => 'Utente',
-    'Action' => 'Azione',
-    'Source' => 'Sorgente',
-    'No activity logs found yet.' => 'Nessun log di attività trovato.',
-    'Clear logs' => 'Cancella log',
-    'Activity logs are currently disabled in settings.' => 'I log di attività sono attualmente disabilitati nelle impostazioni.',
-    'Invitations queued' => 'Inviti accodati',
-    'Campaigns queued' => 'Campagne accodate',
-    'Added' => 'Aggiunto',
-    'Invitation queued' => 'Invito accodato',
-    'Deleted' => 'Eliminato',
-    'recipient(s)' => 'destinatario/i',
-    'Imported' => 'Importato',
-    'from' => 'da',
-    'failed' => 'non riusciti',
-    'email' => 'email',
-    'batches' => 'batch',
-    'campaign job(s)' => 'job di campagna',
-    'records' => 'record',
-    'as' => 'come',
-    'Deleted campaign' => 'Campagna eliminata',
-    'items' => 'elementi',
-    'Queued' => 'Accodato',
-    'Exported' => 'Esportato',
-    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Sei sicuro di voler cancellare tutti i log di attività? Questa azione non può essere annullata.',
-    'Failed to clear activity logs.' => 'Impossibile cancellare i log di attività.',
-
-    // Frontend / Invite
-    'Invitation' => 'Invito',
-    'You have already responded to this invitation.' => 'Hai già risposto a questo invito.',
-    'This invitation has expired.' => 'Questo invito è scaduto.',
-    'Welcome! Please complete the form below.' => 'Benvenuto/a! Compila il modulo qui sotto.',
-    'Invalid Invitation' => 'Invito non valido',
-    'This invitation link is not valid or has expired.' => 'Questo link di invito non è valido o è scaduto.',
-
-    // SmsService
-    'Select a provider...' => 'Seleziona un provider...',
-
-    // AnalyticsService
-    'Email Only' => 'Solo email',
-    'SMS Only' => 'Solo SMS',
-    'Both' => 'Entrambi',
 
     // Analytics: Date basis filter
     'Date based on' => 'Data basata su',
@@ -549,4 +498,46 @@ return [
     'Rating Distribution' => 'Distribuzione valutazioni',
     'Trend Over Time' => 'Andamento nel tempo',
     'Last updated: {time}' => 'Ultimo aggiornamento: {time}',
+
+    // Activity Logs
+    'User' => 'Utente',
+    'Action' => 'Azione',
+    'Source' => 'Sorgente',
+    'No activity logs found yet.' => 'Nessun log di attività trovato.',
+    'Clear logs' => 'Cancella log',
+    'Activity logs are currently disabled in settings.' => 'I log di attività sono attualmente disabilitati nelle impostazioni.',
+    'Invitations queued' => 'Inviti accodati',
+    'Campaigns queued' => 'Campagne accodate',
+    'Added' => 'Aggiunto',
+    'Invitation queued' => 'Invito accodato',
+    'Deleted' => 'Eliminato',
+    'recipient(s)' => 'destinatario/i',
+    'Imported' => 'Importato',
+    'from' => 'da',
+    'failed' => 'non riusciti',
+    'email' => 'email',
+    'batches' => 'batch',
+    'campaign job(s)' => 'job di campagna',
+    'records' => 'record',
+    'as' => 'come',
+    'Deleted campaign' => 'Campagna eliminata',
+    'items' => 'elementi',
+    'Queued' => 'Accodato',
+    'Exported' => 'Esportato',
+    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Sei sicuro di voler cancellare tutti i log di attività? Questa azione non può essere annullata.',
+    'Failed to clear activity logs.' => 'Impossibile cancellare i log di attività.',
+
+    // Frontend
+    'Invitation' => 'Invito',
+    'You have already responded to this invitation.' => 'Hai già risposto a questo invito.',
+    'This invitation has expired.' => 'Questo invito è scaduto.',
+    'Welcome! Please complete the form below.' => 'Benvenuto/a! Compila il modulo qui sotto.',
+    'Invalid Invitation' => 'Invito non valido',
+    'This invitation link is not valid or has expired.' => 'Questo link di invito non è valido o è scaduto.',
+
+    // Services
+    'Select a provider...' => 'Seleziona un provider...',
+    'Email Only' => 'Solo email',
+    'SMS Only' => 'Solo SMS',
+    'Both' => 'Entrambi',
 ];

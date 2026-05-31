@@ -43,7 +43,71 @@ return [
     'Clear activity logs' => 'مسح سجلات النشاط',
     'Manage settings' => 'إدارة الإعدادات',
 
-    // Controller flash messages — Campaigns
+    // Common
+    'Actions' => 'الإجراءات',
+    'All' => 'الكل',
+    'Cancel' => 'إلغاء',
+    'Campaign' => 'الحملة',
+    'Conversion Rate' => 'معدل التحويل',
+    'Date' => 'التاريخ',
+    'Delete' => 'حذف',
+    'Email' => 'البريد الإلكتروني',
+    'Error' => 'خطأ',
+    'Name' => 'الاسم',
+    'No' => 'لا',
+    'Opened' => 'مفتوح',
+    'Phone' => 'الهاتف',
+    'Responses' => 'الردود',
+    'Site' => 'الموقع',
+    'SMS' => 'SMS',
+    'Status' => 'الحالة',
+    'Submissions' => 'الإرسالات',
+    'Total Recipients' => 'إجمالي المستلمين',
+    'Yes' => 'نعم',
+    'Created at' => 'تم الإنشاء في',
+    'Date Updated' => 'تاريخ التحديث',
+    'Disabled' => 'معطّل',
+    'Enabled' => 'مفعّل',
+    'Next' => 'التالي',
+    'Previous' => 'السابق',
+    'Save' => 'حفظ',
+    'Save and continue editing' => 'حفظ وإكمال التحرير',
+    'Select site' => 'اختيار الموقع',
+    'Title' => 'العنوان',
+    'Updated at' => 'تم التحديث في',
+    'View' => 'عرض',
+
+    // Element
+    'campaign' => 'حملة',
+    'campaigns' => 'حملات',
+    'All Campaigns' => 'جميع الحملات',
+    'Campaign Types' => 'أنواع الحملات',
+    'Type' => 'النوع',
+    'Form' => 'النموذج',
+    'Sent' => 'مُرسَل',
+    'Pending' => 'قيد الانتظار',
+    'Campaign Type' => 'نوع الحملة',
+    'Are you sure you want to delete the selected campaigns?' => 'هل أنت متأكد من رغبتك في حذف الحملات المحددة؟',
+    'Campaigns deleted.' => 'تم حذف الحملات.',
+    'Campaigns restored.' => 'تم استعادة الحملات.',
+    'Some campaigns restored.' => 'تم استعادة بعض الحملات.',
+    'Campaigns not restored.' => 'لم تتم استعادة الحملات.',
+    'View Recipients' => 'عرض المستلمين',
+    'Add Recipient' => 'إضافة مستلم',
+    'Import Recipients' => 'استيراد المستلمين',
+    'Run Campaign' => 'تشغيل الحملة',
+
+    // Jobs
+    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: تشغيل دعوات الحملة',
+    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: استيراد المستلمين للحملة #{id}',
+    '{pluginName}: Processing campaign #{id}' => '{pluginName}: معالجة الحملة #{id}',
+    'Campaign batches queued' => 'تم إضافة دفعات الحملة إلى قائمة الانتظار',
+    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: إرسال الدعوات إلى {count} مستلمين',
+    'Invitation batch sent' => 'تم إرسال دفعة الدعوات',
+    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'فشلت دفعة الحملة {campaignId}: لم يتمكن من إرسالها إلى {errors} من أصل {total} مستلم. راجع سجل الإضافة للاطلاع على التفاصيل.',
+    'Campaign is disabled for site {site}.' => 'الحملة معطّلة للموقع {site}.',
+
+    // Controller messages
     'New Campaign' => 'حملة جديدة',
     'Select a provider first...' => 'الرجاء تحديد مزوّد أولاً...',
     'Couldn\'t save campaign.' => 'تعذّر حفظ الحملة.',
@@ -56,8 +120,6 @@ return [
     'Campaign jobs queued' => 'تم إضافة مهام الحملة إلى قائمة الانتظار',
     '{count} campaign job(s) queued. Check the queue for progress.' => 'تم إضافة {count} مهمة من مهام الحملة إلى قائمة الانتظار. تحقق من قائمة الانتظار لمتابعة التقدم.',
     'No campaigns to process.' => 'لا توجد حملات للمعالجة.',
-
-    // Controller flash messages — Recipients
     'No recipients to export for the selected filters.' => 'لا يوجد مستلمون للتصدير وفق الفلاتر المحددة.',
     'No responses to export.' => 'لا توجد ردود للتصدير.',
     'Recipients exported' => 'تم تصدير المستلمين',
@@ -66,7 +128,6 @@ return [
     'Invalid email address.' => 'عنوان البريد الإلكتروني غير صالح.',
     'Please select a phone country.' => 'الرجاء تحديد بلد الهاتف.',
     'Country {country} is not allowed for this campaign\'s SMS provider.' => 'البلد {country} غير مسموح به لمزوّد SMS الخاص بهذه الحملة.',
-    'Invalid phone number.' => 'رقم الهاتف غير صالح.',
     'Email or phone number is required.' => 'عنوان البريد الإلكتروني أو رقم الهاتف مطلوب.',
     'Couldn\'t add recipient.' => 'تعذّر إضافة المستلم.',
     'Could not save recipient.' => 'تعذّر حفظ المستلم.',
@@ -100,69 +161,32 @@ return [
     'No recipients to export.' => 'لا يوجد مستلمون للتصدير.',
     'Campaign recipients exported' => 'تم تصدير مستلمي الحملة',
     'ID' => 'المعرّف',
-    'Name' => 'الاسم',
-    'Email' => 'البريد الإلكتروني',
-    'Phone' => 'الهاتف',
     'Email Sent Date' => 'تاريخ إرسال البريد الإلكتروني',
     'SMS Sent Date' => 'تاريخ إرسال SMS',
     'Email Opened Date' => 'تاريخ فتح البريد الإلكتروني',
     'SMS Opened Date' => 'تاريخ فتح SMS',
     'Submission ID' => 'معرّف الإرسال',
     'Date Created' => 'تاريخ الإنشاء',
-
-    // Controller flash messages — Analytics
     'No analytics data to export for the selected filters.' => 'لا توجد بيانات تحليلية للتصدير وفق الفلاتر المحددة.',
-    'Campaign' => 'الحملة',
-    'Total Recipients' => 'إجمالي المستلمين',
     'Emails Sent' => 'رسائل البريد الإلكتروني المُرسَلة',
     'SMS Sent' => 'رسائل SMS المُرسَلة',
     'Emails Opened' => 'رسائل البريد الإلكتروني المفتوحة',
     'SMS Opened' => 'رسائل SMS المفتوحة',
     'Email Open Rate' => 'معدل فتح البريد الإلكتروني',
     'SMS Open Rate' => 'معدل فتح SMS',
-    'Submissions' => 'الإرسالات',
-    'Conversion Rate' => 'معدل التحويل',
     'Expired' => 'منتهي الصلاحية',
-
-    // Controller flash messages — Settings
     'Couldn\'t save settings.' => 'تعذّر حفظ الإعدادات.',
     'Settings saved.' => 'تم حفظ الإعدادات.',
     'Couldn\'t save field layout.' => 'تعذّر حفظ تخطيط الحقول.',
     'Field layout saved.' => 'تم حفظ تخطيط الحقول.',
-
-    // Controller flash messages — Activity Logs
     'Activity logs cleared successfully.' => 'تم مسح سجلات النشاط بنجاح.',
     '{count} recipients' => '{count} مستلمين',
 
-    // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: تشغيل دعوات الحملة',
-    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: استيراد المستلمين للحملة #{id}',
-    '{pluginName}: Processing campaign #{id}' => '{pluginName}: معالجة الحملة #{id}',
-    'Campaign batches queued' => 'تم إضافة دفعات الحملة إلى قائمة الانتظار',
-    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: إرسال الدعوات إلى {count} مستلمين',
-    'Invitation batch sent' => 'تم إرسال دفعة الدعوات',
-    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'فشلت دفعة الحملة {campaignId}: لم يتمكن من إرسالها إلى {errors} من أصل {total} مستلم. راجع سجل الإضافة للاطلاع على التفاصيل.',
-    'Campaign is disabled for site {site}.' => 'الحملة معطّلة للموقع {site}.',
-
-    // Element (Campaign)
-    'campaign' => 'حملة',
-    'campaigns' => 'حملات',
-    'All Campaigns' => 'جميع الحملات',
-    'Campaign Types' => 'أنواع الحملات',
-    'Type' => 'النوع',
-    'Form' => 'النموذج',
-    'Sent' => 'مُرسَل',
-    'Pending' => 'قيد الانتظار',
-    'Campaign Type' => 'نوع الحملة',
-    'Are you sure you want to delete the selected campaigns?' => 'هل أنت متأكد من رغبتك في حذف الحملات المحددة؟',
-    'Campaigns deleted.' => 'تم حذف الحملات.',
-    'Campaigns restored.' => 'تم استعادة الحملات.',
-    'Some campaigns restored.' => 'تم استعادة بعض الحملات.',
-    'Campaigns not restored.' => 'لم تتم استعادة الحملات.',
-    'View Recipients' => 'عرض المستلمين',
-    'Add Recipient' => 'إضافة مستلم',
-    'Import Recipients' => 'استيراد المستلمين',
-    'Run Campaign' => 'تشغيل الحملة',
+    // Validation messages
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => 'تم العثور على {count, number} {count, plural, =1{خطأ} other{أخطاء}}',
+    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'يُسمح فقط بالحروف والأرقام والشرطات والشرطات السفلية والشرطات المائلة.',
+    'Route cannot contain double slashes.' => 'لا يمكن أن يحتوي المسار على شرطات مائلة مزدوجة.',
+    'Route cannot contain spaces.' => 'لا يمكن أن يحتوي المسار على مسافات.',
 
     // Settings: General
     'General Settings' => 'الإعدادات العامة',
@@ -209,13 +233,10 @@ return [
     'Add custom fields to Campaign elements. Any fields you add here will appear in the Campaign edit screen.' => 'أضف حقولاً مخصصة إلى عناصر الحملة. ستظهر أي حقول تضيفها هنا في شاشة تعديل الحملة.',
     'No field layout available.' => 'لا يوجد تخطيط حقول متاح.',
 
-    // Settings: Validation messages (Settings model)
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => 'تم العثور على {count, number} {count, plural, =1{خطأ} other{أخطاء}}',
-    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'يُسمح فقط بالحروف والأرقام والشرطات والشرطات السفلية والشرطات المائلة.',
-    'Route cannot contain double slashes.' => 'لا يمكن أن يحتوي المسار على شرطات مائلة مزدوجة.',
-    'Route cannot contain spaces.' => 'لا يمكن أن يحتوي المسار على مسافات.',
+    // Campaigns: Index
+    'New campaign' => 'حملة جديدة',
 
-    // Campaigns: Edit page
+    // Campaigns: Edit
     'Are you sure you want to delete this campaign?' => 'هل أنت متأكد من رغبتك في حذف هذه الحملة؟',
     'Select a form' => 'تحديد نموذج',
     'Select a Formie form to link with this campaign.' => 'تحديد نموذج Formie لربطه بهذه الحملة.',
@@ -244,22 +265,16 @@ return [
     'Campaign job queued. Check the queue for progress.' => 'تم إضافة مهمة الحملة إلى قائمة الانتظار. تحقق من قائمة الانتظار لمتابعة التقدم.',
     'Failed to run campaign' => 'فشل تشغيل الحملة',
 
-    // Campaigns: Index
-    'New campaign' => 'حملة جديدة',
-
-    // Campaign: Analytics partial
+    // Campaign: Analytics
     'Daily Activity' => 'النشاط اليومي',
     'Channel Breakdown' => 'تفصيل القنوات',
     'Recent Responses' => 'الردود الأخيرة',
     'Recipient' => 'المستلم',
-    'Site' => 'الموقع',
     'Responded' => 'استجاب',
     'No data available yet.' => 'لا تتوفر بيانات حتى الآن.',
     'Analytics will appear here once recipients are added to this campaign.' => 'ستظهر التحليلات هنا بمجرد إضافة مستلمين إلى هذه الحملة.',
-    'SMS' => 'SMS',
-    'Opened' => 'مفتوح',
 
-    // Campaign: Responses partial
+    // Campaign: Responses
     'All Sites' => 'كل المواقع',
     'Toggle Details' => 'إظهار/إخفاء التفاصيل',
     'Submitted' => 'مُرسَل',
@@ -269,12 +284,10 @@ return [
     'No responses yet.' => 'لا توجد ردود حتى الآن.',
     'Recipients who submit the form will appear here.' => 'سيظهر هنا المستلمون الذين يرسلون النموذج.',
 
-    // Recipients: Index (global)
-    'All' => 'الكل',
+    // Recipients: Index
     'Date Range' => 'نطاق التاريخ',
     'Search recipients...' => 'البحث عن مستلمين...',
     'Contact' => 'جهة الاتصال',
-    'Status' => 'الحالة',
     'Response' => 'الرد',
     'No recipients found.' => 'لم يتم العثور على مستلمين.',
     'recipient' => 'مستلم',
@@ -285,7 +298,7 @@ return [
     'Delete recipient "{name}"? This cannot be undone.' => 'هل تريد حذف المستلم "{name}"؟ لا يمكن التراجع عن هذا الإجراء.',
     'Failed to delete recipient' => 'فشل حذف المستلم',
 
-    // Recipients: List (campaign-specific)
+    // Recipients: List
     'Today' => 'اليوم',
     'Yesterday' => 'أمس',
     'Last 7 days' => 'آخر 7 أيام',
@@ -293,12 +306,10 @@ return [
     'Last 90 days' => 'آخر 90 يوماً',
     'All time' => 'كل الوقت',
     'Code' => 'الرمز',
-    'Actions' => 'الإجراءات',
     'Add' => 'إضافة',
     'no recipients' => 'لا يوجد مستلمون',
     'of' => 'من',
     'No pending recipients to process.' => 'لا يوجد مستلمون معلّقون للمعالجة.',
-    'Delete' => 'حذف',
     'Delete recipient' => 'حذف المستلم',
     'This cannot be undone.' => 'لا يمكن التراجع عن هذا الإجراء.',
 
@@ -368,13 +379,12 @@ return [
     'No SMS provider configured. Phone numbers will be skipped during import.' => 'لم يتم تهيئة مزوّد SMS. سيتم تخطي أرقام الهواتف أثناء الاستيراد.',
     'Default Site' => 'الموقع الافتراضي',
     'Used as fallback when the Site column is not mapped, or when a row has an empty/invalid site value.' => 'يُستخدم كبديل عند عدم تعيين عمود الموقع أو عندما يحتوي صف على قيمة موقع فارغة أو غير صالحة.',
-    'Cancel' => 'إلغاء',
     'Preview Import' => 'معاينة الاستيراد',
     'Send Invitations' => 'إرسال الدعوات',
     'Queue invitation sending after import.' => 'إضافة إرسال الدعوات إلى قائمة الانتظار بعد الاستيراد.',
     'Rows to Import' => 'الصفوف المراد استيرادها',
 
-    // Recipients: Preview import
+    // Recipients: Preview
     'Total Rows' => 'إجمالي الصفوف',
     'Valid' => 'صالح',
     'Duplicates' => 'مكرر',
@@ -389,7 +399,6 @@ return [
     'Phone/Email' => 'الهاتف/البريد الإلكتروني',
     'Reason' => 'السبب',
     'Invalid Rows (will be skipped)' => 'صفوف غير صالحة (سيتم تخطيها)',
-    'Error' => 'خطأ',
     'Ready to Import' => 'جاهز للاستيراد',
     'Click the button below to import {count} valid recipient(s).' => 'انقر على الزر أدناه لاستيراد {count} مستلم صالح.',
     '{duplicates} duplicate(s) will be skipped.' => 'سيتم تخطي {duplicates} مكرر.',
@@ -397,20 +406,6 @@ return [
     'No valid recipients found to import.' => 'لم يتم العثور على مستلمين صالحين للاستيراد.',
     'Import {count} Recipients' => 'استيراد {count} مستلمين',
     'No Valid Recipients to Import' => 'لا يوجد مستلمون صالحون للاستيراد',
-    'Yes' => 'نعم',
-    'No' => 'لا',
-    'Created at' => 'تم الإنشاء في',
-    'Date Updated' => 'تاريخ التحديث',
-    'Disabled' => 'معطّل',
-    'Enabled' => 'مفعّل',
-    'Next' => 'التالي',
-    'Previous' => 'السابق',
-    'Save' => 'حفظ',
-    'Save and continue editing' => 'حفظ وإكمال التحرير',
-    'Select site' => 'اختيار الموقع',
-    'Title' => 'العنوان',
-    'Updated at' => 'تم التحديث في',
-    'View' => 'عرض',
 
     // Analytics page
     'Overview' => 'نظرة عامة',
@@ -425,7 +420,6 @@ return [
     'No rating distribution data available for the selected filters.' => 'لا تتوفر بيانات توزيع التقييمات للفلاتر المحددة.',
     'No rating trend data available for the selected filters.' => 'لا تتوفر بيانات اتجاه التقييمات للفلاتر المحددة.',
     'Recipients Added' => 'المستلمون المضافون',
-    'Responses' => 'الردود',
     'Email Opens' => 'فتحات البريد الإلكتروني',
     'SMS Opens' => 'فتحات SMS',
     'Count' => 'العدد',
@@ -459,51 +453,6 @@ return [
     'Percentage' => 'النسبة المئوية',
     'Drop-off' => 'معدل الانسحاب',
     'To improve conversion rates, consider: personalized messaging, shorter forms, mobile optimization, and timely follow-ups.' => 'لتحسين معدلات التحويل، ضع في اعتبارك: الرسائل الشخصية، والنماذج الأقصر، وتحسين الأجهزة المحمولة، والمتابعات في الوقت المناسب.',
-
-    // Activity Logs
-    'Date' => 'التاريخ',
-    'User' => 'المستخدم',
-    'Action' => 'الإجراء',
-    'Source' => 'المصدر',
-    'No activity logs found yet.' => 'لم يتم العثور على سجلات نشاط بعد.',
-    'Clear logs' => 'مسح السجلات',
-    'Activity logs are currently disabled in settings.' => 'سجلات النشاط معطّلة حالياً في الإعدادات.',
-    'Invitations queued' => 'تم إضافة الدعوات إلى قائمة الانتظار',
-    'Campaigns queued' => 'تم إضافة الحملات إلى قائمة الانتظار',
-    'Added' => 'تمت الإضافة',
-    'Invitation queued' => 'تم إضافة الدعوة إلى قائمة الانتظار',
-    'Deleted' => 'تم الحذف',
-    'recipient(s)' => 'مستلم/مستلمين',
-    'Imported' => 'تم الاستيراد',
-    'from' => 'من',
-    'failed' => 'فشل',
-    'email' => 'بريد إلكتروني',
-    'batches' => 'دفعات',
-    'campaign job(s)' => 'مهمة/مهام الحملة',
-    'records' => 'سجلات',
-    'as' => 'بصفة',
-    'Deleted campaign' => 'تم حذف الحملة',
-    'items' => 'عناصر',
-    'Queued' => 'في قائمة الانتظار',
-    'Exported' => 'تم التصدير',
-    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'هل أنت متأكد من رغبتك في مسح جميع سجلات النشاط؟ لا يمكن التراجع عن هذا الإجراء.',
-    'Failed to clear activity logs.' => 'فشل مسح سجلات النشاط.',
-
-    // Frontend / Invite
-    'Invitation' => 'الدعوة',
-    'You have already responded to this invitation.' => 'لقد أجبت بالفعل على هذه الدعوة.',
-    'This invitation has expired.' => 'انتهت صلاحية هذه الدعوة.',
-    'Welcome! Please complete the form below.' => 'أهلاً وسهلاً! الرجاء إكمال النموذج أدناه.',
-    'Invalid Invitation' => 'دعوة غير صالحة',
-    'This invitation link is not valid or has expired.' => 'رابط الدعوة هذا غير صالح أو انتهت صلاحيته.',
-
-    // SmsService
-    'Select a provider...' => 'تحديد مزوّد...',
-
-    // AnalyticsService
-    'Email Only' => 'البريد الإلكتروني فقط',
-    'SMS Only' => 'SMS فقط',
-    'Both' => 'كلاهما',
 
     // Analytics: Date basis filter
     'Date based on' => 'التاريخ بناءً على',
@@ -549,4 +498,46 @@ return [
     'Rating Distribution' => 'توزيع التقييمات',
     'Trend Over Time' => 'الاتجاه عبر الزمن',
     'Last updated: {time}' => 'آخر تحديث: {time}',
+
+    // Activity Logs
+    'User' => 'المستخدم',
+    'Action' => 'الإجراء',
+    'Source' => 'المصدر',
+    'No activity logs found yet.' => 'لم يتم العثور على سجلات نشاط بعد.',
+    'Clear logs' => 'مسح السجلات',
+    'Activity logs are currently disabled in settings.' => 'سجلات النشاط معطّلة حالياً في الإعدادات.',
+    'Invitations queued' => 'تم إضافة الدعوات إلى قائمة الانتظار',
+    'Campaigns queued' => 'تم إضافة الحملات إلى قائمة الانتظار',
+    'Added' => 'تمت الإضافة',
+    'Invitation queued' => 'تم إضافة الدعوة إلى قائمة الانتظار',
+    'Deleted' => 'تم الحذف',
+    'recipient(s)' => 'مستلم/مستلمين',
+    'Imported' => 'تم الاستيراد',
+    'from' => 'من',
+    'failed' => 'فشل',
+    'email' => 'بريد إلكتروني',
+    'batches' => 'دفعات',
+    'campaign job(s)' => 'مهمة/مهام الحملة',
+    'records' => 'سجلات',
+    'as' => 'بصفة',
+    'Deleted campaign' => 'تم حذف الحملة',
+    'items' => 'عناصر',
+    'Queued' => 'في قائمة الانتظار',
+    'Exported' => 'تم التصدير',
+    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'هل أنت متأكد من رغبتك في مسح جميع سجلات النشاط؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Failed to clear activity logs.' => 'فشل مسح سجلات النشاط.',
+
+    // Frontend
+    'Invitation' => 'الدعوة',
+    'You have already responded to this invitation.' => 'لقد أجبت بالفعل على هذه الدعوة.',
+    'This invitation has expired.' => 'انتهت صلاحية هذه الدعوة.',
+    'Welcome! Please complete the form below.' => 'أهلاً وسهلاً! الرجاء إكمال النموذج أدناه.',
+    'Invalid Invitation' => 'دعوة غير صالحة',
+    'This invitation link is not valid or has expired.' => 'رابط الدعوة هذا غير صالح أو انتهت صلاحيته.',
+
+    // Services
+    'Select a provider...' => 'تحديد مزوّد...',
+    'Email Only' => 'البريد الإلكتروني فقط',
+    'SMS Only' => 'SMS فقط',
+    'Both' => 'كلاهما',
 ];

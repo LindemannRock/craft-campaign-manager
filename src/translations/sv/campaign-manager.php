@@ -43,7 +43,71 @@ return [
     'Clear activity logs' => 'Rensa aktivitetsloggar',
     'Manage settings' => 'Hantera inställningar',
 
-    // Controller flash messages — Campaigns
+    // Common
+    'Actions' => 'Åtgärder',
+    'All' => 'Alla',
+    'Cancel' => 'Avbryt',
+    'Campaign' => 'Kampanj',
+    'Conversion Rate' => 'Konverteringsgrad',
+    'Date' => 'Datum',
+    'Delete' => 'Ta bort',
+    'Email' => 'E-post',
+    'Error' => 'Fel',
+    'Name' => 'Namn',
+    'No' => 'Nej',
+    'Opened' => 'Öppnat',
+    'Phone' => 'Telefon',
+    'Responses' => 'Svar',
+    'Site' => 'Webbplats',
+    'SMS' => 'SMS',
+    'Status' => 'Status',
+    'Submissions' => 'Inskickningar',
+    'Total Recipients' => 'Totalt antal mottagare',
+    'Yes' => 'Ja',
+    'Created at' => 'Skapad',
+    'Date Updated' => 'Uppdateringsdatum',
+    'Disabled' => 'Inaktiverad',
+    'Enabled' => 'Aktiverad',
+    'Next' => 'Nästa',
+    'Previous' => 'Föregående',
+    'Save' => 'Spara',
+    'Save and continue editing' => 'Spara och fortsätt redigera',
+    'Select site' => 'Välj webbplats',
+    'Title' => 'Titel',
+    'Updated at' => 'Uppdaterad',
+    'View' => 'Visa',
+
+    // Element
+    'campaign' => 'kampanj',
+    'campaigns' => 'kampanjer',
+    'All Campaigns' => 'Alla kampanjer',
+    'Campaign Types' => 'Kampanjtyper',
+    'Type' => 'Typ',
+    'Form' => 'Formulär',
+    'Sent' => 'Skickat',
+    'Pending' => 'Väntande',
+    'Campaign Type' => 'Kampanjtyp',
+    'Are you sure you want to delete the selected campaigns?' => 'Är du säker på att du vill ta bort de valda kampanjerna?',
+    'Campaigns deleted.' => 'Kampanjer borttagna.',
+    'Campaigns restored.' => 'Kampanjer återställda.',
+    'Some campaigns restored.' => 'Vissa kampanjer återställda.',
+    'Campaigns not restored.' => 'Kampanjer inte återställda.',
+    'View Recipients' => 'Visa mottagare',
+    'Add Recipient' => 'Lägg till mottagare',
+    'Import Recipients' => 'Importera mottagare',
+    'Run Campaign' => 'Kör kampanj',
+
+    // Jobs
+    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Utlöser kampanjinbjudan/inbjudningar',
+    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Importerar mottagare för kampanj #{id}',
+    '{pluginName}: Processing campaign #{id}' => '{pluginName}: Bearbetar kampanj #{id}',
+    'Campaign batches queued' => 'Kampanjomgångar köade',
+    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Skickar inbjudningar till {count} mottagare',
+    'Invitation batch sent' => 'Inbjudningsomgång skickad',
+    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampanj {campaignId} batch misslyckades: {errors} av {total} mottagare kunde inte skickas. Kontrollera plugin-loggen för detaljer.',
+    'Campaign is disabled for site {site}.' => 'Kampanjen är inaktiverad för webbplatsen {site}.',
+
+    // Controller messages
     'New Campaign' => 'Ny kampanj',
     'Select a provider first...' => 'Välj en leverantör först...',
     'Couldn\'t save campaign.' => 'Kampanjen kunde inte sparas.',
@@ -56,8 +120,6 @@ return [
     'Campaign jobs queued' => 'Kampanjjobb köade',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} kampanjjobb köade. Kontrollera kön för att följa förloppet.',
     'No campaigns to process.' => 'Inga kampanjer att bearbeta.',
-
-    // Controller flash messages — Recipients
     'No recipients to export for the selected filters.' => 'Inga mottagare att exportera för de valda filtren.',
     'No responses to export.' => 'Inga svar att exportera.',
     'Recipients exported' => 'Mottagare exporterade',
@@ -66,7 +128,6 @@ return [
     'Invalid email address.' => 'Ogiltig e-postadress.',
     'Please select a phone country.' => 'Välj ett land för telefonnumret.',
     'Country {country} is not allowed for this campaign\'s SMS provider.' => 'Landet {country} är inte tillåtet för den här kampanjens SMS-leverantör.',
-    'Invalid phone number.' => 'Ogiltigt telefonnummer.',
     'Email or phone number is required.' => 'E-post eller telefonnummer är obligatoriskt.',
     'Couldn\'t add recipient.' => 'Mottagaren kunde inte läggas till.',
     'Could not save recipient.' => 'Mottagaren kunde inte sparas.',
@@ -100,69 +161,32 @@ return [
     'No recipients to export.' => 'Inga mottagare att exportera.',
     'Campaign recipients exported' => 'Kampanjmottagare exporterade',
     'ID' => 'ID',
-    'Name' => 'Namn',
-    'Email' => 'E-post',
-    'Phone' => 'Telefon',
     'Email Sent Date' => 'Datum för skickat e-post',
     'SMS Sent Date' => 'Datum för skickat SMS',
     'Email Opened Date' => 'Datum för öppnat e-post',
     'SMS Opened Date' => 'Datum för öppnat SMS',
     'Submission ID' => 'Inskicknings-ID',
     'Date Created' => 'Skapad',
-
-    // Controller flash messages — Analytics
     'No analytics data to export for the selected filters.' => 'Inga analysdata att exportera för de valda filtren.',
-    'Campaign' => 'Kampanj',
-    'Total Recipients' => 'Totalt antal mottagare',
     'Emails Sent' => 'Skickade e-post',
     'SMS Sent' => 'Skickade SMS',
     'Emails Opened' => 'Öppnade e-post',
     'SMS Opened' => 'Öppnade SMS',
     'Email Open Rate' => 'Öppningsfrekvens för e-post',
     'SMS Open Rate' => 'Öppningsfrekvens för SMS',
-    'Submissions' => 'Inskickningar',
-    'Conversion Rate' => 'Konverteringsgrad',
     'Expired' => 'Utgånget',
-
-    // Controller flash messages — Settings
     'Couldn\'t save settings.' => 'Inställningarna kunde inte sparas.',
     'Settings saved.' => 'Inställningar sparade.',
     'Couldn\'t save field layout.' => 'Fältlayouten kunde inte sparas.',
     'Field layout saved.' => 'Fältlayout sparad.',
-
-    // Controller flash messages — Activity Logs
     'Activity logs cleared successfully.' => 'Aktivitetsloggar rensade.',
     '{count} recipients' => '{count} mottagare',
 
-    // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Utlöser kampanjinbjudan/inbjudningar',
-    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Importerar mottagare för kampanj #{id}',
-    '{pluginName}: Processing campaign #{id}' => '{pluginName}: Bearbetar kampanj #{id}',
-    'Campaign batches queued' => 'Kampanjomgångar köade',
-    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Skickar inbjudningar till {count} mottagare',
-    'Invitation batch sent' => 'Inbjudningsomgång skickad',
-    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampanj {campaignId} batch misslyckades: {errors} av {total} mottagare kunde inte skickas. Kontrollera plugin-loggen för detaljer.',
-    'Campaign is disabled for site {site}.' => 'Kampanjen är inaktiverad för webbplatsen {site}.',
-
-    // Element (Campaign)
-    'campaign' => 'kampanj',
-    'campaigns' => 'kampanjer',
-    'All Campaigns' => 'Alla kampanjer',
-    'Campaign Types' => 'Kampanjtyper',
-    'Type' => 'Typ',
-    'Form' => 'Formulär',
-    'Sent' => 'Skickat',
-    'Pending' => 'Väntande',
-    'Campaign Type' => 'Kampanjtyp',
-    'Are you sure you want to delete the selected campaigns?' => 'Är du säker på att du vill ta bort de valda kampanjerna?',
-    'Campaigns deleted.' => 'Kampanjer borttagna.',
-    'Campaigns restored.' => 'Kampanjer återställda.',
-    'Some campaigns restored.' => 'Vissa kampanjer återställda.',
-    'Campaigns not restored.' => 'Kampanjer inte återställda.',
-    'View Recipients' => 'Visa mottagare',
-    'Add Recipient' => 'Lägg till mottagare',
-    'Import Recipients' => 'Importera mottagare',
-    'Run Campaign' => 'Kör kampanj',
+    // Validation messages
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fel} other{fel}} hittades',
+    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Endast bokstäver, siffror, bindestreck, understreck och snedstreck är tillåtna.',
+    'Route cannot contain double slashes.' => 'Vägen får inte innehålla dubbla snedstreck.',
+    'Route cannot contain spaces.' => 'Vägen får inte innehålla mellanslag.',
 
     // Settings: General
     'General Settings' => 'Allmänna inställningar',
@@ -209,13 +233,10 @@ return [
     'Add custom fields to Campaign elements. Any fields you add here will appear in the Campaign edit screen.' => 'Lägg till anpassade fält till kampanjelement. Fält som läggs till här visas på kampanjens redigeringsskärm.',
     'No field layout available.' => 'Ingen fältlayout tillgänglig.',
 
-    // Settings: Validation messages (Settings model)
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fel} other{fel}} hittades',
-    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Endast bokstäver, siffror, bindestreck, understreck och snedstreck är tillåtna.',
-    'Route cannot contain double slashes.' => 'Vägen får inte innehålla dubbla snedstreck.',
-    'Route cannot contain spaces.' => 'Vägen får inte innehålla mellanslag.',
+    // Campaigns: Index
+    'New campaign' => 'Ny kampanj',
 
-    // Campaigns: Edit page
+    // Campaigns: Edit
     'Are you sure you want to delete this campaign?' => 'Är du säker på att du vill ta bort den här kampanjen?',
     'Select a form' => 'Välj ett formulär',
     'Select a Formie form to link with this campaign.' => 'Välj ett Formie-formulär att koppla till den här kampanjen.',
@@ -244,22 +265,16 @@ return [
     'Campaign job queued. Check the queue for progress.' => 'Kampanjjobb köat. Kontrollera kön för att följa förloppet.',
     'Failed to run campaign' => 'Det gick inte att köra kampanjen',
 
-    // Campaigns: Index
-    'New campaign' => 'Ny kampanj',
-
-    // Campaign: Analytics partial
+    // Campaign: Analytics
     'Daily Activity' => 'Daglig aktivitet',
     'Channel Breakdown' => 'Kanalfördelning',
     'Recent Responses' => 'Senaste svar',
     'Recipient' => 'Mottagare',
-    'Site' => 'Webbplats',
     'Responded' => 'Svarade',
     'No data available yet.' => 'Inga data tillgängliga än.',
     'Analytics will appear here once recipients are added to this campaign.' => 'Analys visas här när mottagare har lagts till i den här kampanjen.',
-    'SMS' => 'SMS',
-    'Opened' => 'Öppnat',
 
-    // Campaign: Responses partial
+    // Campaign: Responses
     'All Sites' => 'Alla webbplatser',
     'Toggle Details' => 'Visa/dölj detaljer',
     'Submitted' => 'Inskickat',
@@ -269,12 +284,10 @@ return [
     'No responses yet.' => 'Inga svar än.',
     'Recipients who submit the form will appear here.' => 'Mottagare som skickar in formuläret visas här.',
 
-    // Recipients: Index (global)
-    'All' => 'Alla',
+    // Recipients: Index
     'Date Range' => 'Datumintervall',
     'Search recipients...' => 'Sök mottagare...',
     'Contact' => 'Kontakt',
-    'Status' => 'Status',
     'Response' => 'Svar',
     'No recipients found.' => 'Inga mottagare hittades.',
     'recipient' => 'mottagare',
@@ -285,7 +298,7 @@ return [
     'Delete recipient "{name}"? This cannot be undone.' => 'Ta bort mottagaren "{name}"? Det här går inte att ångra.',
     'Failed to delete recipient' => 'Det gick inte att ta bort mottagaren',
 
-    // Recipients: List (campaign-specific)
+    // Recipients: List
     'Today' => 'Idag',
     'Yesterday' => 'Igår',
     'Last 7 days' => 'Senaste 7 dagarna',
@@ -293,12 +306,10 @@ return [
     'Last 90 days' => 'Senaste 90 dagarna',
     'All time' => 'Hela perioden',
     'Code' => 'Kod',
-    'Actions' => 'Åtgärder',
     'Add' => 'Lägg till',
     'no recipients' => 'inga mottagare',
     'of' => 'av',
     'No pending recipients to process.' => 'Inga väntande mottagare att bearbeta.',
-    'Delete' => 'Ta bort',
     'Delete recipient' => 'Ta bort mottagare',
     'This cannot be undone.' => 'Det här går inte att ångra.',
 
@@ -368,13 +379,12 @@ return [
     'No SMS provider configured. Phone numbers will be skipped during import.' => 'Ingen SMS-leverantör konfigurerad. Telefonnummer hoppas över vid import.',
     'Default Site' => 'Standardwebbplats',
     'Used as fallback when the Site column is not mapped, or when a row has an empty/invalid site value.' => 'Används som reserv när kolumnen Site inte är mappad eller när en rad har ett tomt/ogiltigt webbplatsvärde.',
-    'Cancel' => 'Avbryt',
     'Preview Import' => 'Förhandsgranska import',
     'Send Invitations' => 'Skicka inbjudningar',
     'Queue invitation sending after import.' => 'Köa utskick av inbjudningar efter import.',
     'Rows to Import' => 'Rader att importera',
 
-    // Recipients: Preview import
+    // Recipients: Preview
     'Total Rows' => 'Totalt antal rader',
     'Valid' => 'Giltiga',
     'Duplicates' => 'Dubletter',
@@ -389,7 +399,6 @@ return [
     'Phone/Email' => 'Telefon/e-post',
     'Reason' => 'Orsak',
     'Invalid Rows (will be skipped)' => 'Ogiltiga rader (hoppas över)',
-    'Error' => 'Fel',
     'Ready to Import' => 'Redo att importera',
     'Click the button below to import {count} valid recipient(s).' => 'Klicka på knappen nedan för att importera {count} giltig/giltiga mottagare.',
     '{duplicates} duplicate(s) will be skipped.' => '{duplicates} dublett/dubletter hoppas över.',
@@ -397,20 +406,6 @@ return [
     'No valid recipients found to import.' => 'Inga giltiga mottagare hittades för import.',
     'Import {count} Recipients' => 'Importera {count} mottagare',
     'No Valid Recipients to Import' => 'Inga giltiga mottagare att importera',
-    'Yes' => 'Ja',
-    'No' => 'Nej',
-    'Created at' => 'Skapad',
-    'Date Updated' => 'Uppdateringsdatum',
-    'Disabled' => 'Inaktiverad',
-    'Enabled' => 'Aktiverad',
-    'Next' => 'Nästa',
-    'Previous' => 'Föregående',
-    'Save' => 'Spara',
-    'Save and continue editing' => 'Spara och fortsätt redigera',
-    'Select site' => 'Välj webbplats',
-    'Title' => 'Titel',
-    'Updated at' => 'Uppdaterad',
-    'View' => 'Visa',
 
     // Analytics page
     'Overview' => 'Översikt',
@@ -425,7 +420,6 @@ return [
     'No rating distribution data available for the selected filters.' => 'Inga betygsfördelningsdata tillgängliga för de valda filtren.',
     'No rating trend data available for the selected filters.' => 'Inga betygstrenddata tillgängliga för de valda filtren.',
     'Recipients Added' => 'Tillagda mottagare',
-    'Responses' => 'Svar',
     'Email Opens' => 'E-postöppningar',
     'SMS Opens' => 'SMS-öppningar',
     'Count' => 'Antal',
@@ -459,51 +453,6 @@ return [
     'Percentage' => 'Procent',
     'Drop-off' => 'Avhopp',
     'To improve conversion rates, consider: personalized messaging, shorter forms, mobile optimization, and timely follow-ups.' => 'För att förbättra konverteringsgraden, överväg: personliga meddelanden, kortare formulär, mobiloptimering och snabba uppföljningar.',
-
-    // Activity Logs
-    'Date' => 'Datum',
-    'User' => 'Användare',
-    'Action' => 'Åtgärd',
-    'Source' => 'Källa',
-    'No activity logs found yet.' => 'Inga aktivitetsloggar hittades än.',
-    'Clear logs' => 'Rensa loggar',
-    'Activity logs are currently disabled in settings.' => 'Aktivitetsloggar är för närvarande inaktiverade i inställningarna.',
-    'Invitations queued' => 'Inbjudningar köade',
-    'Campaigns queued' => 'Kampanjer köade',
-    'Added' => 'Tillagd',
-    'Invitation queued' => 'Inbjudan köad',
-    'Deleted' => 'Borttagen',
-    'recipient(s)' => 'mottagare',
-    'Imported' => 'Importerad',
-    'from' => 'från',
-    'failed' => 'misslyckades',
-    'email' => 'e-post',
-    'batches' => 'omgångar',
-    'campaign job(s)' => 'kampanjjobb',
-    'records' => 'poster',
-    'as' => 'som',
-    'Deleted campaign' => 'Borttagen kampanj',
-    'items' => 'poster',
-    'Queued' => 'Köad',
-    'Exported' => 'Exporterad',
-    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Är du säker på att du vill rensa alla aktivitetsloggar? Den här åtgärden går inte att ångra.',
-    'Failed to clear activity logs.' => 'Det gick inte att rensa aktivitetsloggarna.',
-
-    // Frontend / Invite
-    'Invitation' => 'Inbjudan',
-    'You have already responded to this invitation.' => 'Du har redan svarat på den här inbjudan.',
-    'This invitation has expired.' => 'Den här inbjudan har gått ut.',
-    'Welcome! Please complete the form below.' => 'Välkommen! Fyll i formuläret nedan.',
-    'Invalid Invitation' => 'Ogiltig inbjudan',
-    'This invitation link is not valid or has expired.' => 'Den här inbjudningslänken är inte giltig eller har gått ut.',
-
-    // SmsService
-    'Select a provider...' => 'Välj en leverantör...',
-
-    // AnalyticsService
-    'Email Only' => 'Endast e-post',
-    'SMS Only' => 'Endast SMS',
-    'Both' => 'Båda',
 
     // Analytics: Date basis filter
     'Date based on' => 'Datum baserat på',
@@ -549,4 +498,46 @@ return [
     'Rating Distribution' => 'Betygsfördelning',
     'Trend Over Time' => 'Trend över tid',
     'Last updated: {time}' => 'Senast uppdaterad: {time}',
+
+    // Activity Logs
+    'User' => 'Användare',
+    'Action' => 'Åtgärd',
+    'Source' => 'Källa',
+    'No activity logs found yet.' => 'Inga aktivitetsloggar hittades än.',
+    'Clear logs' => 'Rensa loggar',
+    'Activity logs are currently disabled in settings.' => 'Aktivitetsloggar är för närvarande inaktiverade i inställningarna.',
+    'Invitations queued' => 'Inbjudningar köade',
+    'Campaigns queued' => 'Kampanjer köade',
+    'Added' => 'Tillagd',
+    'Invitation queued' => 'Inbjudan köad',
+    'Deleted' => 'Borttagen',
+    'recipient(s)' => 'mottagare',
+    'Imported' => 'Importerad',
+    'from' => 'från',
+    'failed' => 'misslyckades',
+    'email' => 'e-post',
+    'batches' => 'omgångar',
+    'campaign job(s)' => 'kampanjjobb',
+    'records' => 'poster',
+    'as' => 'som',
+    'Deleted campaign' => 'Borttagen kampanj',
+    'items' => 'poster',
+    'Queued' => 'Köad',
+    'Exported' => 'Exporterad',
+    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Är du säker på att du vill rensa alla aktivitetsloggar? Den här åtgärden går inte att ångra.',
+    'Failed to clear activity logs.' => 'Det gick inte att rensa aktivitetsloggarna.',
+
+    // Frontend
+    'Invitation' => 'Inbjudan',
+    'You have already responded to this invitation.' => 'Du har redan svarat på den här inbjudan.',
+    'This invitation has expired.' => 'Den här inbjudan har gått ut.',
+    'Welcome! Please complete the form below.' => 'Välkommen! Fyll i formuläret nedan.',
+    'Invalid Invitation' => 'Ogiltig inbjudan',
+    'This invitation link is not valid or has expired.' => 'Den här inbjudningslänken är inte giltig eller har gått ut.',
+
+    // Services
+    'Select a provider...' => 'Välj en leverantör...',
+    'Email Only' => 'Endast e-post',
+    'SMS Only' => 'Endast SMS',
+    'Both' => 'Båda',
 ];

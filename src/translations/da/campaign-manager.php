@@ -43,7 +43,71 @@ return [
     'Clear activity logs' => 'Ryd aktivitetslogfiler',
     'Manage settings' => 'Administrer indstillinger',
 
-    // Controller flash messages — Campaigns
+    // Common
+    'Actions' => 'Handlinger',
+    'All' => 'Alle',
+    'Cancel' => 'Annuller',
+    'Campaign' => 'Kampagne',
+    'Conversion Rate' => 'Konverteringsrate',
+    'Date' => 'Dato',
+    'Delete' => 'Slet',
+    'Email' => 'E-mail',
+    'Error' => 'Fejl',
+    'Name' => 'Navn',
+    'No' => 'Nej',
+    'Opened' => 'Åbnet',
+    'Phone' => 'Telefon',
+    'Responses' => 'Svar',
+    'Site' => 'Websted',
+    'SMS' => 'SMS',
+    'Status' => 'Status',
+    'Submissions' => 'Indsendelser',
+    'Total Recipients' => 'Modtagere i alt',
+    'Yes' => 'Ja',
+    'Created at' => 'Oprettet',
+    'Date Updated' => 'Opdateringsdato',
+    'Disabled' => 'Deaktiveret',
+    'Enabled' => 'Aktiveret',
+    'Next' => 'Næste',
+    'Previous' => 'Forrige',
+    'Save' => 'Gem',
+    'Save and continue editing' => 'Gem og fortsæt med redigering',
+    'Select site' => 'Vælg websted',
+    'Title' => 'Titel',
+    'Updated at' => 'Opdateret',
+    'View' => 'Vis',
+
+    // Element
+    'campaign' => 'kampagne',
+    'campaigns' => 'kampagner',
+    'All Campaigns' => 'Alle kampagner',
+    'Campaign Types' => 'Kampagnetyper',
+    'Type' => 'Type',
+    'Form' => 'Formular',
+    'Sent' => 'Afsendt',
+    'Pending' => 'Afventer',
+    'Campaign Type' => 'Kampagnetype',
+    'Are you sure you want to delete the selected campaigns?' => 'Er du sikker på, at du vil slette de valgte kampagner?',
+    'Campaigns deleted.' => 'Kampagner slettet.',
+    'Campaigns restored.' => 'Kampagner gendannet.',
+    'Some campaigns restored.' => 'Nogle kampagner gendannet.',
+    'Campaigns not restored.' => 'Kampagner ikke gendannet.',
+    'View Recipients' => 'Vis modtagere',
+    'Add Recipient' => 'Tilføj modtager',
+    'Import Recipients' => 'Importer modtagere',
+    'Run Campaign' => 'Kør kampagne',
+
+    // Jobs
+    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Udløser kampagneinvitation(er)',
+    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Importerer modtagere til kampagne #{id}',
+    '{pluginName}: Processing campaign #{id}' => '{pluginName}: Behandler kampagne #{id}',
+    'Campaign batches queued' => 'Kampagnebatches sat i kø',
+    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Sender invitationer til {count} modtagere',
+    'Invitation batch sent' => 'Invitationsbatch sendt',
+    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampagne {campaignId} batch mislykkedes: {errors} af {total} modtagere kunne ikke sendes. Tjek plugin-loggen for detaljer.',
+    'Campaign is disabled for site {site}.' => 'Kampagnen er deaktiveret for webstedet {site}.',
+
+    // Controller messages
     'New Campaign' => 'Ny kampagne',
     'Select a provider first...' => 'Vælg en udbyder først...',
     'Couldn\'t save campaign.' => 'Kampagnen kunne ikke gemmes.',
@@ -56,8 +120,6 @@ return [
     'Campaign jobs queued' => 'Kampagnejobs sat i kø',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} kampagnejob(s) sat i kø. Tjek køen for status.',
     'No campaigns to process.' => 'Ingen kampagner at behandle.',
-
-    // Controller flash messages — Recipients
     'No recipients to export for the selected filters.' => 'Ingen modtagere at eksportere for de valgte filtre.',
     'No responses to export.' => 'Ingen svar at eksportere.',
     'Recipients exported' => 'Modtagere eksporteret',
@@ -66,7 +128,6 @@ return [
     'Invalid email address.' => 'Ugyldig e-mailadresse.',
     'Please select a phone country.' => 'Vælg et land for telefonnummeret.',
     'Country {country} is not allowed for this campaign\'s SMS provider.' => 'Landet {country} er ikke tilladt for denne kampagnes SMS-udbyder.',
-    'Invalid phone number.' => 'Ugyldigt telefonnummer.',
     'Email or phone number is required.' => 'E-mail eller telefonnummer er påkrævet.',
     'Couldn\'t add recipient.' => 'Modtageren kunne ikke tilføjes.',
     'Could not save recipient.' => 'Modtageren kunne ikke gemmes.',
@@ -100,69 +161,32 @@ return [
     'No recipients to export.' => 'Ingen modtagere at eksportere.',
     'Campaign recipients exported' => 'Kampagnemodtagere eksporteret',
     'ID' => 'ID',
-    'Name' => 'Navn',
-    'Email' => 'E-mail',
-    'Phone' => 'Telefon',
     'Email Sent Date' => 'Dato for afsendt e-mail',
     'SMS Sent Date' => 'Dato for afsendt SMS',
     'Email Opened Date' => 'Dato for åbnet e-mail',
     'SMS Opened Date' => 'Dato for åbnet SMS',
     'Submission ID' => 'Indsendelse-ID',
     'Date Created' => 'Oprettelsesdato',
-
-    // Controller flash messages — Analytics
     'No analytics data to export for the selected filters.' => 'Ingen analysedata at eksportere for de valgte filtre.',
-    'Campaign' => 'Kampagne',
-    'Total Recipients' => 'Modtagere i alt',
     'Emails Sent' => 'Afsendte e-mails',
     'SMS Sent' => 'Afsendte SMS',
     'Emails Opened' => 'Åbnede e-mails',
     'SMS Opened' => 'Åbnede SMS',
     'Email Open Rate' => 'Åbningsrate for e-mail',
     'SMS Open Rate' => 'Åbningsrate for SMS',
-    'Submissions' => 'Indsendelser',
-    'Conversion Rate' => 'Konverteringsrate',
     'Expired' => 'Udløbet',
-
-    // Controller flash messages — Settings
     'Couldn\'t save settings.' => 'Indstillingerne kunne ikke gemmes.',
     'Settings saved.' => 'Indstillinger gemt.',
     'Couldn\'t save field layout.' => 'Feltlayoutet kunne ikke gemmes.',
     'Field layout saved.' => 'Feltlayout gemt.',
-
-    // Controller flash messages — Activity Logs
     'Activity logs cleared successfully.' => 'Aktivitetslogfiler ryddet.',
     '{count} recipients' => '{count} modtagere',
 
-    // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Udløser kampagneinvitation(er)',
-    '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Importerer modtagere til kampagne #{id}',
-    '{pluginName}: Processing campaign #{id}' => '{pluginName}: Behandler kampagne #{id}',
-    'Campaign batches queued' => 'Kampagnebatches sat i kø',
-    '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Sender invitationer til {count} modtagere',
-    'Invitation batch sent' => 'Invitationsbatch sendt',
-    'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampagne {campaignId} batch mislykkedes: {errors} af {total} modtagere kunne ikke sendes. Tjek plugin-loggen for detaljer.',
-    'Campaign is disabled for site {site}.' => 'Kampagnen er deaktiveret for webstedet {site}.',
-
-    // Element (Campaign)
-    'campaign' => 'kampagne',
-    'campaigns' => 'kampagner',
-    'All Campaigns' => 'Alle kampagner',
-    'Campaign Types' => 'Kampagnetyper',
-    'Type' => 'Type',
-    'Form' => 'Formular',
-    'Sent' => 'Afsendt',
-    'Pending' => 'Afventer',
-    'Campaign Type' => 'Kampagnetype',
-    'Are you sure you want to delete the selected campaigns?' => 'Er du sikker på, at du vil slette de valgte kampagner?',
-    'Campaigns deleted.' => 'Kampagner slettet.',
-    'Campaigns restored.' => 'Kampagner gendannet.',
-    'Some campaigns restored.' => 'Nogle kampagner gendannet.',
-    'Campaigns not restored.' => 'Kampagner ikke gendannet.',
-    'View Recipients' => 'Vis modtagere',
-    'Add Recipient' => 'Tilføj modtager',
-    'Import Recipients' => 'Importer modtagere',
-    'Run Campaign' => 'Kør kampagne',
+    // Validation messages
+    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fejl} other{fejl}} fundet',
+    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Kun bogstaver, tal, bindestreger, underscores og skråstreger er tilladt.',
+    'Route cannot contain double slashes.' => 'Ruten må ikke indeholde dobbelte skråstreger.',
+    'Route cannot contain spaces.' => 'Ruten må ikke indeholde mellemrum.',
 
     // Settings: General
     'General Settings' => 'Generelle indstillinger',
@@ -209,13 +233,10 @@ return [
     'Add custom fields to Campaign elements. Any fields you add here will appear in the Campaign edit screen.' => 'Tilføj brugerdefinerede felter til kampagneelementer. Felter du tilføjer her vil fremgå af kampagnens redigeringsskærm.',
     'No field layout available.' => 'Ingen feltlayout tilgængeligt.',
 
-    // Settings: Validation messages (Settings model)
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{fejl} other{fejl}} fundet',
-    'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Kun bogstaver, tal, bindestreger, underscores og skråstreger er tilladt.',
-    'Route cannot contain double slashes.' => 'Ruten må ikke indeholde dobbelte skråstreger.',
-    'Route cannot contain spaces.' => 'Ruten må ikke indeholde mellemrum.',
+    // Campaigns: Index
+    'New campaign' => 'Ny kampagne',
 
-    // Campaigns: Edit page
+    // Campaigns: Edit
     'Are you sure you want to delete this campaign?' => 'Er du sikker på, at du vil slette denne kampagne?',
     'Select a form' => 'Vælg en formular',
     'Select a Formie form to link with this campaign.' => 'Vælg en Formie-formular der skal knyttes til denne kampagne.',
@@ -244,22 +265,16 @@ return [
     'Campaign job queued. Check the queue for progress.' => 'Kampagnejob sat i kø. Tjek køen for status.',
     'Failed to run campaign' => 'Det lykkedes ikke at køre kampagnen',
 
-    // Campaigns: Index
-    'New campaign' => 'Ny kampagne',
-
-    // Campaign: Analytics partial
+    // Campaign: Analytics
     'Daily Activity' => 'Daglig aktivitet',
     'Channel Breakdown' => 'Kanalfordeling',
     'Recent Responses' => 'Seneste svar',
     'Recipient' => 'Modtager',
-    'Site' => 'Websted',
     'Responded' => 'Svarede',
     'No data available yet.' => 'Ingen data tilgængelige endnu.',
     'Analytics will appear here once recipients are added to this campaign.' => 'Analyser vises her, når modtagere er tilføjet til denne kampagne.',
-    'SMS' => 'SMS',
-    'Opened' => 'Åbnet',
 
-    // Campaign: Responses partial
+    // Campaign: Responses
     'All Sites' => 'Alle websteder',
     'Toggle Details' => 'Vis/skjul detaljer',
     'Submitted' => 'Indsendt',
@@ -269,12 +284,10 @@ return [
     'No responses yet.' => 'Ingen svar endnu.',
     'Recipients who submit the form will appear here.' => 'Modtagere, der indsender formularen, vises her.',
 
-    // Recipients: Index (global)
-    'All' => 'Alle',
+    // Recipients: Index
     'Date Range' => 'Datointerval',
     'Search recipients...' => 'Søg modtagere...',
     'Contact' => 'Kontakt',
-    'Status' => 'Status',
     'Response' => 'Svar',
     'No recipients found.' => 'Ingen modtagere fundet.',
     'recipient' => 'modtager',
@@ -285,7 +298,7 @@ return [
     'Delete recipient "{name}"? This cannot be undone.' => 'Slet modtager "{name}"? Dette kan ikke fortrydes.',
     'Failed to delete recipient' => 'Det lykkedes ikke at slette modtageren',
 
-    // Recipients: List (campaign-specific)
+    // Recipients: List
     'Today' => 'I dag',
     'Yesterday' => 'I går',
     'Last 7 days' => 'Seneste 7 dage',
@@ -293,12 +306,10 @@ return [
     'Last 90 days' => 'Seneste 90 dage',
     'All time' => 'Hele perioden',
     'Code' => 'Kode',
-    'Actions' => 'Handlinger',
     'Add' => 'Tilføj',
     'no recipients' => 'ingen modtagere',
     'of' => 'af',
     'No pending recipients to process.' => 'Ingen afventende modtagere at behandle.',
-    'Delete' => 'Slet',
     'Delete recipient' => 'Slet modtager',
     'This cannot be undone.' => 'Dette kan ikke fortrydes.',
 
@@ -368,13 +379,12 @@ return [
     'No SMS provider configured. Phone numbers will be skipped during import.' => 'Ingen SMS-udbyder konfigureret. Telefonnumre springes over under import.',
     'Default Site' => 'Standardwebsted',
     'Used as fallback when the Site column is not mapped, or when a row has an empty/invalid site value.' => 'Bruges som reserve, når kolumnen Site ikke er tilknyttet, eller når en række har en tom/ugyldig webstedsværdi.',
-    'Cancel' => 'Annuller',
     'Preview Import' => 'Forhåndsvis import',
     'Send Invitations' => 'Send invitationer',
     'Queue invitation sending after import.' => 'Sæt afsendelse af invitationer i kø efter import.',
     'Rows to Import' => 'Rækker der skal importeres',
 
-    // Recipients: Preview import
+    // Recipients: Preview
     'Total Rows' => 'Rækker i alt',
     'Valid' => 'Gyldige',
     'Duplicates' => 'Dubletter',
@@ -389,7 +399,6 @@ return [
     'Phone/Email' => 'Telefon/e-mail',
     'Reason' => 'Årsag',
     'Invalid Rows (will be skipped)' => 'Ugyldige rækker (springes over)',
-    'Error' => 'Fejl',
     'Ready to Import' => 'Klar til import',
     'Click the button below to import {count} valid recipient(s).' => 'Klik på knappen nedenfor for at importere {count} gyldig(e) modtager(e).',
     '{duplicates} duplicate(s) will be skipped.' => '{duplicates} dublet(ter) springes over.',
@@ -397,20 +406,6 @@ return [
     'No valid recipients found to import.' => 'Ingen gyldige modtagere fundet til import.',
     'Import {count} Recipients' => 'Importer {count} modtagere',
     'No Valid Recipients to Import' => 'Ingen gyldige modtagere at importere',
-    'Yes' => 'Ja',
-    'No' => 'Nej',
-    'Created at' => 'Oprettet',
-    'Date Updated' => 'Opdateringsdato',
-    'Disabled' => 'Deaktiveret',
-    'Enabled' => 'Aktiveret',
-    'Next' => 'Næste',
-    'Previous' => 'Forrige',
-    'Save' => 'Gem',
-    'Save and continue editing' => 'Gem og fortsæt med redigering',
-    'Select site' => 'Vælg websted',
-    'Title' => 'Titel',
-    'Updated at' => 'Opdateret',
-    'View' => 'Vis',
 
     // Analytics page
     'Overview' => 'Oversigt',
@@ -425,7 +420,6 @@ return [
     'No rating distribution data available for the selected filters.' => 'Ingen vurderingsfordelingsdata tilgængelige for de valgte filtre.',
     'No rating trend data available for the selected filters.' => 'Ingen vurderingstendensdata tilgængelige for de valgte filtre.',
     'Recipients Added' => 'Tilføjede modtagere',
-    'Responses' => 'Svar',
     'Email Opens' => 'E-mailåbninger',
     'SMS Opens' => 'SMS-åbninger',
     'Count' => 'Antal',
@@ -459,51 +453,6 @@ return [
     'Percentage' => 'Procent',
     'Drop-off' => 'Frafald',
     'To improve conversion rates, consider: personalized messaging, shorter forms, mobile optimization, and timely follow-ups.' => 'For at forbedre konverteringsraterne kan du overveje: personlige beskeder, kortere formularer, mobiloptimering og rettidige opfølgninger.',
-
-    // Activity Logs
-    'Date' => 'Dato',
-    'User' => 'Bruger',
-    'Action' => 'Handling',
-    'Source' => 'Kilde',
-    'No activity logs found yet.' => 'Ingen aktivitetslogfiler fundet endnu.',
-    'Clear logs' => 'Ryd logfiler',
-    'Activity logs are currently disabled in settings.' => 'Aktivitetslogfiler er i øjeblikket deaktiveret i indstillingerne.',
-    'Invitations queued' => 'Invitationer sat i kø',
-    'Campaigns queued' => 'Kampagner sat i kø',
-    'Added' => 'Tilføjet',
-    'Invitation queued' => 'Invitation sat i kø',
-    'Deleted' => 'Slettet',
-    'recipient(s)' => 'modtager(e)',
-    'Imported' => 'Importeret',
-    'from' => 'fra',
-    'failed' => 'mislykkedes',
-    'email' => 'e-mail',
-    'batches' => 'batches',
-    'campaign job(s)' => 'kampagnejob(s)',
-    'records' => 'poster',
-    'as' => 'som',
-    'Deleted campaign' => 'Slettet kampagne',
-    'items' => 'elementer',
-    'Queued' => 'Sat i kø',
-    'Exported' => 'Eksporteret',
-    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Er du sikker på, at du vil rydde alle aktivitetslogfiler? Denne handling kan ikke fortrydes.',
-    'Failed to clear activity logs.' => 'Det lykkedes ikke at rydde aktivitetslogfilerne.',
-
-    // Frontend / Invite
-    'Invitation' => 'Invitation',
-    'You have already responded to this invitation.' => 'Du har allerede svaret på denne invitation.',
-    'This invitation has expired.' => 'Denne invitation er udløbet.',
-    'Welcome! Please complete the form below.' => 'Velkommen! Udfyld venligst formularen nedenfor.',
-    'Invalid Invitation' => 'Ugyldig invitation',
-    'This invitation link is not valid or has expired.' => 'Dette invitationslink er ikke gyldigt eller er udløbet.',
-
-    // SmsService
-    'Select a provider...' => 'Vælg en udbyder...',
-
-    // AnalyticsService
-    'Email Only' => 'Kun e-mail',
-    'SMS Only' => 'Kun SMS',
-    'Both' => 'Begge',
 
     // Analytics: Date basis filter
     'Date based on' => 'Dato baseret på',
@@ -549,4 +498,46 @@ return [
     'Rating Distribution' => 'Vurderingsfordeling',
     'Trend Over Time' => 'Tendens over tid',
     'Last updated: {time}' => 'Senest opdateret: {time}',
+
+    // Activity Logs
+    'User' => 'Bruger',
+    'Action' => 'Handling',
+    'Source' => 'Kilde',
+    'No activity logs found yet.' => 'Ingen aktivitetslogfiler fundet endnu.',
+    'Clear logs' => 'Ryd logfiler',
+    'Activity logs are currently disabled in settings.' => 'Aktivitetslogfiler er i øjeblikket deaktiveret i indstillingerne.',
+    'Invitations queued' => 'Invitationer sat i kø',
+    'Campaigns queued' => 'Kampagner sat i kø',
+    'Added' => 'Tilføjet',
+    'Invitation queued' => 'Invitation sat i kø',
+    'Deleted' => 'Slettet',
+    'recipient(s)' => 'modtager(e)',
+    'Imported' => 'Importeret',
+    'from' => 'fra',
+    'failed' => 'mislykkedes',
+    'email' => 'e-mail',
+    'batches' => 'batches',
+    'campaign job(s)' => 'kampagnejob(s)',
+    'records' => 'poster',
+    'as' => 'som',
+    'Deleted campaign' => 'Slettet kampagne',
+    'items' => 'elementer',
+    'Queued' => 'Sat i kø',
+    'Exported' => 'Eksporteret',
+    'Are you sure you want to clear all activity logs? This action cannot be undone.' => 'Er du sikker på, at du vil rydde alle aktivitetslogfiler? Denne handling kan ikke fortrydes.',
+    'Failed to clear activity logs.' => 'Det lykkedes ikke at rydde aktivitetslogfilerne.',
+
+    // Frontend
+    'Invitation' => 'Invitation',
+    'You have already responded to this invitation.' => 'Du har allerede svaret på denne invitation.',
+    'This invitation has expired.' => 'Denne invitation er udløbet.',
+    'Welcome! Please complete the form below.' => 'Velkommen! Udfyld venligst formularen nedenfor.',
+    'Invalid Invitation' => 'Ugyldig invitation',
+    'This invitation link is not valid or has expired.' => 'Dette invitationslink er ikke gyldigt eller er udløbet.',
+
+    // Services
+    'Select a provider...' => 'Vælg en udbyder...',
+    'Email Only' => 'Kun e-mail',
+    'SMS Only' => 'Kun SMS',
+    'Both' => 'Begge',
 ];
