@@ -914,7 +914,7 @@ class RecipientsController extends Controller
                 if ($countryAllowed) {
                     $phoneValidation = PhoneHelper::validateWithCountry($sms, $smsCountry);
                     if (!$phoneValidation['valid']) {
-                        $recipient->addError('sms', $phoneValidation['error'] ?? Craft::t('campaign-manager', 'Invalid phone number.'));
+                        $recipient->addError('sms', $phoneValidation['error'] ?? Craft::t('campaign-manager', 'Invalid phone number'));
                         $smsValid = false;
                     } else {
                         $recipient->sms = $phoneValidation['e164'];
