@@ -7,7 +7,6 @@
  */
 
 return [
-
     // Plugin meta
     'Campaign Manager' => 'Campaign Manager',
     'Launch campaigns, track delivery, and manage recipients from one control panel workspace.' => 'Starta kampanjer, spåra leverans och hantera mottagare från en och samma kontrollpanel.',
@@ -437,6 +436,9 @@ return [
     'SMS Invitations' => 'SMS-inbjudningar',
     'Total Sent' => 'Totalt skickat',
     'Expired (Not Submitted)' => 'Utgånget (ej inskickat)',
+    'Email Only' => 'Endast e-post',
+    'SMS Only' => 'Endast SMS',
+    'Both' => 'Båda',
 
     // Analytics: Engagement
     'Opens Over Time' => 'Öppningar över tid',
@@ -534,10 +536,4 @@ return [
     'Welcome! Please complete the form below.' => 'Välkommen! Fyll i formuläret nedan.',
     'Invalid Invitation' => 'Ogiltig inbjudan',
     'This invitation link is not valid or has expired.' => 'Den här inbjudningslänken är inte giltig eller har gått ut.',
-
-    // Services
-    'Select a provider...' => 'Välj en leverantör...',
-    'Email Only' => 'Endast e-post',
-    'SMS Only' => 'Endast SMS',
-    'Both' => 'Båda',
 ];

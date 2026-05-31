@@ -7,7 +7,6 @@
  */
 
 return [
-
     // Plugin meta
     'Campaign Manager' => 'Campaign Manager',
     'Launch campaigns, track delivery, and manage recipients from one control panel workspace.' => 'Lance campanhas, acompanhe a entrega e faça a gestão dos destinatários a partir de um único espaço de trabalho do painel de controlo.',
@@ -437,6 +436,9 @@ return [
     'SMS Invitations' => 'Convites por SMS',
     'Total Sent' => 'Total enviado',
     'Expired (Not Submitted)' => 'Expirados (não enviados)',
+    'Email Only' => 'Apenas e-mail',
+    'SMS Only' => 'Apenas SMS',
+    'Both' => 'Ambos',
 
     // Analytics: Engagement
     'Opens Over Time' => 'Aberturas ao longo do tempo',
@@ -534,10 +536,4 @@ return [
     'Welcome! Please complete the form below.' => 'Bem-vindo(a)! Preencha o formulário abaixo.',
     'Invalid Invitation' => 'Convite inválido',
     'This invitation link is not valid or has expired.' => 'Este link de convite não é válido ou expirou.',
-
-    // Services
-    'Select a provider...' => 'Selecione um fornecedor...',
-    'Email Only' => 'Apenas e-mail',
-    'SMS Only' => 'Apenas SMS',
-    'Both' => 'Ambos',
 ];

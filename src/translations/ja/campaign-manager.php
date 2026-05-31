@@ -7,7 +7,6 @@
  */
 
 return [
-
     // Plugin meta
     'Campaign Manager' => 'Campaign Manager',
     'Launch campaigns, track delivery, and manage recipients from one control panel workspace.' => 'キャンペーンの開始、配信の追跡、受信者の管理を一つのコントロールパネルから行えます。',
@@ -437,6 +436,9 @@ return [
     'SMS Invitations' => 'SMS 招待',
     'Total Sent' => '送信合計',
     'Expired (Not Submitted)' => '期限切れ（未送信）',
+    'Email Only' => 'Email のみ',
+    'SMS Only' => 'SMS のみ',
+    'Both' => '両方',
 
     // Analytics: Engagement
     'Opens Over Time' => '時系列開封数',
@@ -534,10 +536,4 @@ return [
     'Welcome! Please complete the form below.' => 'ようこそ！以下のフォームにご記入ください。',
     'Invalid Invitation' => '無効な招待',
     'This invitation link is not valid or has expired.' => 'この招待リンクは無効または期限切れです。',
-
-    // Services
-    'Select a provider...' => 'プロバイダーを選択してください...',
-    'Email Only' => 'Email のみ',
-    'SMS Only' => 'SMS のみ',
-    'Both' => '両方',
 ];

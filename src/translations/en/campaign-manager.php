@@ -7,7 +7,6 @@
  */
 
 return [
-
     // Plugin meta
     'Campaign Manager' => 'Campaign Manager',
     'Launch campaigns, track delivery, and manage recipients from one control panel workspace.' => 'Launch campaigns, track delivery, and manage recipients from one control panel workspace.',
@@ -437,6 +436,9 @@ return [
     'SMS Invitations' => 'SMS Invitations',
     'Total Sent' => 'Total Sent',
     'Expired (Not Submitted)' => 'Expired (Not Submitted)',
+    'Email Only' => 'Email Only',
+    'SMS Only' => 'SMS Only',
+    'Both' => 'Both',
 
     // Analytics: Engagement
     'Opens Over Time' => 'Opens Over Time',
@@ -534,10 +536,4 @@ return [
     'Welcome! Please complete the form below.' => 'Welcome! Please complete the form below.',
     'Invalid Invitation' => 'Invalid Invitation',
     'This invitation link is not valid or has expired.' => 'This invitation link is not valid or has expired.',
-
-    // Services
-    'Select a provider...' => 'Select a provider...',
-    'Email Only' => 'Email Only',
-    'SMS Only' => 'SMS Only',
-    'Both' => 'Both',
 ];
