@@ -55,6 +55,7 @@ class SmsService extends Component
      * @param string|null $language Message language ('en' or 'ar')
      * @param string|null $providerHandle Accepted for back-compat; ignored. Provider is derived from the sender ID's `providerHandle`.
      * @param string|null $senderIdHandle Sender ID handle (uses plugin's `defaultSenderIdHandle` setting if null)
+     * @param int|null $siteId Site ID for SMS Manager analytics attribution
      * @return bool
      */
     public function sendSms(
@@ -64,6 +65,7 @@ class SmsService extends Component
         /** @noinspection PhpUnusedParameterInspection */
         ?string $providerHandle = null,
         ?string $senderIdHandle = null,
+        ?int $siteId = null,
     ): bool {
         unset($providerHandle); // Intentionally unused — see method docblock.
 
@@ -97,6 +99,7 @@ class SmsService extends Component
             senderIdHandle: $senderIdHandle,
             language: $language ?? 'en',
             sourcePlugin: CampaignManager::$plugin->id,
+            siteId: $siteId,
         );
     }
 
