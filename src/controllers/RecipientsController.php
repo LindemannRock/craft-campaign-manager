@@ -392,8 +392,7 @@ class RecipientsController extends Controller
         if ($campaignFilter !== 'all') {
             $campaign = CampaignManager::$plugin->campaigns->getCampaignById((int)$campaignFilter);
             if ($campaign) {
-                $campaignSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($campaign->title ?? 'campaign'));
-                $filenameParts[] = $campaignSlug;
+                $filenameParts[] = $campaign->title ?? 'campaign';
             }
         }
 
@@ -405,8 +404,7 @@ class RecipientsController extends Controller
                 $site = Craft::$app->getSites()->getSiteByHandle((string)$siteFilter);
             }
             if ($site) {
-                $siteHandle = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
-                $filenameParts[] = $siteHandle;
+                $filenameParts[] = $site->handle;
             }
         }
 
@@ -576,8 +574,7 @@ class RecipientsController extends Controller
         $settings = CampaignManager::$plugin->getSettings();
         $extension = ExportHelper::extensionForFormat($format);
         $dateRangeLabel = $dateRange === 'all' ? 'alltime' : $dateRange;
-        $campaignSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($campaign->title ?? 'campaign'));
-        $filenameParts = ['responses', $campaignSlug];
+        $filenameParts = ['responses', $campaign->title ?? 'campaign'];
 
         if ($siteFilter !== 'all') {
             $site = null;
@@ -587,8 +584,7 @@ class RecipientsController extends Controller
                 $site = Craft::$app->getSites()->getSiteByHandle((string)$siteFilter);
             }
             if ($site) {
-                $siteHandle = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
-                $filenameParts[] = $siteHandle;
+                $filenameParts[] = $site->handle;
             }
         }
 

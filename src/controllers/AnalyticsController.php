@@ -288,16 +288,14 @@ class AnalyticsController extends Controller
         if (is_int($campaignId)) {
             $campaign = CampaignManager::$plugin->campaigns->getCampaignById($campaignId);
             if ($campaign) {
-                $campaignSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($campaign->title ?? 'campaign'));
-                $filenameParts[] = $campaignSlug;
+                $filenameParts[] = $campaign->title ?? 'campaign';
             }
         }
 
         if (is_int($effectiveSiteId)) {
             $site = Craft::$app->getSites()->getSiteById($effectiveSiteId);
             if ($site) {
-                $siteHandle = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
-                $filenameParts[] = $siteHandle;
+                $filenameParts[] = $site->handle;
             }
         }
 
@@ -385,21 +383,19 @@ class AnalyticsController extends Controller
         if (is_int($campaignId)) {
             $campaign = CampaignManager::$plugin->campaigns->getCampaignById($campaignId);
             if ($campaign) {
-                $campaignSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($campaign->title ?? 'campaign'));
-                $filenameParts[] = $campaignSlug;
+                $filenameParts[] = $campaign->title ?? 'campaign';
             }
         }
 
         if (is_int($effectiveSiteId)) {
             $site = Craft::$app->getSites()->getSiteById($effectiveSiteId);
             if ($site) {
-                $siteHandle = strtolower(preg_replace('/[^a-z0-9]+/', '-', $site->handle));
-                $filenameParts[] = $siteHandle;
+                $filenameParts[] = $site->handle;
             }
         }
 
-        $fieldHandleSlug = preg_replace('/[^a-z0-9]+/', '-', strtolower($ratingFieldInfo['handle']));
-        $filenameParts[] = $fieldHandleSlug;
+        $fieldHandle = (string)$ratingFieldInfo['handle'];
+        $filenameParts[] = $fieldHandle;
         $filenameParts[] = $dateRangeLabel;
         $filenameParts[] = $dateBasis;
 
@@ -419,7 +415,7 @@ class AnalyticsController extends Controller
             $filename = ExportHelper::filename($settings, $outputFilenameParts, $filenameExtension);
 
             $suffix = implode('-', array_filter([
-                $fieldHandleSlug,
+                $fieldHandle,
                 $dateRangeLabel,
                 $dateBasis,
             ]));
