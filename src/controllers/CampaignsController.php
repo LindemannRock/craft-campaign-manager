@@ -300,7 +300,7 @@ class CampaignsController extends Controller
             ],
         ]);
 
-        Craft::$app->getSession()->setNotice(Craft::t('campaign-manager', 'Campaign deleted.'));
+        Craft::$app->getSession()->setNotice(Craft::t('campaign-manager', 'Campaign deleted'));
 
         return $this->redirect('campaign-manager');
     }
