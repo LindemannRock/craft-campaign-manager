@@ -115,7 +115,6 @@ return [
     'Campaign saved.' => 'Campaign saved.',
     'Couldn\'t delete campaign.' => 'Couldn\'t delete campaign.',
     'Campaign deleted' => 'Campaign deleted',
-    'Campaign deleted.' => 'Campaign deleted.',
     'Campaign jobs queued' => 'Campaign jobs queued',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} campaign job(s) queued. Check the queue for progress.',
     'No campaigns to process.' => 'No campaigns to process.',

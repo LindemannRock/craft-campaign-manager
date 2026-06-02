@@ -115,7 +115,6 @@ return [
     'Campaign saved.' => 'Kampanj sparad.',
     'Couldn\'t delete campaign.' => 'Kampanjen kunde inte tas bort.',
     'Campaign deleted' => 'Kampanj borttagen',
-    'Campaign deleted.' => 'Kampanj borttagen.',
     'Campaign jobs queued' => 'Kampanjjobb köade',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} kampanjjobb köade. Kontrollera kön för att följa förloppet.',
     'No campaigns to process.' => 'Inga kampanjer att bearbeta.',

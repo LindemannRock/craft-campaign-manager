@@ -115,7 +115,6 @@ return [
     'Campaign saved.' => 'Campagne enregistrée.',
     'Couldn\'t delete campaign.' => 'Impossible de supprimer la campagne.',
     'Campaign deleted' => 'Campagne supprimée',
-    'Campaign deleted.' => 'Campagne supprimée.',
     'Campaign jobs queued' => 'Tâches de campagne mises en file d\'attente',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} tâche(s) de campagne mise(s) en file d\'attente. Consultez la file d\'attente pour suivre l\'avancement.',
     'No campaigns to process.' => 'Aucune campagne à traiter.',

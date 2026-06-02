@@ -115,7 +115,6 @@ return [
     'Campaign saved.' => 'キャンペーンが保存されました。',
     'Couldn\'t delete campaign.' => 'キャンペーンを削除できませんでした。',
     'Campaign deleted' => 'キャンペーンが削除されました',
-    'Campaign deleted.' => 'キャンペーンが削除されました。',
     'Campaign jobs queued' => 'キャンペーンジョブがキューに追加されました',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} 件のキャンペーンジョブがキューに追加されました。進捗状況はキューを確認してください。',
     'No campaigns to process.' => '処理するキャンペーンはありません。',

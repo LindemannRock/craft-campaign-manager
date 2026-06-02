@@ -115,7 +115,6 @@ return [
     'Campaign saved.' => 'Kampagne gespeichert.',
     'Couldn\'t delete campaign.' => 'Kampagne konnte nicht gelöscht werden.',
     'Campaign deleted' => 'Kampagne gelöscht',
-    'Campaign deleted.' => 'Kampagne gelöscht.',
     'Campaign jobs queued' => 'Kampagnen-Jobs in die Warteschlange eingereiht',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} Kampagnen-Jobs in die Warteschlange eingereiht. Fortschritt in der Warteschlange prüfen.',
     'No campaigns to process.' => 'Keine Kampagnen zu verarbeiten.',

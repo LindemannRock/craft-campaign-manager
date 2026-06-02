@@ -115,7 +115,6 @@ return [
     'Campaign saved.' => 'تم حفظ الحملة.',
     'Couldn\'t delete campaign.' => 'تعذّر حذف الحملة.',
     'Campaign deleted' => 'تم حذف الحملة',
-    'Campaign deleted.' => 'تم حذف الحملة.',
     'Campaign jobs queued' => 'تم إضافة مهام الحملة إلى قائمة الانتظار',
     '{count} campaign job(s) queued. Check the queue for progress.' => 'تم إضافة {count} مهمة من مهام الحملة إلى قائمة الانتظار. تحقق من قائمة الانتظار لمتابعة التقدم.',
     'No campaigns to process.' => 'لا توجد حملات للمعالجة.',

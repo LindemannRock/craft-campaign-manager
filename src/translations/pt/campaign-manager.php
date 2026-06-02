@@ -115,7 +115,6 @@ return [
     'Campaign saved.' => 'Campanha guardada.',
     'Couldn\'t delete campaign.' => 'Não foi possível eliminar a campanha.',
     'Campaign deleted' => 'Campanha eliminada',
-    'Campaign deleted.' => 'Campanha eliminada.',
     'Campaign jobs queued' => 'Jobs de campanha em fila',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} job(s) de campanha em fila. Verifique a fila para acompanhar o progresso.',
     'No campaigns to process.' => 'Nenhuma campanha a processar.',

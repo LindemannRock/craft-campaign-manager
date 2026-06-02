@@ -115,7 +115,6 @@ return [
     'Campaign saved.' => 'Campagne opgeslagen.',
     'Couldn\'t delete campaign.' => 'Campagne kon niet worden verwijderd.',
     'Campaign deleted' => 'Campagne verwijderd',
-    'Campaign deleted.' => 'Campagne verwijderd.',
     'Campaign jobs queued' => 'Campagnetaken in wachtrij geplaatst',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} campagnetaak/taken in wachtrij geplaatst. Controleer de wachtrij voor de voortgang.',
     'No campaigns to process.' => 'Geen campagnes te verwerken.',

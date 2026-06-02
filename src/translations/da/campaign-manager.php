@@ -115,7 +115,6 @@ return [
     'Campaign saved.' => 'Kampagne gemt.',
     'Couldn\'t delete campaign.' => 'Kampagnen kunne ikke slettes.',
     'Campaign deleted' => 'Kampagne slettet',
-    'Campaign deleted.' => 'Kampagne slettet.',
     'Campaign jobs queued' => 'Kampagnejobs sat i kø',
     '{count} campaign job(s) queued. Check the queue for progress.' => '{count} kampagnejob(s) sat i kø. Tjek køen for status.',
     'No campaigns to process.' => 'Ingen kampagner at behandle.',
