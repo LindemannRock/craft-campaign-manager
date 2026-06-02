@@ -712,36 +712,49 @@
     </div>
 
     {% if campaign.id %}
-        <div class="meta read-only">
+        <dl class="meta read-only">
             <div class="data">
-                <h5 class="heading">{{ 'Recipients'|t('campaign-manager') }}</h5>
-                <div class="value">
+                <dt class="heading">{{ "ID"|t('campaign-manager') }}</dt>
+                <dd class="value">{{ campaign.id }}</dd>
+            </div>
+            {% set campaignStatus = campaign.getStatus() %}
+            <div class="data">
+                <dt class="heading">{{ "Status"|t('campaign-manager') }}</dt>
+                <dd class="value">
+                    {% include 'lindemannrock-base/_components/status-dot' with {
+                        value: campaignStatus,
+                        colorSet: 'status',
+                    } only %}
+                    <span>{{ campaignStatus == 'disabled' ? 'Disabled'|t('campaign-manager') : 'Enabled'|t('campaign-manager') }}</span>
+                </dd>
+            </div>
+            <div class="data">
+                <dt class="heading">{{ 'Recipients'|t('campaign-manager') }}</dt>
+                <dd class="value">
                     {% if currentUser.can('campaignManager:manageRecipients') %}
-                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/recipients?site=' ~ currentSite.handle) }}">
-                            {{ campaign.recipientCount }}
-                        </a>
+                        <a href="{{ cpUrl('campaign-manager/campaigns/' ~ campaign.id ~ '/recipients?site=' ~ currentSite.handle) }}">{{ campaign.recipientCount }}</a>
                     {% else %}
                         {{ campaign.recipientCount }}
                     {% endif %}
-                </div>
+                </dd>
             </div>
             <div class="data">
-                <h5 class="heading">{{ 'Sent'|t('campaign-manager') }}</h5>
-                <div class="value">{{ campaign.sentCount }}</div>
+                <dt class="heading">{{ 'Sent'|t('campaign-manager') }}</dt>
+                <dd class="value">{{ campaign.sentCount }}</dd>
             </div>
             <div class="data">
-                <h5 class="heading">{{ 'Pending'|t('campaign-manager') }}</h5>
-                <div class="value">{{ campaign.pendingCount }}</div>
+                <dt class="heading">{{ 'Pending'|t('campaign-manager') }}</dt>
+                <dd class="value">{{ campaign.pendingCount }}</dd>
             </div>
             <div class="data">
-                <h5 class="heading">{{ 'Created at'|t('campaign-manager') }}</h5>
-                <div class="value">{{ campaign.dateCreated|lrDatetime }}</div>
+                <dt class="heading">{{ 'Created at'|t('campaign-manager') }}</dt>
+                <dd class="value">{{ campaign.dateCreated|lrDatetime }}</dd>
             </div>
             <div class="data">
-                <h5 class="heading">{{ 'Updated at'|t('campaign-manager') }}</h5>
-                <div class="value">{{ campaign.dateUpdated|lrDatetime }}</div>
+                <dt class="heading">{{ 'Updated at'|t('campaign-manager') }}</dt>
+                <dd class="value">{{ campaign.dateUpdated|lrDatetime }}</dd>
             </div>
-        </div>
+        </dl>
     {% endif %}
 {% endblock %}
 
