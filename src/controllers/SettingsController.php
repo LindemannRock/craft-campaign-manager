@@ -11,6 +11,7 @@ namespace lindemannrock\campaignmanager\controllers;
 use Craft;
 use craft\models\FieldLayout;
 use craft\web\Controller;
+use lindemannrock\base\helpers\SettingsPostHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\models\Settings;
@@ -90,42 +91,17 @@ class SettingsController extends Controller
             Craft::$app->getRequest()->getBodyParam('section', 'general'),
         );
 
-        // Fields that should be cast to int (nullable)
-        $nullableIntFields = ['defaultSenderIdId'];
+        $result = SettingsPostHelper::apply(
+            model: $settings,
+            postedValues: is_array($postedSettings) ? $postedSettings : [],
+            allowedAttributes: $this->_validationAttributesForSection($section),
+            isOverridden: fn(string $attribute): bool => $settings->isOverriddenByConfig($attribute),
+        );
 
-        // Fields that should be nullable strings (empty string = null)
-        $nullableStringFields = ['defaultSenderIdHandle'];
-
-        // Update settings with posted values
-        foreach ($postedSettings as $key => $value) {
-            if (property_exists($settings, $key) && !$settings->isOverriddenByConfig($key)) {
-                // Multi-state selects (e.g. "Use global default" = '') need '' → null
-                // so the property holds null, not a coerced false / 0.
-                if ($value === '') {
-                    $type = (new \ReflectionProperty($settings, $key))->getType();
-                    if ($type instanceof \ReflectionNamedType && $type->allowsNull()) {
-                        $value = null;
-                    }
-                }
-
-                if (in_array($key, $nullableIntFields, true)) {
-                    $settings->$key = $value !== '' && $value !== null ? (int)$value : null;
-                } elseif (in_array($key, $nullableStringFields, true)) {
-                    $settings->$key = $value !== '' && $value !== null ? $value : null;
-                } else {
-                    $settings->$key = $value;
-                }
-            }
-        }
-
-        $attributesToValidate = $this->_validationAttributesForSection($section);
-        $attributesToValidate = array_values(array_filter(
-            $attributesToValidate,
-            fn(string $attribute): bool => !$settings->isOverriddenByConfig($attribute),
-        ));
+        $attributesToValidate = $result->attributesToValidate;
 
         // Validate
-        if (!$settings->validate($attributesToValidate)) {
+        if ($result->hasErrors || !$settings->validate($attributesToValidate)) {
             $this->logError('Settings validation failed', ['errors' => $settings->getErrors()]);
 
             Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Couldn\'t save settings.'));

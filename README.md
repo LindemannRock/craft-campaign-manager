@@ -385,6 +385,12 @@ Event::on(
 2. **Check encoding**: Use UTF-8 encoding for special characters
 3. **Check file size**: Large files are processed in batches
 
+### Settings Save Shows a Validation Error
+
+Numeric settings such as activity log retention, activity log limits, and items per page must be whole numbers within the allowed range. If a value is invalid, Campaign Manager keeps you on the same settings page and shows the field error inline.
+
+When a setting is overridden in `config/campaign-manager.php`, the Control Panel field is skipped during save. Change the config file value instead.
+
 ### Bitly URLs Not Working
 
 1. **Verify API key**: Check `BITLY_API_KEY` environment variable
