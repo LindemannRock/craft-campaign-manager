@@ -1,5 +1,41 @@
 # Changelog
 
+## [5.12.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.11.0...v5.12.0) (2026-06-07)
+
+
+### Added
+
+* add plugin credit component to campaign edit template ([9511160](https://github.com/LindemannRock/craft-campaign-manager/commit/9511160ced559d7a7af5bb894e34ce3c368646ea))
+* add sortable columns to activity logs table ([32551b9](https://github.com/LindemannRock/craft-campaign-manager/commit/32551b9075f6c5a540d81832076e12aef58781b3))
+* add static analysis script for CI workflow ([d517c11](https://github.com/LindemannRock/craft-campaign-manager/commit/d517c11ae4763f3225fedc55a81ebac9e0296553))
+* **campaign:** add date rendering for created and updated attributes ([043108e](https://github.com/LindemannRock/craft-campaign-manager/commit/043108e924b7ad74a613d4d1c6610bd146c2bbbe))
+* **campaign:** add precomputed recipient counts for campaigns ([6584eb6](https://github.com/LindemannRock/craft-campaign-manager/commit/6584eb6145182d907ecbcf6c05dd3869f81472c9))
+* **campaigns:** update date labels for created and updated attributes ([b0601f4](https://github.com/LindemannRock/craft-campaign-manager/commit/b0601f494c233fb04eecbcb52656769770747b3c))
+* **controllers:** add parameter validation and user permissions for recipient actions ([5ea0f68](https://github.com/LindemannRock/craft-campaign-manager/commit/5ea0f683f1394858208dbd5687ba87116a844c6f))
+* **controllers:** enhance activity log sorting and pagination functionality ([61f2186](https://github.com/LindemannRock/craft-campaign-manager/commit/61f21869357f2984e6a72eb09d622b86fda046d9))
+* expand default date range options for analytics ([62ce865](https://github.com/LindemannRock/craft-campaign-manager/commit/62ce8658d2dbf511c76435496537cf70fa8c5686))
+* **i18n:** add common campaign-related translations and validation messages ([45db777](https://github.com/LindemannRock/craft-campaign-manager/commit/45db777e1bb57cc280abf351fb5a71cc6aff471d))
+* **i18n:** add new translation keys for user notifications ([b796128](https://github.com/LindemannRock/craft-campaign-manager/commit/b7961281b843a5044896b1643361a3157ef82e3e))
+* **i18n:** add new translation keys for various attributes across locales ([9c15c04](https://github.com/LindemannRock/craft-campaign-manager/commit/9c15c0473cb5e671345012313d251e61ae5ce741))
+* **i18n:** replace 'app' translations with 'campaign-manager' for consistency ([5da60f1](https://github.com/LindemannRock/craft-campaign-manager/commit/5da60f10850b26af710872a15ad481aef0d5208f))
+* **i18n:** replace 'app' translations with 'campaign-manager' for status labels ([189001e](https://github.com/LindemannRock/craft-campaign-manager/commit/189001e45d6874060cd45974ceb10f9910a54225))
+* **settings:** add labels for invitation and logging settings ([c2655ee](https://github.com/LindemannRock/craft-campaign-manager/commit/c2655eeba0e4686d1ede1c42374d8d138e9fc601))
+* **sms:** add siteId parameter for SMS analytics attribution ([c514505](https://github.com/LindemannRock/craft-campaign-manager/commit/c514505fbe5600ff8c1edb7ec6fa9b63a7154406))
+* **tests:** add ElementIndexDateFormattingTest for date formatting ([eafb20f](https://github.com/LindemannRock/craft-campaign-manager/commit/eafb20f2d677ad9062cff85f16e54e46400a53f7))
+
+
+### Fixed
+
+* correct campaign deletion notice message ([89510dd](https://github.com/LindemannRock/craft-campaign-manager/commit/89510ddb09d3a084f248f53b381538666afbae6b))
+* correct error message for invalid phone number validation ([3b05ccb](https://github.com/LindemannRock/craft-campaign-manager/commit/3b05ccb5102effa0c23bfd9ac2fb057af28e49ee))
+* **i18n:** correct campaign deletion message in multiple locales ([7d939b8](https://github.com/LindemannRock/craft-campaign-manager/commit/7d939b80ac64638d8857257931dcabd2c9695631))
+* **i18n:** correct german translations for analytics and logs ([42d46b2](https://github.com/LindemannRock/craft-campaign-manager/commit/42d46b2ac404980df725e9152f7c569c837e0580))
+* **i18n:** correct permission error messages in controllers ([5e37f18](https://github.com/LindemannRock/craft-campaign-manager/commit/5e37f18516b907fa1506430ea72ced781f6e35e3))
+* **i18n:** correct Portuguese translations for logs and activity logs ([9cb35eb](https://github.com/LindemannRock/craft-campaign-manager/commit/9cb35ebdf1acc83a4ae79c9fe12568d2006a81a2))
+* **i18n:** correct punctuation in Japanese translation strings ([a65d75f](https://github.com/LindemannRock/craft-campaign-manager/commit/a65d75ff3bdf8c721f9500435abcfac9357a03c9))
+* **i18n:** correct punctuation in Japanese translation strings ([2635566](https://github.com/LindemannRock/craft-campaign-manager/commit/2635566b31b8e5b6c0bb70ea2fb7effdc8085d4e))
+* **i18n:** correct translations for campaign manager strings ([257c2da](https://github.com/LindemannRock/craft-campaign-manager/commit/257c2da30c347782a34d2fe2736075d7135333a7))
+
 ## [5.11.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.10.3...v5.11.0) - 2026-05-22
 
 
