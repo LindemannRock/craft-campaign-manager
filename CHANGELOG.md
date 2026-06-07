@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.12.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.12.0...v5.12.1) (2026-06-07)
+
+
+### Fixed
+
+* **campaigns:** plugin credit to campaign edit templates ([029909c](https://github.com/LindemannRock/craft-campaign-manager/commit/029909ce9e1170b7d7fd5223f96569e72b86e17e))
+
 ## [5.12.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.11.0...v5.12.0) - 2026-06-07
 
 
