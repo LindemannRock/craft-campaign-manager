@@ -372,6 +372,7 @@ class CampaignsController extends Controller
                 'parentUrl' => $parentUrl,
             ],
         );
+        $html .= Craft::$app->getView()->renderTemplate('lindemannrock-base/_components/plugin-credit');
 
         return $this->asJson(['html' => $html]);
     }

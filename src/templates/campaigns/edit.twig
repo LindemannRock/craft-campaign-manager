@@ -474,9 +474,8 @@
                 {% endif %}
             {% endfor %}
         {% endif %}
+        {% include 'lindemannrock-base/_components/plugin-credit' %}
     </div>
-
-    {% include 'lindemannrock-base/_components/plugin-credit' %}
 
     {#
      # ANALYTICS / RESPONSES TABS
@@ -497,6 +496,8 @@
         {% if isPanelAjax %}
             <div id="analytics" class="hidden">
                 {% include 'campaign-manager/campaigns/_partials/analytics' %}
+
+                {% include 'lindemannrock-base/_components/plugin-credit' %}
             </div>
         {% else %}
             <div id="analytics"
@@ -513,6 +514,8 @@
         {% if isPanelAjax %}
             <div id="responses" class="hidden">
                 {% include 'campaign-manager/campaigns/_partials/responses' %}
+
+                {% include 'lindemannrock-base/_components/plugin-credit' %}
             </div>
         {% else %}
             <div id="responses"
