@@ -146,9 +146,13 @@
 
 {% block bulkActions %}
     {% if canDelete %}
-        <button type="button" class="btn secondary" id="lr-bulk-delete-btn">
-            {{ 'Delete'|t('campaign-manager') }} (<span id="lr-selected-count">0</span>)
-        </button>
+        {% include 'lindemannrock-base/_components/bulk-actions-menu' with {
+            label: 'Actions'|t('campaign-manager'),
+            countId: 'lr-bulk-actions-count',
+            items: [
+                {id: 'lr-bulk-delete-btn', label: 'Delete'|t('campaign-manager'), class: 'error'},
+            ],
+        } only %}
     {% endif %}
 {% endblock %}
 
@@ -315,14 +319,6 @@
         function selectedIds() {
             return window.lrTableSelection ? window.lrTableSelection.getSelectedIds() : [];
         }
-
-        // Update selected count when selection changes
-        document.addEventListener('lr:selectionChanged', function(e) {
-            const countSpan = document.getElementById('lr-selected-count');
-            if (countSpan) {
-                countSpan.textContent = e.detail && typeof e.detail.count === 'number' ? e.detail.count : 0;
-            }
-        });
 
         // ---------------------------------------------------------------------
         // Row-action handlers. Delegated listener on `document`, narrowed by
