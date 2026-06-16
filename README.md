@@ -46,6 +46,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
   - **Ratings tab** (when `formie-rating-field` is enabled): per-campaign NPS / Star / Emoji rating analytics with rating field picker, distribution chart (donut for NPS, bar for star/emoji), trend chart, and per-campaign breakdown table
   - **Multi-section export**: Excel (multi-sheet: Summary / Per Campaign / Raw Responses), CSV (ZIP of per-section CSVs), JSON (nested with all sections); Raw Responses includes per-recipient detail (campaign, site, send/response dates, rating value)
   - Filter by campaign, site, and date range; Ratings tab also supports a **"Date based on"** filter (Send activity vs. Response date)
+  - Optional Craft dashboard widgets for analytics summary and campaign performance, with date-range and site filters
 - **Survey Response Tracking**:
   - Link Formie submissions to recipients
   - Track survey completion rates

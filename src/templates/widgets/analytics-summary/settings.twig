@@ -1,0 +1,17 @@
+{% import '_includes/forms.twig' as forms %}
+
+{{ forms.selectField({
+    label: 'Date Range'|t('campaign-manager'),
+    id: 'dateRange',
+    name: 'dateRange',
+    value: widget.dateRange,
+    options: lrDateRangeOptions('assoc'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Site'|t('campaign-manager'),
+    id: 'siteId',
+    name: 'siteId',
+    value: widget.siteId,
+    options: siteOptions,
+}) }}

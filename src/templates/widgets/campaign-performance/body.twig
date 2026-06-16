@@ -1,0 +1,27 @@
+{% set listRows = [] %}
+
+{% for row in rows %}
+    {% set listRows = listRows|merge([{
+        primary: row.campaignName,
+        primaryUrl: cpUrl('campaign-manager/analytics', {
+            campaign: row.campaignId,
+            dateRange: dateRange,
+        }|merge(siteId != 'all' ? {siteId: siteId} : {})),
+        meta: (row.totalRecipients|number) ~ ' ' ~ 'Total Recipients'|t('campaign-manager') ~ ' · ' ~ (row.submissions|number) ~ ' ' ~ 'Submissions'|t('campaign-manager'),
+        value: (row.conversionRate ?? 0) ~ '%',
+        valueTitle: 'Conversion Rate'|t('campaign-manager'),
+    }]) %}
+{% endfor %}
+
+{% include 'lindemannrock-base/_components/dashboard-widget-list' with {
+    primaryHeader: 'Campaign'|t('campaign-manager'),
+    valueHeader: 'Conversion Rate'|t('campaign-manager'),
+    rows: listRows,
+    empty: {
+        title: 'No data available'|t('campaign-manager'),
+    },
+    footer: {
+        url: cpUrl('campaign-manager/analytics', siteId != 'all' ? {dateRange: dateRange, siteId: siteId} : {dateRange: dateRange}),
+        label: 'View all analytics'|t('campaign-manager'),
+    },
+} only %}

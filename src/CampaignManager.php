@@ -23,6 +23,7 @@ use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\models\FieldLayout;
+use craft\services\Dashboard;
 use craft\services\Elements;
 use craft\services\UserPermissions;
 use craft\web\Application as WebApplication;
@@ -45,6 +46,8 @@ use lindemannrock\campaignmanager\services\RecipientsService;
 use lindemannrock\campaignmanager\services\SmsService;
 use lindemannrock\campaignmanager\variables\CampaignManagerVariable;
 use lindemannrock\campaignmanager\web\twig\Extension;
+use lindemannrock\campaignmanager\widgets\AnalyticsSummaryWidget;
+use lindemannrock\campaignmanager\widgets\CampaignPerformanceWidget;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\smsmanager\events\RegisterIntegrationsEvent as SmsManagerRegisterIntegrationsEvent;
@@ -510,6 +513,16 @@ class CampaignManager extends Plugin
                     'heading' => $settings->getFullName(),
                     'permissions' => $this->getPluginPermissions(),
                 ];
+            }
+        );
+
+        // Register dashboard widgets
+        Event::on(
+            Dashboard::class,
+            Dashboard::EVENT_REGISTER_WIDGET_TYPES,
+            function(RegisterComponentTypesEvent $event) {
+                $event->types[] = AnalyticsSummaryWidget::class;
+                $event->types[] = CampaignPerformanceWidget::class;
             }
         );
 

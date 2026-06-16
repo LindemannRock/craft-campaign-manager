@@ -1,0 +1,26 @@
+{% include 'lindemannrock-base/_components/dashboard-widget-stats' with {
+    stats: [
+        {
+            value: stats.totalRecipients ?? 0,
+            label: 'Total Recipients'|t('campaign-manager'),
+        },
+        {
+            value: stats.totalSent ?? 0,
+            label: 'Total Sent'|t('campaign-manager'),
+        },
+        {
+            value: stats.openRate ?? 0,
+            label: 'Open Rate'|t('campaign-manager'),
+            suffix: '%',
+        },
+        {
+            value: stats.conversionRate ?? 0,
+            label: 'Conversion Rate'|t('campaign-manager'),
+            suffix: '%',
+        },
+    ],
+    footer: {
+        url: cpUrl('campaign-manager/analytics', siteId != 'all' ? {dateRange: dateRange, siteId: siteId} : {dateRange: dateRange}),
+        label: 'View all analytics'|t('campaign-manager'),
+    },
+} only %}
