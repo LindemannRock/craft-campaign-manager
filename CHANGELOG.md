@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.13.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.13.0...v5.13.1) - 2026-06-18
+
+
+### Fixed
+
+* **logging:** register logging library refresh after plugin load ([6233d83](https://github.com/LindemannRock/craft-campaign-manager/commit/6233d83cd7094a1f0a25901a1c0803ff81032b08))
+
 ## [5.13.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.12.1...v5.13.0) - 2026-06-18
 
 
