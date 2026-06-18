@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.13.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.12.1...v5.13.0) (2026-06-18)
+## [5.13.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.12.1...v5.13.0) - 2026-06-18
 
 
 ### Added
