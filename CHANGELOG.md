@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.13.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.12.1...v5.13.0) (2026-06-18)
+
+
+### Added
+
+* **widgets:** add analytics summary and campaign performance widgets ([7ee88b3](https://github.com/LindemannRock/craft-campaign-manager/commit/7ee88b3f4b4ae355b95a0954dd372e96a7a3e8c0))
+
+
+### Fixed
+
+* **i18n:** correct Spanish and Swedish translations for recipient messages ([046e264](https://github.com/LindemannRock/craft-campaign-manager/commit/046e26465f4244f2a31ec46e968536f6799d1f53))
+* **i18n:** correct translations across multiple locales ([fefb162](https://github.com/LindemannRock/craft-campaign-manager/commit/fefb162e598a3178c19f2ae62062a18bc6513ac2))
+* replace bulk delete button with bulk actions menu ([24e6281](https://github.com/LindemannRock/craft-campaign-manager/commit/24e6281703c2e73f4aaefe886e00d79d0199b1a0))
+
 ## [5.12.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.12.0...v5.12.1) - 2026-06-07
 
 

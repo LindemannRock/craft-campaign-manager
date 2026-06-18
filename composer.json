@@ -2,7 +2,7 @@
     "name": "lindemannrock/craft-campaign-manager",
     "description": "Campaign management for Craft CMS surveys with SMS and email invitations, recipient tracking, and analytics.",
     "type": "craft-plugin",
-    "version": "5.12.1",
+    "version": "5.13.0",
     "keywords": [
         "craft",
         "cms",
