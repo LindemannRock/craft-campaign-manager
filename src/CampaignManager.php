@@ -25,6 +25,7 @@ use craft\events\RegisterUserPermissionsEvent;
 use craft\models\FieldLayout;
 use craft\services\Dashboard;
 use craft\services\Elements;
+use craft\services\Plugins;
 use craft\services\UserPermissions;
 use craft\web\Application as WebApplication;
 use craft\web\twig\variables\CraftVariable;
@@ -153,6 +154,7 @@ class CampaignManager extends Plugin
             ]
         );
         PluginHelper::applyPluginNameFromConfig($this);
+        $this->registerLoggingLibraryRefresh();
 
         // Set up services
         $this->setComponents([
@@ -177,6 +179,32 @@ class CampaignManager extends Plugin
 
         // Register event handlers
         $this->registerEventHandlers();
+    }
+
+    /**
+     * Refresh Logging Library availability after all plugin settings are loaded.
+     */
+    private function registerLoggingLibraryRefresh(): void
+    {
+        Event::on(
+            Plugins::class,
+            Plugins::EVENT_AFTER_LOAD_PLUGINS,
+            function() {
+                if (!PluginHelper::isPluginEnabled('logging-library')) {
+                    return;
+                }
+
+                $config = LoggingLibrary::getConfig($this->handle);
+                if (!is_array($config)) {
+                    return;
+                }
+
+                $config['pluginHandle'] = $this->handle;
+                $config['enableLogViewer'] = LoggingLibrary::areLogViewersAvailable();
+
+                LoggingLibrary::configure($config);
+            }
+        );
     }
 
     /**
@@ -257,22 +285,6 @@ class CampaignManager extends Plugin
                     'campaignManager:viewSystemLogs',
                     'campaignManager:viewActivityLogs',
                 ],
-                'when' => function() {
-                    if (!PluginHelper::isPluginEnabled('logging-library')) {
-                        return false;
-                    }
-                    $config = LoggingLibrary::getConfig('campaign-manager');
-                    if (!$config) {
-                        return false;
-                    }
-                    $logMenuItems = $config['logMenuItems'] ?? [];
-                    $hasOtherLogTypes = !empty(array_filter(
-                        array_keys($logMenuItems),
-                        fn($key) => $key !== 'system'
-                    ));
-
-                    return ($config['enableLogViewer'] ?? false) || $hasOtherLogTypes;
-                },
             ];
         }
 
