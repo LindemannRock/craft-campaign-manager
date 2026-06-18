@@ -318,7 +318,7 @@ return [
 
     // Recipients: Add
     'This campaign is disabled for all sites. Enable it for at least one site before adding recipients.' => 'Esta campaña está desactivada para todos los sitios. Actívela para al menos un sitio antes de añadir destinatarios.',
-    'This campaign is disabled for the current site. Recipients can only be added for enabled sites.' => 'Esta campaña está desactivada para el sitio actual. Los destinatarios solo pueden añadirse para sitios habilitados.',
+    'This campaign is disabled for the current site. Recipients can only be added for enabled sites.' => 'Esta campaña está desactivada para el sitio actual. Los destinatarios solo pueden añadirse para sitios activados.',
     'The recipient\'s full name' => 'El nombre completo del destinatario',
     'The recipient\'s email address (for email invitations)' => 'La dirección de correo electrónico del destinatario (para invitaciones por correo electrónico)',
     'Phone Number' => 'Número de teléfono',
