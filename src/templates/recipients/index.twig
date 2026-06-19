@@ -311,7 +311,8 @@
             deleteConfirmTemplate: {{ 'Delete recipient "{name}"? This cannot be undone.'|t('campaign-manager')|json_encode|raw }},
             recipientDeleted: {{ 'Recipient deleted'|t('campaign-manager')|json_encode|raw }},
             failedToDeleteRecipient: {{ 'Failed to delete recipient'|t('campaign-manager')|json_encode|raw }},
-            bulkDeleteConfirmTemplate: {{ 'Delete {count} recipient(s)? This cannot be undone.'|t('campaign-manager')|json_encode|raw }},
+            bulkDeleteConfirmSingular: {{ 'Delete {count} recipient? This cannot be undone.'|t('campaign-manager')|json_encode|raw }},
+            bulkDeleteConfirmPlural: {{ 'Delete {count} recipients? This cannot be undone.'|t('campaign-manager')|json_encode|raw }},
             bulkDeletedTemplate: {{ 'Deleted {count} recipients'|t('campaign-manager')|json_encode|raw }},
             bulkDeleteFailed: {{ 'Failed to delete recipients'|t('campaign-manager')|json_encode|raw }},
         };
@@ -358,7 +359,8 @@
         document.getElementById('lr-bulk-delete-btn')?.addEventListener('click', function() {
             const ids = selectedIds();
             if (!ids.length) return;
-            if (!confirm(T.bulkDeleteConfirmTemplate.replace('{count}', ids.length))) return;
+            const confirmTemplate = ids.length === 1 ? T.bulkDeleteConfirmSingular : T.bulkDeleteConfirmPlural;
+            if (!confirm(confirmTemplate.replace('{count}', ids.length))) return;
 
             Craft.sendActionRequest('POST', 'campaign-manager/recipients/bulk-delete', {
                 data: { recipientIds: ids },
