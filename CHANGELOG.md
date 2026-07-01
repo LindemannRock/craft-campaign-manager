@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.15.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.14.0...v5.15.0) - 2026-07-01
+
+
+### Added
+
+* **controllers:** add search functionality to activity logs ([d151b7a](https://github.com/LindemannRock/craft-campaign-manager/commit/d151b7a010cfe36eccb35b1ad0aa44e6bb42c2d2))
+
 ## [5.14.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.13.1...v5.14.0) - 2026-06-20
 
 
