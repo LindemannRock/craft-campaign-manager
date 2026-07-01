@@ -56,6 +56,11 @@ class ActivityLogsController extends Controller
         }
         $dir = strtolower((string) $request->getParam('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
+        $search = trim((string) $request->getParam('search', ''));
+        if (mb_strlen($search) > 64) {
+            $search = mb_substr($search, 0, 64);
+        }
+
         $page = max(1, (int) $request->getParam('page', 1));
         $limit = max(1, (int) ($settings->itemsPerPage ?? 50));
         $offset = ($page - 1) * $limit;
@@ -74,6 +79,16 @@ class ActivityLogsController extends Controller
         $direction = $dir === 'asc' ? SORT_ASC : SORT_DESC;
 
         $query = ActivityLogRecord::find()->orderBy([$sortColumn => $direction]);
+        if ($search !== '') {
+            $query->andWhere([
+                'or',
+                ['like', 'action', $search],
+                ['like', 'source', $search],
+                ['like', 'summary', $search],
+                ['like', 'details', $search],
+            ]);
+        }
+
         $totalCount = $query->count();
 
         /** @var ActivityLogRecord[] $records */
@@ -211,6 +226,7 @@ class ActivityLogsController extends Controller
             'logMenuItems' => $logMenuItems,
             'logMenuLabel' => $logMenuLabel,
             'logs' => $items,
+            'search' => $search,
             'sort' => $sort,
             'dir' => $dir,
             'pagination' => [

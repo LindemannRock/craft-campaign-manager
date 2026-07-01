@@ -15,6 +15,7 @@
     page: {
         title: 'Activity Logs'|t('campaign-manager'),
         subnav: 'logs',
+        url: url('campaign-manager/logs/activity'),
         crumbs: [
             { label: campaignManagerHelper.fullName|t('campaign-manager'), url: url('campaign-manager') },
             { label: 'Logs'|t('campaign-manager'), url: url('campaign-manager/logs') },
@@ -25,6 +26,12 @@
         label: sidebarLabel,
         items: sidebarItems,
         selected: 'activity',
+    },
+    preserveParams: craft.app.request.getQueryParam('site') ? {
+        site: craft.app.request.getQueryParam('site'),
+    } : {},
+    search: {
+        value: search,
     },
     sort: {
         field: sort,

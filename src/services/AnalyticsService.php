@@ -1337,8 +1337,8 @@ class AnalyticsService extends Component
         $isNps = ($stats['fieldType'] ?? null) === Rating::RATING_TYPE_NPS;
 
         $dateBasisLabel = $dateBasis === 'response'
-            ? Craft::t('campaign-manager', 'Response date')
-            : Craft::t('campaign-manager', 'Send activity');
+            ? 'Response date'
+            : 'Send activity';
 
         $headers = [
             Craft::t('campaign-manager', 'Rating Field'),
@@ -1363,7 +1363,7 @@ class AnalyticsService extends Component
         if ($isNps) {
             $row = [
                 $ratingFieldInfo['label'],
-                Craft::t('campaign-manager', 'NPS'),
+                'NPS',
                 $dateBasisLabel,
                 $dateRange,
                 $totalResponses,
@@ -1381,7 +1381,7 @@ class AnalyticsService extends Component
         } else {
             $row = [
                 $ratingFieldInfo['label'],
-                Craft::t('campaign-manager', 'Star Rating'),
+                'Star Rating',
                 $dateBasisLabel,
                 $dateRange,
                 $totalResponses,
