@@ -1205,7 +1205,11 @@ class RecipientsController extends Controller
             $siteHandle = $this->request->getParam('site', 'en');
             return $this->redirect("campaign-manager/campaigns/{$campaignId}/map-recipients?site={$siteHandle}");
         } catch (\Exception $e) {
-            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Failed to parse CSV: {error}', ['error' => $e->getMessage()]));
+            Craft::error('Failed to parse campaign recipients CSV: ' . $e->getMessage(), __METHOD__);
+            $error = Craft::$app->getConfig()->getGeneral()->devMode
+                ? $e->getMessage()
+                : Craft::t('campaign-manager', 'An unexpected error occurred.');
+            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Failed to parse CSV: {error}', ['error' => $error]));
             return $this->redirect("campaign-manager/campaigns/{$campaignId}/import-recipients");
         }
     }

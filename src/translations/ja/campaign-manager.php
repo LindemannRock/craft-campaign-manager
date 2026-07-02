@@ -137,6 +137,7 @@ return [
     'Recipient deleted' => '受信者が削除されました',
     'Cannot import recipients to a disabled campaign.' => '無効なキャンペーンに受信者をインポートすることはできません。',
     'Please select a CSV file to upload' => 'アップロードする CSV ファイルを選択してください',
+    'An unexpected error occurred.' => '予期しないエラーが発生しました。',
     'Failed to parse CSV: {error}' => 'CSV の解析に失敗しました: {error}',
     'No import data found. Please upload a CSV file.' => 'インポートデータが見つかりません。CSV ファイルをアップロードしてください。',
     'Campaign mismatch. Please upload the CSV file again.' => 'キャンペーンが一致しません。CSV ファイルを再度アップロードしてください。',

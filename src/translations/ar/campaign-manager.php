@@ -137,6 +137,7 @@ return [
     'Recipient deleted' => 'تم حذف المستلم',
     'Cannot import recipients to a disabled campaign.' => 'لا يمكن استيراد المستلمين إلى حملة معطّلة.',
     'Please select a CSV file to upload' => 'يرجى تحديد ملف CSV للرفع',
+    'An unexpected error occurred.' => 'حدث خطأ غير متوقع.',
     'Failed to parse CSV: {error}' => 'فشل تحليل CSV: {error}',
     'No import data found. Please upload a CSV file.' => 'لم يتم العثور على بيانات استيراد. يرجى رفع ملف CSV.',
     'Campaign mismatch. Please upload the CSV file again.' => 'عدم تطابق الحملة. الرجاء تحميل ملف CSV مجدداً.',

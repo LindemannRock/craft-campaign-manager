@@ -137,6 +137,7 @@ return [
     'Recipient deleted' => 'Recipient deleted',
     'Cannot import recipients to a disabled campaign.' => 'Cannot import recipients to a disabled campaign.',
     'Please select a CSV file to upload' => 'Please select a CSV file to upload',
+    'An unexpected error occurred.' => 'An unexpected error occurred.',
     'Failed to parse CSV: {error}' => 'Failed to parse CSV: {error}',
     'No import data found. Please upload a CSV file.' => 'No import data found. Please upload a CSV file.',
     'Campaign mismatch. Please upload the CSV file again.' => 'Campaign mismatch. Please upload the CSV file again.',

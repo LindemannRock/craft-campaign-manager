@@ -137,6 +137,7 @@ return [
     'Recipient deleted' => 'Destinatário eliminado',
     'Cannot import recipients to a disabled campaign.' => 'Não é possível importar destinatários para uma campanha desativada.',
     'Please select a CSV file to upload' => 'Selecione um ficheiro CSV para carregar',
+    'An unexpected error occurred.' => 'Ocorreu um erro inesperado.',
     'Failed to parse CSV: {error}' => 'Falha ao analisar o CSV: {error}',
     'No import data found. Please upload a CSV file.' => 'Nenhum dado de importação encontrado. Carregue um ficheiro CSV.',
     'Campaign mismatch. Please upload the CSV file again.' => 'Campanha incompatível. Carregue novamente o ficheiro CSV.',

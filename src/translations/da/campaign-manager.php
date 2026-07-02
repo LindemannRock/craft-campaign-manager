@@ -137,6 +137,7 @@ return [
     'Recipient deleted' => 'Modtager slettet',
     'Cannot import recipients to a disabled campaign.' => 'Der kan ikke importeres modtagere til en deaktiveret kampagne.',
     'Please select a CSV file to upload' => 'Vælg en CSV-fil til upload',
+    'An unexpected error occurred.' => 'Der opstod en uventet fejl.',
     'Failed to parse CSV: {error}' => 'Kunne ikke analysere CSV: {error}',
     'No import data found. Please upload a CSV file.' => 'Ingen importdata fundet. Upload venligst en CSV-fil.',
     'Campaign mismatch. Please upload the CSV file again.' => 'Kampagnemismatch. Upload CSV-filen igen.',

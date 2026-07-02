@@ -137,6 +137,7 @@ return [
     'Recipient deleted' => 'Ontvanger verwijderd',
     'Cannot import recipients to a disabled campaign.' => 'Ontvangers kunnen niet worden geïmporteerd naar een uitgeschakelde campagne.',
     'Please select a CSV file to upload' => 'Selecteer een CSV-bestand om te uploaden',
+    'An unexpected error occurred.' => 'Er is een onverwachte fout opgetreden.',
     'Failed to parse CSV: {error}' => 'CSV kon niet worden verwerkt: {error}',
     'No import data found. Please upload a CSV file.' => 'Geen importgegevens gevonden. Upload een CSV-bestand.',
     'Campaign mismatch. Please upload the CSV file again.' => 'Campagne komt niet overeen. Upload het CSV-bestand opnieuw.',
