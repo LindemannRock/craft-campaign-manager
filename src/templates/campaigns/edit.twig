@@ -347,12 +347,12 @@
             {% set formattedCountries = [] %}
             {% for code in previewCountries %}
                 {% if code != '*' %}
-                    {% set formattedCountries = formattedCountries|merge([lrCountryName(code) ~ ' (' ~ code ~ ')']) %}
+                    {% set formattedCountries = formattedCountries|merge([(lrCountryName(code) ~ ' (' ~ code ~ ')')|e]) %}
                 {% endif %}
             {% endfor %}
             {% set countryMessage = previewCountries == ['*']
-                ? 'Allowed countries for <strong>' ~ (previewProvider.name ?? '') ~ '</strong>: All countries.'
-                : 'Allowed countries for <strong>' ~ (previewProvider.name ?? '') ~ '</strong>: ' ~ formattedCountries|join(', ') ~ '.' %}
+                ? 'Allowed countries for <strong>' ~ (previewProvider.name ?? '')|e ~ '</strong>: All countries.'
+                : 'Allowed countries for <strong>' ~ (previewProvider.name ?? '')|e ~ '</strong>: ' ~ formattedCountries|join(', ') ~ '.' %}
             {% include 'lindemannrock-base/_components/info-box' with {
                 message: countryMessage,
                 type: 'info',
@@ -375,7 +375,13 @@
 
                     function formatCountry(code) {
                         var name = countryNames[code] || code;
-                        return name + ' (' + code + ')';
+                        return escapeHtml(name) + ' (' + escapeHtml(code) + ')';
+                    }
+
+                    function escapeHtml(value) {
+                        var div = document.createElement('div');
+                        div.textContent = value == null ? '' : String(value);
+                        return div.innerHTML;
                     }
 
                     function resolveProviderForSender(senderHandle) {
@@ -396,7 +402,7 @@
                             return;
                         }
                         var countries = countriesByProvider[providerHandle] || [];
-                        var providerName = providerNames[providerHandle] || providerHandle;
+                        var providerName = escapeHtml(providerNames[providerHandle] || providerHandle);
                         var message;
                         if (countries.length === 1 && countries[0] === '*') {
                             message = {{ 'Allowed countries for'|t('campaign-manager')|json_encode|raw }} + ' <strong>' + providerName + '</strong>: ' + {{ 'All countries.'|t('campaign-manager')|json_encode|raw }};
