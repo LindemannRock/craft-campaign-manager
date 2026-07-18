@@ -1,0 +1,29 @@
+# Canonical commit scopes for this plugin — one per line.
+# The commit-msg hook rejects any scope on a changelog-visible commit
+# (feat/fix/security/perf/revert) that is not listed here and does not match
+# a single class filename under src/. Add a line ONLY for a real, durable
+# sub-area of the plugin — never category words (robustness, security),
+# synonyms, plural/singular variants of an existing entry, or the plugin
+# NAME (the hook bans name-variant scopes automatically).
+analytics
+campaigns
+controllers
+cp
+deps
+elements
+fields
+helpers
+i18n
+import-export
+integrations
+jobs
+logs
+models
+notifications
+permissions
+queue
+recipients
+settings
+sms
+templates
+widgets
