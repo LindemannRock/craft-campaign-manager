@@ -97,18 +97,18 @@ class AnalyticsService extends Component
         $row = (clone $query)
             ->select([
                 'totalRecipients' => new \yii\db\Expression('COUNT(*)'),
-                'emailsSent' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'smsSent' => new \yii\db\Expression('SUM(CASE WHEN smsSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'emailsOpened' => new \yii\db\Expression('SUM(CASE WHEN emailOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'smsOpened' => new \yii\db\Expression('SUM(CASE WHEN smsOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'emailsSent' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'smsSent' => new \yii\db\Expression('SUM(CASE WHEN [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'emailsOpened' => new \yii\db\Expression('SUM(CASE WHEN [[emailOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'smsOpened' => new \yii\db\Expression('SUM(CASE WHEN [[smsOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
                 // Unique recipients reached / opened — used by the conversion funnel
                 // breakdown. Distinct from the per-channel sums above so a recipient
                 // with both email + SMS isn't counted twice in funnel stages.
-                'uniqueInvited' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL OR smsSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'uniqueOpened' => new \yii\db\Expression('SUM(CASE WHEN emailOpenDate IS NOT NULL OR smsOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'submissions' => new \yii\db\Expression('SUM(CASE WHEN submissionId IS NOT NULL THEN 1 ELSE 0 END)'),
+                'uniqueInvited' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL OR [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'uniqueOpened' => new \yii\db\Expression('SUM(CASE WHEN [[emailOpenDate]] IS NOT NULL OR [[smsOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'submissions' => new \yii\db\Expression('SUM(CASE WHEN [[submissionId]] IS NOT NULL THEN 1 ELSE 0 END)'),
                 'expired' => new \yii\db\Expression(
-                    'SUM(CASE WHEN invitationExpiryDate < :nowExpiry AND submissionId IS NULL THEN 1 ELSE 0 END)',
+                    'SUM(CASE WHEN [[invitationExpiryDate]] < :nowExpiry AND [[submissionId]] IS NULL THEN 1 ELSE 0 END)',
                     [':nowExpiry' => $now]
                 ),
             ])
@@ -170,9 +170,9 @@ class AnalyticsService extends Component
             ->select([
                 'date' => $localDateExpr,
                 'COUNT(*) as recipients',
-                'SUM(CASE WHEN emailSendDate IS NOT NULL THEN 1 ELSE 0 END) as emailsSent',
-                'SUM(CASE WHEN smsSendDate IS NOT NULL THEN 1 ELSE 0 END) as smsSent',
-                'SUM(CASE WHEN submissionId IS NOT NULL THEN 1 ELSE 0 END) as submissions',
+                'SUM(CASE WHEN [[emailSendDate]] IS NOT NULL THEN 1 ELSE 0 END) as [[emailsSent]]',
+                'SUM(CASE WHEN [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END) as [[smsSent]]',
+                'SUM(CASE WHEN [[submissionId]] IS NOT NULL THEN 1 ELSE 0 END) as submissions',
             ])
             ->groupBy($localDateExpr)
             ->orderBy(['date' => SORT_ASC])
@@ -223,9 +223,9 @@ class AnalyticsService extends Component
         // getConversionFunnel().
         $row = (clone $query)
             ->select([
-                'emailOnly' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL AND smsSendDate IS NULL THEN 1 ELSE 0 END)'),
-                'smsOnly' => new \yii\db\Expression('SUM(CASE WHEN smsSendDate IS NOT NULL AND emailSendDate IS NULL THEN 1 ELSE 0 END)'),
-                'both' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL AND smsSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
+                'emailOnly' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL AND [[smsSendDate]] IS NULL THEN 1 ELSE 0 END)'),
+                'smsOnly' => new \yii\db\Expression('SUM(CASE WHEN [[smsSendDate]] IS NOT NULL AND [[emailSendDate]] IS NULL THEN 1 ELSE 0 END)'),
+                'both' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL AND [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
             ])
             ->one();
 
@@ -316,9 +316,9 @@ class AnalyticsService extends Component
         $row = (clone $query)
             ->select([
                 'totalRecipients' => new \yii\db\Expression('COUNT(*)'),
-                'invited' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL OR smsSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'opened' => new \yii\db\Expression('SUM(CASE WHEN emailOpenDate IS NOT NULL OR smsOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'submitted' => new \yii\db\Expression('SUM(CASE WHEN submissionId IS NOT NULL THEN 1 ELSE 0 END)'),
+                'invited' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL OR [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'opened' => new \yii\db\Expression('SUM(CASE WHEN [[emailOpenDate]] IS NOT NULL OR [[smsOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'submitted' => new \yii\db\Expression('SUM(CASE WHEN [[submissionId]] IS NOT NULL THEN 1 ELSE 0 END)'),
             ])
             ->one();
 
@@ -384,13 +384,13 @@ class AnalyticsService extends Component
                 'campaignId' => $recipientTable . '.campaignId',
                 'siteId' => $recipientTable . '.siteId',
                 'totalRecipients' => new \yii\db\Expression('COUNT(*)'),
-                'emailsSent' => new \yii\db\Expression('SUM(CASE WHEN emailSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'smsSent' => new \yii\db\Expression('SUM(CASE WHEN smsSendDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'emailsOpened' => new \yii\db\Expression('SUM(CASE WHEN emailOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'smsOpened' => new \yii\db\Expression('SUM(CASE WHEN smsOpenDate IS NOT NULL THEN 1 ELSE 0 END)'),
-                'submissions' => new \yii\db\Expression('SUM(CASE WHEN submissionId IS NOT NULL THEN 1 ELSE 0 END)'),
+                'emailsSent' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'smsSent' => new \yii\db\Expression('SUM(CASE WHEN [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'emailsOpened' => new \yii\db\Expression('SUM(CASE WHEN [[emailOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'smsOpened' => new \yii\db\Expression('SUM(CASE WHEN [[smsOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'submissions' => new \yii\db\Expression('SUM(CASE WHEN [[submissionId]] IS NOT NULL THEN 1 ELSE 0 END)'),
                 'expired' => new \yii\db\Expression(
-                    'SUM(CASE WHEN invitationExpiryDate < :nowExpiry AND submissionId IS NULL THEN 1 ELSE 0 END)',
+                    'SUM(CASE WHEN [[invitationExpiryDate]] < :nowExpiry AND [[submissionId]] IS NULL THEN 1 ELSE 0 END)',
                     [':nowExpiry' => $now]
                 ),
             ])
