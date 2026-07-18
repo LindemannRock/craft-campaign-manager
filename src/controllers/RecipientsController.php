@@ -146,9 +146,9 @@ class RecipientsController extends Controller
 
         if ($search !== '') {
             $query->andWhere(['or',
-                ['like', 'name', $search],
-                ['like', 'email', $search],
-                ['like', 'sms', $search],
+                ['like', 'LOWER([[name]])', mb_strtolower($search)],
+                ['like', 'LOWER([[email]])', mb_strtolower($search)],
+                ['like', 'LOWER([[sms]])', mb_strtolower($search)],
             ]);
         }
 
@@ -161,10 +161,14 @@ class RecipientsController extends Controller
             default => 'sent',
         };
 
-        if ($sortField === 'sent') {
-            $query->orderBy(new \yii\db\Expression('COALESCE([[smsSendDate]], [[emailSendDate]]) ' . $direction));
-        } elseif ($sortField === 'opened') {
-            $query->orderBy(new \yii\db\Expression('COALESCE([[smsOpenDate]], [[emailOpenDate]]) ' . $direction));
+        if ($sortField === 'sent' || $sortField === 'opened') {
+            // Pin MySQL's NULL placement on both engines (PostgreSQL's default is
+            // inverted): DESC keeps pending (NULL) rows last, ASC keeps them first.
+            $sortExpr = $sortField === 'sent'
+                ? 'COALESCE([[smsSendDate]], [[emailSendDate]])'
+                : 'COALESCE([[smsOpenDate]], [[emailOpenDate]])';
+            $nullsFlag = $direction === 'DESC' ? 'ASC' : 'DESC';
+            $query->orderBy(new \yii\db\Expression("($sortExpr IS NULL) $nullsFlag, $sortExpr $direction"));
         } else {
             $query->orderBy([$sortField => $direction === 'ASC' ? SORT_ASC : SORT_DESC]);
         }
@@ -693,19 +697,23 @@ class RecipientsController extends Controller
 
         if ($search !== '') {
             $query->andWhere(['or',
-                ['like', 'name', $search],
-                ['like', 'email', $search],
-                ['like', 'sms', $search],
+                ['like', 'LOWER([[name]])', mb_strtolower($search)],
+                ['like', 'LOWER([[email]])', mb_strtolower($search)],
+                ['like', 'LOWER([[sms]])', mb_strtolower($search)],
             ]);
         }
 
         // ---- Sort + paginate ----------------------------------------------
         $direction = $dir === 'asc' ? 'ASC' : 'DESC';
 
-        if ($sort === 'sent') {
-            $query->orderBy(new \yii\db\Expression('COALESCE([[smsSendDate]], [[emailSendDate]]) ' . $direction));
-        } elseif ($sort === 'opened') {
-            $query->orderBy(new \yii\db\Expression('COALESCE([[smsOpenDate]], [[emailOpenDate]]) ' . $direction));
+        if ($sort === 'sent' || $sort === 'opened') {
+            // Pin MySQL's NULL placement on both engines (PostgreSQL's default is
+            // inverted): DESC keeps pending (NULL) rows last, ASC keeps them first.
+            $sortExpr = $sort === 'sent'
+                ? 'COALESCE([[smsSendDate]], [[emailSendDate]])'
+                : 'COALESCE([[smsOpenDate]], [[emailOpenDate]])';
+            $nullsFlag = $direction === 'DESC' ? 'ASC' : 'DESC';
+            $query->orderBy(new \yii\db\Expression("($sortExpr IS NULL) $nullsFlag, $sortExpr $direction"));
         } else {
             $query->orderBy(['name' => $direction === 'ASC' ? SORT_ASC : SORT_DESC]);
         }
