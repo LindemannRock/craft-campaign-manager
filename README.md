@@ -4,7 +4,7 @@
 [![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.0%2B-orange.svg)](https://craftcms.com/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://php.net/)
 [![Formie](https://img.shields.io/badge/Formie-3.0%2B-purple.svg)](https://verbb.io/craft-plugins/formie)
-[![License](https://img.shields.io/packagist/l/lindemannrock/craft-campaign-manager.svg)](LICENSE)
+[![License](https://img.shields.io/packagist/l/lindemannrock/craft-campaign-manager.svg)](LICENSE.md)
 
 Campaign management for surveys with SMS and email invitations for Craft CMS 5.x.
 
