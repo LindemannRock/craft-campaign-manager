@@ -194,7 +194,6 @@ return [
     'User does not have permission to view analytics for this site.' => 'Brukeren har ikke tillatelse til å se analyse for dette nettstedet.',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{feil} other{feil}} funnet',
     'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Kun bokstaver, tall, bindestreker, understreker og skråstreker er tillatt.',
     'Route cannot contain double slashes.' => 'Ruten kan ikke inneholde doble skråstreker.',
     'Route cannot contain spaces.' => 'Ruten kan ikke inneholde mellomrom.',

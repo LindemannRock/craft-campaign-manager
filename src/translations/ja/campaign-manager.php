@@ -194,7 +194,6 @@ return [
     'User does not have permission to view analytics for this site.' => 'ユーザーにこのサイトのアナリティクスを表示する権限がありません。',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} 件の{count, plural, =1{エラー} other{エラー}}が見つかりました',
     'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => '英数字、ハイフン、アンダースコア、スラッシュのみ使用できます。',
     'Route cannot contain double slashes.' => 'ルートに二重スラッシュを含めることはできません。',
     'Route cannot contain spaces.' => 'ルートにスペースを含めることはできません。',

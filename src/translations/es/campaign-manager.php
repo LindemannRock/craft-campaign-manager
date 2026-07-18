@@ -194,7 +194,6 @@ return [
     'User does not have permission to view analytics for this site.' => 'El usuario no tiene permiso para ver las analíticas de este sitio.',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => '{count, number} {count, plural, =1{error encontrado} other{errores encontrados}}',
     'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Solo se permiten letras, números, guiones, guiones bajos y barras.',
     'Route cannot contain double slashes.' => 'La ruta no puede contener barras dobles.',
     'Route cannot contain spaces.' => 'La ruta no puede contener espacios.',

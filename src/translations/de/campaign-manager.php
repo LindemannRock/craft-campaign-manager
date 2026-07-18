@@ -194,7 +194,6 @@ return [
     'User does not have permission to view analytics for this site.' => 'Der Benutzer hat keine Berechtigung, Analytics für diese Website anzuzeigen.',
 
     // Validation messages
-    'Found {count, number} {count, plural, =1{error} other{errors}}' => 'Es wurde {count, number} {count, plural, =1{Fehler} other{Fehler}} gefunden',
     'Only letters, numbers, hyphens, underscores, and slashes are allowed.' => 'Nur Buchstaben, Zahlen, Bindestriche, Unterstriche und Schrägstriche sind erlaubt.',
     'Route cannot contain double slashes.' => 'Route darf keine doppelten Schrägstriche enthalten.',
     'Route cannot contain spaces.' => 'Route darf keine Leerzeichen enthalten.',
