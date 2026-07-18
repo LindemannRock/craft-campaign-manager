@@ -82,10 +82,10 @@ class ActivityLogsController extends Controller
         if ($search !== '') {
             $query->andWhere([
                 'or',
-                ['like', 'action', $search],
-                ['like', 'source', $search],
-                ['like', 'summary', $search],
-                ['like', 'details', $search],
+                ['like', 'LOWER([[action]])', mb_strtolower($search)],
+                ['like', 'LOWER([[source]])', mb_strtolower($search)],
+                ['like', 'LOWER([[summary]])', mb_strtolower($search)],
+                ['like', 'LOWER([[details]])', mb_strtolower($search)],
             ]);
         }
 
