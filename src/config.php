@@ -151,7 +151,7 @@ return [
         /**
          * Export format overrides
          * Enable/disable specific export formats for this plugin
-         * Default: all enabled (from base plugin)
+         * Default: CSV and Excel enabled, JSON disabled (developer format — from base plugin)
          */
         // 'exports' => [
         //     'csv' => true,
