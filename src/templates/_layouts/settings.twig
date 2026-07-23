@@ -10,7 +10,6 @@
 {% if settings is defined and settings.hasErrors() %}
     {% set errorSummary = include('lindemannrock-base/_partials/error-summary', {
         errors: settings.getErrors(),
-        linkMode: 'field-id',
     })|trim %}
 {% endif %}
 

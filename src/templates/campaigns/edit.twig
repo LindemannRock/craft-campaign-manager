@@ -101,7 +101,6 @@
     {% set errorSummary %}
         {% include 'lindemannrock-base/_partials/error-summary' with {
             errors: campaign.getErrors(),
-            linkMode: 'field-id',
         } %}
     {% endset %}
 {% endif %}
@@ -202,7 +201,7 @@
         <h2>{{ 'Invitation Settings'|t('campaign-manager') }}</h2>
 
         {# Invitation Delay Period #}
-        <div class="field">
+        <div class="field" data-error-key="invitationDelayPeriod">
             <div class="heading">
                 <label for="invitationDelayValue">{{ 'Invitation Delay'|t('campaign-manager') }}</label>
             </div>
@@ -240,7 +239,7 @@
         </div>
 
         {# Invitation Expiry Period #}
-        <div class="field">
+        <div class="field" data-error-key="invitationExpiryPeriod">
             <div class="heading">
                 <label for="invitationExpiryValue">{{ 'Invitation Expiry'|t('campaign-manager') }}</label>
             </div>
