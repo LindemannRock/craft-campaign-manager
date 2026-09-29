@@ -254,6 +254,23 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
    - **Conversion**: Funnel visualization and breakdown
 4. Export data using the Export button
 
+### How Responses Are Linked to Recipients
+
+When a recipient submits the form from their invitation link, Campaign Manager links that Formie submission to the recipient. A submission is linked only when all of these are true:
+
+- The `code` in the page URL belongs to a recipient
+- The submitted form is the form assigned to the recipient's campaign
+- The submission was made on the recipient's site
+- The invitation has not expired
+- The recipient has no linked response yet
+
+The first valid response is kept. Later submissions with the same invitation code never replace it.
+
+> [!NOTE]
+> Campaign Manager never blocks a Formie submission. When a submission does not meet these conditions, Formie still saves it and still sends its notifications and integrations — it just isn't linked to a recipient or counted as a campaign response.
+
+For headless or custom front ends, keep the `code` query parameter on the request that submits the form, and submit with the recipient's site.
+
 ### Viewing Responses
 
 1. Navigate to a campaign and click Edit
@@ -379,6 +396,22 @@ Event::on(
 1. **Verify invitation code**: Check the URL has a valid `code` parameter
 2. **Check recipient exists**: The invitation code must match a recipient record
 3. **Check campaign has form**: The campaign must have a Formie form assigned
+
+### Response Saved in Formie but Not Linked to a Recipient
+
+**Symptom:** A submission appears in Formie, but the recipient still shows no response and the campaign's response count did not change.
+
+**Quick checks:**
+
+1. **Invitation code**: The request that submitted the form must include the recipient's `code` query parameter. Custom templates and headless front ends need to keep it on the submit request.
+2. **Form**: The submitted form must be the one assigned to the recipient's campaign.
+3. **Site**: The submission must be made on the recipient's site.
+4. **Expiry**: The invitation must not have expired.
+5. **Earlier response**: A recipient keeps their first linked response. Later submissions with the same code are saved by Formie but not linked.
+
+**Fix:** For a missing code, wrong form, or wrong site, correct the cause and have the recipient submit again from their invitation link. An expired invitation, or a recipient who already has a linked response, cannot be linked again. With the log level set to **Warning**, **Info**, or **Debug**, Campaign Manager → Logs records why a submission with an invitation code was not linked.
+
+**Why:** Invitation links are personal, so a response is only counted for the recipient, form, and site it was issued for, and only once.
 
 ### CSV Import Failing
 

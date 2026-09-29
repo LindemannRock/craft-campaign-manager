@@ -11,9 +11,12 @@ namespace lindemannrock\campaignmanager\services;
 use Craft;
 use craft\base\Component;
 use craft\helpers\App;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\helpers\StringHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\campaignmanager\CampaignManager;
+use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\helpers\TimeHelper;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
@@ -317,6 +320,9 @@ class RecipientsService extends Component
 
     /**
      * Process a form submission for a campaign
+     *
+     * Formie has already accepted and saved the submission, so this only
+     * decides whether Campaign Manager links it to the invited recipient.
      */
     public function processCampaignSubmission(Submission $submission, string $invitationCode): void
     {
@@ -324,6 +330,21 @@ class RecipientsService extends Component
 
         if (!$recipient) {
             $this->logWarning('Recipient not found for invitation code', ['code' => $invitationCode]);
+            return;
+        }
+
+        $declineReason = $this->getSubmissionAssociationDeclineReason($recipient, $submission);
+
+        if ($declineReason === null && !$this->claimSubmission($recipient, $submission)) {
+            $declineReason = 'the invitation already has a response';
+        }
+
+        if ($declineReason !== null) {
+            $this->logWarning('Submission not linked to recipient: ' . $declineReason, [
+                'recipientId' => $recipient->id,
+                'campaignId' => $recipient->campaignId,
+                'submissionId' => $submission->id,
+            ]);
             return;
         }
 
@@ -338,9 +359,74 @@ class RecipientsService extends Component
 
         $submission->updateTitle($submission->getForm());
         Craft::$app->getElements()->saveElement($submission, false);
+    }
 
-        $recipient->submissionId = $submission->getId();
-        $recipient->save(false);
+    /**
+     * Explain why a submission must not be linked to a recipient, or return
+     * null when the invitation is still valid for this submission.
+     */
+    private function getSubmissionAssociationDeclineReason(RecipientRecord $recipient, Submission $submission): ?string
+    {
+        if ($submission->id === null || $submission->isIncomplete) {
+            return 'the submission is not complete';
+        }
+
+        if ($recipient->submissionId !== null) {
+            return 'the invitation already has a response';
+        }
+
+        if ($recipient->invitationIsExpired()) {
+            return 'the invitation has expired';
+        }
+
+        /** @var Campaign|null $campaign */
+        $campaign = Campaign::find()
+            ->id($recipient->campaignId)
+            ->siteId($recipient->siteId)
+            ->status(null)
+            ->one();
+
+        if ($campaign === null) {
+            return 'the campaign no longer exists';
+        }
+
+        if ($campaign->formId === null || (int)$campaign->formId !== (int)$submission->formId) {
+            return 'the submission belongs to a different form';
+        }
+
+        if ((int)$submission->siteId !== (int)$recipient->siteId) {
+            return 'the submission belongs to a different site';
+        }
+
+        return null;
+    }
+
+    /**
+     * Link the submission only while the recipient has no response, so
+     * competing submissions cannot replace each other.
+     */
+    private function claimSubmission(RecipientRecord $recipient, Submission $submission): bool
+    {
+        // Responses are listed by the recipient's dateUpdated, so the claim
+        // writes it together with the link.
+        $claimed = Craft::$app->getDb()->createCommand()
+            ->update(
+                RecipientRecord::tableName(),
+                [
+                    'submissionId' => $submission->id,
+                    'dateUpdated' => Db::prepareDateForDb(DateTimeHelper::now()),
+                ],
+                ['id' => $recipient->id, 'submissionId' => null],
+            )
+            ->execute();
+
+        if ($claimed !== 1) {
+            return false;
+        }
+
+        $recipient->refresh();
+
+        return true;
     }
 
     /**

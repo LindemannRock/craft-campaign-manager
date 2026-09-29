@@ -446,7 +446,7 @@ class CampaignManager extends Plugin
                 }
                 $submission = $event->submission;
                 $invitationCode = Craft::$app->getRequest()->get('code');
-                if (empty($invitationCode)) {
+                if (!is_string($invitationCode) || $invitationCode === '') {
                     return;
                 }
 
