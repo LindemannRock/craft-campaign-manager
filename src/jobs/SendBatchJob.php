@@ -13,6 +13,7 @@ use craft\queue\BaseJob;
 use Exception;
 use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\campaignmanager\CampaignManager;
+use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\exceptions\SendBatchFailedException;
 use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\CampaignRecord;
@@ -67,6 +68,15 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
     public ?int $triggeredByUserId = null;
 
     /**
+     * @var bool Whether to send only while the campaign is still enabled for
+     * the site when the batch runs. Off by default so batches queued without
+     * it, including ones stored before it existed, behave as before.
+     *
+     * @since 5.16.0
+     */
+    public bool $onlyWhileCampaignEnabled = false;
+
+    /**
      * @inheritdoc
      */
     public function init(): void
@@ -93,6 +103,14 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
      */
     public function execute($queue): void
     {
+        if ($this->onlyWhileCampaignEnabled && !$this->campaignIsEnabledForSite()) {
+            $this->logInfo('Skipping disabled campaign', [
+                'campaignId' => $this->campaignId,
+                'siteId' => $this->siteId,
+            ]);
+            return;
+        }
+
         $campaign = CampaignRecord::findOneForSite($this->campaignId, $this->siteId);
 
         if (!$campaign) {
@@ -248,6 +266,21 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                 ]
             ));
         }
+    }
+
+    /**
+     * Whether the campaign still exists and is enabled, both overall and for
+     * this batch's site, at the time the batch runs.
+     */
+    private function campaignIsEnabledForSite(): bool
+    {
+        $campaign = Campaign::find()
+            ->id($this->campaignId)
+            ->siteId($this->siteId)
+            ->status(null)
+            ->one();
+
+        return $campaign !== null && $campaign->enabled && (bool)$campaign->getEnabledForSite();
     }
 
     /**

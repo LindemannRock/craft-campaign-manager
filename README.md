@@ -219,7 +219,7 @@ Create a template for the survey page (e.g., `templates/survey.twig`):
    - `Email` (optional)
    - `Phone` (optional)
    - `Site` (optional: site handle like `en`, `ar` or site ID like `1`, `2`)
-4. Choose whether to send invitations after import
+4. Choose whether to send invitations after import. This sends invitations only to the recipients this import creates; recipients that were already waiting are not sent until you run the campaign
 5. Click Import
 
 **CSV Format Example:**

@@ -448,6 +448,66 @@ abstract class SiteRestrictedUserTestCase extends TestCase
     }
 
     /**
+     * Disable an owned campaign for one site the way the campaign edit screen does.
+     */
+    protected function disableOwnedCampaignForSite(Campaign $campaign, int $siteId): void
+    {
+        $this->requireOwnedCampaign((int)$campaign->id);
+
+        $enabled = [];
+        foreach (Craft::$app->getSites()->getAllSiteIds() as $id) {
+            $enabled[(int)$id] = (int)$id !== $siteId;
+        }
+        $campaign->setEnabledForSite($enabled);
+        $this->saveTestElement($campaign, false, true, false);
+    }
+
+    /**
+     * The Campaign Manager jobs queued for an owned campaign, read back from
+     * the queue table exactly as a worker receives them, oldest first.
+     *
+     * @return list<object>
+     */
+    protected function queuedJobs(int $campaignId): array
+    {
+        $this->requireOwnedCampaign($campaignId);
+
+        $queue = Craft::$app->getQueue();
+        if (!$queue instanceof Queue) {
+            throw new RuntimeException('The queue does not store its jobs in the database.');
+        }
+
+        $jobs = [];
+        $rows = (new Query())
+            ->select(['id', 'job'])
+            ->from($queue->tableName)
+            ->where(['like', 'job', 'campaignmanager'])
+            ->orderBy('id')
+            ->all();
+
+        foreach ($rows as $row) {
+            $blob = is_resource($row['job']) ? (string)stream_get_contents($row['job']) : (string)$row['job'];
+            if (!str_contains($blob, '"campaignId";i:' . $campaignId . ';')) {
+                continue;
+            }
+            $job = unserialize($blob);
+            if (!is_object($job)) {
+                throw new RuntimeException('A queued job could not be read back.');
+            }
+            $jobs[] = $job;
+        }
+
+        return $jobs;
+    }
+
+    private function requireOwnedCampaign(int $campaignId): void
+    {
+        if (!in_array($campaignId, $this->ownedCampaignIds, true)) {
+            throw new RuntimeException('Only a campaign the test owns can be used here.');
+        }
+    }
+
+    /**
      * Track a recipient that an action under test created.
      */
     protected function ownRecipient(int $recipientId): void

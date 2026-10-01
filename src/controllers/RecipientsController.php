@@ -17,6 +17,7 @@ use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\PhoneHelper;
 use lindemannrock\campaignmanager\helpers\SiteAccessHelper;
+use lindemannrock\campaignmanager\jobs\ProcessCampaignJob;
 use lindemannrock\campaignmanager\jobs\SendBatchJob;
 use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\CampaignRecord;
@@ -1694,7 +1695,9 @@ class RecipientsController extends Controller
         $imported = 0;
         $failed = 0;
         $errorMessages = [];
-        $importedSiteIds = [];
+        // The recipients this import creates, by site; only they are sent
+        /** @var array<int, list<int>> $importedRecipientIdsBySite */
+        $importedRecipientIdsBySite = [];
 
         foreach ($validRows as $index => $rowData) {
             $rowSiteId = (int)$rowData['siteId'];
@@ -1716,7 +1719,7 @@ class RecipientsController extends Controller
             try {
                 if ($recipient->save()) {
                     $imported++;
-                    $importedSiteIds[$rowSiteId] = $rowSiteId;
+                    $importedRecipientIdsBySite[$rowSiteId][] = (int)$recipient->id;
                 } else {
                     $failed++;
                     $errorMessages[] = 'Row ' . ($index + 1) . ': ' . implode(', ', $recipient->getErrorSummary(true));
@@ -1759,31 +1762,35 @@ class RecipientsController extends Controller
             // Every site a recipient was imported to; the site the import was
             // started on when no row was imported
             'siteScope' => ActivityLogRecord::SCOPE_SITES,
-            'siteIds' => $importedSiteIds !== [] ? array_values($importedSiteIds) : [(int)$previewData['siteId']],
+            'siteIds' => $importedRecipientIdsBySite !== [] ? array_keys($importedRecipientIdsBySite) : [(int)$previewData['siteId']],
         ]);
 
-        // Queue sending if requested and we imported recipients
+        // Queue sending if requested and we imported recipients. Only the
+        // recipients this import created are sent; the campaign's other
+        // pending recipients are left to a campaign run.
         if ($queueSending && $imported > 0) {
             $triggeredByUserId = Craft::$app->getUser()->getIdentity()?->id;
-            // Get unique site IDs from imported recipients
-            $siteIds = RecipientRecord::find()
-                ->select(['siteId'])
-                ->where(['campaignId' => $campaignId])
-                ->andWhere(['smsSendDate' => null])
-                ->andWhere(['emailSendDate' => null])
-                ->distinct()
-                ->column();
             $siteNames = [];
+            $batchesQueued = 0;
 
-            foreach ($siteIds as $siteId) {
-                $siteNames[(int)$siteId] = Craft::$app->getSites()->getSiteById((int)$siteId)?->name;
-                Craft::$app->getQueue()->push(new \lindemannrock\campaignmanager\jobs\ProcessCampaignJob([
-                    'campaignId' => $campaignId,
-                    'siteId' => (int)$siteId,
-                    'sendSms' => true,
-                    'sendEmail' => true,
-                    'triggeredByUserId' => $triggeredByUserId,
-                ]));
+            foreach ($importedRecipientIdsBySite as $siteId => $recipientIds) {
+                $siteNames[$siteId] = Craft::$app->getSites()->getSiteById($siteId)?->name;
+
+                foreach (array_chunk($recipientIds, ProcessCampaignJob::BATCH_SIZE) as $batchIds) {
+                    Craft::$app->getQueue()->push(new SendBatchJob([
+                        'campaignId' => $campaignId,
+                        'siteId' => $siteId,
+                        'recipientIds' => $batchIds,
+                        'sendSms' => true,
+                        'sendEmail' => true,
+                        'triggeredByUserId' => $triggeredByUserId,
+                        // As the campaign run did: nothing is sent if the
+                        // campaign is disabled for the site by the time the
+                        // batch runs
+                        'onlyWhileCampaignEnabled' => true,
+                    ]));
+                    $batchesQueued++;
+                }
             }
 
             CampaignManager::$plugin->activityLogs->log('campaign_invitations_queued', [
@@ -1792,13 +1799,15 @@ class RecipientsController extends Controller
                 'summary' => Craft::t('campaign-manager', 'Invitation sending queued after import'),
                 'userId' => $triggeredByUserId,
                 'details' => [
-                    'siteIds' => $siteIds,
+                    'siteIds' => array_keys($importedRecipientIdsBySite),
                     'siteNames' => $siteNames,
+                    'recipientCount' => $imported,
+                    'batches' => $batchesQueued,
                     'triggeredByUserId' => $triggeredByUserId,
                 ],
-                // Every site a job was queued for
+                // Every site a batch was queued for
                 'siteScope' => ActivityLogRecord::SCOPE_SITES,
-                'siteIds' => $siteIds !== [] ? array_map('intval', $siteIds) : array_values($importedSiteIds),
+                'siteIds' => array_keys($importedRecipientIdsBySite),
             ]);
 
             $message .= ' ' . Craft::t('campaign-manager', 'Invitation sending has been queued.');
