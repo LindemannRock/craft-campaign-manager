@@ -1,5 +1,27 @@
 # Changelog
 
+## [5.15.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.15.0...v5.15.1) - 2026-10-01
+
+
+### Fixed
+
+* **analytics:** use Composer alias for asset delivery ([e156fbf](https://github.com/LindemannRock/craft-campaign-manager/commit/e156fbf7ca9caf8c9ad2ed92d31abfa347a064bd))
+* **analytics:** use parameterized queries for email and SMS metrics ([6505d8a](https://github.com/LindemannRock/craft-campaign-manager/commit/6505d8ab53b1d2a8d914f1c89e1267eade00a2ce))
+* **controllers:** make search case-insensitive in activity logs ([9637172](https://github.com/LindemannRock/craft-campaign-manager/commit/9637172a5e4a19e951eb0205fb29ac09940d4a28))
+* escape country names and provider names to prevent XSS ([c5dc12d](https://github.com/LindemannRock/craft-campaign-manager/commit/c5dc12d389316b9081c9e24f46c054dcdc473ce4))
+* **i18n:** correct translations across multiple locales ([146a3df](https://github.com/LindemannRock/craft-campaign-manager/commit/146a3dfdfe563ec63dcc7e478cb3b6c8626966a4))
+* **recipients:** handle CSV parsing errors with improved logging and user feedback ([615bd38](https://github.com/LindemannRock/craft-campaign-manager/commit/615bd38129775980f084dca3d00c4dfed706ad95))
+* **recipients:** make search case-insensitive for name, email, and sms fields ([7e5dd6d](https://github.com/LindemannRock/craft-campaign-manager/commit/7e5dd6d2b0f2a1a02a3c0d402e142b191aabcd82))
+* remove translation category from error summary inclusion ([4d9db33](https://github.com/LindemannRock/craft-campaign-manager/commit/4d9db331869fb0bd0777b4bfb5f276eac748c63e))
+* remove unused linkMode parameter from error summary ([7309873](https://github.com/LindemannRock/craft-campaign-manager/commit/7309873107659b2e66a92241a2689b1b2a1e8390))
+* **settings:** clarify default export format in configuration ([1f89a71](https://github.com/LindemannRock/craft-campaign-manager/commit/1f89a7133344e54d493250b8cf87fed955e8c540))
+
+
+### Security
+
+* **permissions:** enforce editable site boundaries ([0962d9f](https://github.com/LindemannRock/craft-campaign-manager/commit/0962d9f3eae3ab3d61629f8f544e7cca6b9896d5))
+* **recipients:** validate invitation response links ([fc41a49](https://github.com/LindemannRock/craft-campaign-manager/commit/fc41a49a1ebf1cce08f1593600e242179182e5b4))
+
 ## [5.15.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.14.0...v5.15.0) - 2026-07-01
 
 
