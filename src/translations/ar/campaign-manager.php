@@ -183,8 +183,6 @@ return [
     'Activity logs cleared successfully.' => 'تم مسح سجلات النشاط بنجاح.',
     '{count} recipients' => '{count} مستلمين',
     'Campaign not found' => 'لم يتم العثور على الحملة',
-    'Site not found' => 'لم يتم العثور على الموقع',
-    'Invalid site handle: {handle}' => 'معرّف الموقع غير صالح: {handle}',
     'Administrative changes are disallowed in this environment.' => 'التغييرات الإدارية غير مسموح بها في هذه البيئة.',
     'User does not have permission to access this area.' => 'ليس لدى المستخدم صلاحية للوصول إلى هذه المنطقة.',
     'User does not have permission to view this campaign.' => 'ليس لدى المستخدم صلاحية لعرض هذه الحملة.',

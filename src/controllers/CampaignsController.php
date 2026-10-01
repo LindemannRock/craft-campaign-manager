@@ -14,7 +14,9 @@ use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
+use lindemannrock\campaignmanager\helpers\SiteAccessHelper;
 use lindemannrock\campaignmanager\jobs\ProcessCampaignJob;
+use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -72,17 +74,7 @@ class CampaignsController extends Controller
      */
     public function actionEdit(?int $campaignId = null, ?Campaign $campaign = null): Response
     {
-        // Get site from request or use current
-        $siteHandle = Craft::$app->getRequest()->getQueryParam('site');
-        if ($siteHandle) {
-            $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-            if (!$site) {
-                throw new NotFoundHttpException(Craft::t('campaign-manager', 'Invalid site handle: {handle}', ['handle' => $siteHandle]));
-            }
-            $siteId = $site->id;
-        } else {
-            $siteId = Craft::$app->getSites()->getCurrentSite()->id;
-        }
+        $siteId = SiteAccessHelper::requireEditableSite(Craft::$app->getRequest()->getQueryParam('site'))->id;
 
         // Get the campaign
         if ($campaign === null) {
@@ -164,7 +156,7 @@ class CampaignsController extends Controller
         $request = Craft::$app->getRequest();
         $campaignId = $request->getBodyParam('campaignId');
         $isNew = empty($campaignId);
-        $siteId = $request->getBodyParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id;
+        $siteId = SiteAccessHelper::requireEditableSite($request->getBodyParam('siteId'))->id;
 
         // Get or create the campaign
         if ($campaignId) {
@@ -251,6 +243,8 @@ class CampaignsController extends Controller
                 'siteId' => (int)$siteId,
                 'enabled' => $campaign->getEnabledForSite(),
             ],
+            // Saving on one site also writes the settings shared by every site
+            'siteScope' => ActivityLogRecord::SCOPE_ALL,
         ]);
 
         Craft::$app->getSession()->setNotice(Craft::t('campaign-manager', 'Campaign saved.'));
@@ -268,9 +262,11 @@ class CampaignsController extends Controller
         $this->requirePermission('campaignManager:deleteCampaigns');
 
         $campaignId = Craft::$app->getRequest()->getRequiredBodyParam('campaignId');
+        $site = SiteAccessHelper::requireEditableSite(Craft::$app->getRequest()->getBodyParam('siteId'));
 
         $campaign = Campaign::find()
             ->id($campaignId)
+            ->siteId($site->id)
             ->status(null)
             ->one();
 
@@ -298,6 +294,8 @@ class CampaignsController extends Controller
             'details' => [
                 'title' => $campaign->title,
             ],
+            // A campaign is deleted on every site at once
+            'siteScope' => ActivityLogRecord::SCOPE_ALL,
         ]);
 
         Craft::$app->getSession()->setNotice(Craft::t('campaign-manager', 'Campaign deleted'));
@@ -332,14 +330,7 @@ class CampaignsController extends Controller
             $this->requirePermission('campaignManager:manageRecipients');
         }
 
-        $siteHandle = $request->getQueryParam('site');
-        $site = $siteHandle
-            ? Craft::$app->getSites()->getSiteByHandle($siteHandle)
-            : Craft::$app->getSites()->getCurrentSite();
-
-        if (!$site) {
-            throw new NotFoundHttpException(Craft::t('campaign-manager', 'Site not found'));
-        }
+        $site = SiteAccessHelper::requireEditableSite($request->getQueryParam('site'));
 
         $campaign = Campaign::find()
             ->id($campaignId)
@@ -391,7 +382,7 @@ class CampaignsController extends Controller
 
         // Get editable sites if no specific site is provided
         $sites = $siteId
-            ? [Craft::$app->getSites()->getSiteById((int) $siteId)]
+            ? [SiteAccessHelper::requireEditableSite($siteId)]
             : Craft::$app->getSites()->getEditableSites();
 
         $jobsQueued = 0;
@@ -401,10 +392,6 @@ class CampaignsController extends Controller
         $siteNames = [];
 
         foreach ($sites as $site) {
-            if (!$site) {
-                continue;
-            }
-
             // Get campaigns to run
             $campaigns = $this->getCampaignsToRun($campaignId, $site->id);
 
@@ -436,6 +423,14 @@ class CampaignsController extends Controller
 
         $this->logInfo('Campaign jobs queued', ['count' => $jobsQueued]);
 
+        // The log covers every site a job was queued for. When nothing was
+        // queued it covers the sites that were tried, and when there was no
+        // site to try its scope stays unknown.
+        $loggedSiteIds = array_keys($siteNames);
+        if ($loggedSiteIds === []) {
+            $loggedSiteIds = array_map(static fn($site): int => (int)$site->id, $sites);
+        }
+
         CampaignManager::$plugin->activityLogs->log('campaigns_queued', [
             'source' => 'manual',
             'summary' => Craft::t('campaign-manager', 'Campaign jobs queued'),
@@ -448,6 +443,8 @@ class CampaignsController extends Controller
                 'siteId' => $siteId ? (int)$siteId : null,
                 'triggeredByUserId' => $triggeredByUserId,
             ],
+            'siteScope' => $loggedSiteIds !== [] ? ActivityLogRecord::SCOPE_SITES : ActivityLogRecord::SCOPE_UNKNOWN,
+            'siteIds' => $loggedSiteIds,
         ]);
 
         if (Craft::$app->getRequest()->getAcceptsJson()) {

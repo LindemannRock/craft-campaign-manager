@@ -183,8 +183,6 @@ return [
     'Activity logs cleared successfully.' => 'Aktivitäts-Logs erfolgreich gelöscht.',
     '{count} recipients' => '{count} Empfänger',
     'Campaign not found' => 'Kampagne nicht gefunden',
-    'Site not found' => 'Website nicht gefunden',
-    'Invalid site handle: {handle}' => 'Ungültiges Website-Handle: {handle}',
     'Administrative changes are disallowed in this environment.' => 'Administrative Änderungen sind in dieser Umgebung nicht erlaubt.',
     'User does not have permission to access this area.' => 'Der Benutzer hat keine Berechtigung, auf diesen Bereich zuzugreifen.',
     'User does not have permission to view this campaign.' => 'Der Benutzer hat keine Berechtigung, diese Kampagne anzuzeigen.',

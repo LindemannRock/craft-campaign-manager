@@ -183,8 +183,6 @@ return [
     'Activity logs cleared successfully.' => 'Aktivitetslogger tømt.',
     '{count} recipients' => '{count} mottakere',
     'Campaign not found' => 'Kampanje ikke funnet',
-    'Site not found' => 'Nettsted ikke funnet',
-    'Invalid site handle: {handle}' => 'Ugyldig nettstedidentifikator: {handle}',
     'Administrative changes are disallowed in this environment.' => 'Administrative endringer er ikke tillatt i dette miljøet.',
     'User does not have permission to access this area.' => 'Brukeren har ikke tillatelse til å få tilgang til dette området.',
     'User does not have permission to view this campaign.' => 'Brukeren har ikke tillatelse til å se denne kampanjen.',

@@ -14,10 +14,12 @@ use Craft;
 use craft\elements\User;
 use craft\web\Controller;
 use lindemannrock\base\helpers\DateFormatHelper;
+use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\LoggingLibrary;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -33,7 +35,11 @@ class ActivityLogsController extends Controller
     protected array|int|bool $allowAnonymous = false;
 
     /**
-     * Activity logs index page (placeholder)
+     * Activity logs index page
+     *
+     * Only logs of sites the user may edit are counted, searched, sorted,
+     * paged, enriched and shown. A user who may edit every site sees every
+     * log, including logs whose sites are unknown.
      *
      * @return Response
      */
@@ -42,7 +48,7 @@ class ActivityLogsController extends Controller
         $this->requireLogin();
         $this->requirePermission('campaignManager:viewActivityLogs');
 
-        $user = Craft::$app->getUser();
+        $activityLogs = CampaignManager::$plugin->activityLogs;
         $settings = Craft::$app->getPlugins()->getPlugin('campaign-manager')->getSettings();
         $request = Craft::$app->getRequest();
 
@@ -78,14 +84,16 @@ class ActivityLogsController extends Controller
         };
         $direction = $dir === 'asc' ? SORT_ASC : SORT_DESC;
 
-        $query = ActivityLogRecord::find()->orderBy([$sortColumn => $direction]);
+        // Site visibility is part of the query, so hidden logs never reach
+        // the count, the search, a page or the lookups below.
+        $query = $activityLogs->visibleLogsQuery()->orderBy(['log.' . $sortColumn => $direction]);
         if ($search !== '') {
             $query->andWhere([
                 'or',
-                ['like', 'LOWER([[action]])', mb_strtolower($search)],
-                ['like', 'LOWER([[source]])', mb_strtolower($search)],
-                ['like', 'LOWER([[summary]])', mb_strtolower($search)],
-                ['like', 'LOWER([[details]])', mb_strtolower($search)],
+                ['like', 'LOWER([[log.action]])', mb_strtolower($search)],
+                ['like', 'LOWER([[log.source]])', mb_strtolower($search)],
+                ['like', 'LOWER([[log.summary]])', mb_strtolower($search)],
+                ['like', 'LOWER([[log.details]])', mb_strtolower($search)],
             ]);
         }
 
@@ -234,7 +242,7 @@ class ActivityLogsController extends Controller
                 'limit' => $limit,
                 'totalCount' => $totalCount,
             ],
-            'canClear' => $user->checkPermission('campaignManager:clearActivityLogs'),
+            'canClear' => $activityLogs->canClear(),
             'activityLogsEnabled' => (bool)($settings->enableActivityLogs ?? true),
         ]);
     }
@@ -242,7 +250,11 @@ class ActivityLogsController extends Controller
     /**
      * Clear activity logs
      *
+     * Clearing removes the logs of every site, so on top of the permission
+     * the user must be able to edit every site.
+     *
      * @return Response
+     * @throws ForbiddenHttpException if the user may not edit every site
      */
     public function actionClear(): Response
     {
@@ -250,6 +262,10 @@ class ActivityLogsController extends Controller
         $this->requireAcceptsJson();
         $this->requireLogin();
         $this->requirePermission('campaignManager:clearActivityLogs');
+
+        if (!CampaignManager::$plugin->activityLogs->canClear()) {
+            throw new ForbiddenHttpException(Craft::t('campaign-manager', 'User does not have permission to access this area.'));
+        }
 
         ActivityLogRecord::deleteAll();
 

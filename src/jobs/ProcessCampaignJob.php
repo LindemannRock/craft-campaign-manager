@@ -13,6 +13,7 @@ use craft\queue\BaseJob;
 use Exception;
 use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\campaignmanager\CampaignManager;
+use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -169,6 +170,8 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
                 'sendEmail' => $this->sendEmail,
                 'triggeredByUserId' => $this->triggeredByUserId,
             ],
+            'siteScope' => ActivityLogRecord::SCOPE_SITES,
+            'siteIds' => [(int)$this->siteId],
         ]);
     }
 

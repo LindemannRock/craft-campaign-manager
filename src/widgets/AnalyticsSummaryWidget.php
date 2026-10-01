@@ -110,13 +110,15 @@ class AnalyticsSummaryWidget extends Widget
      */
     public function getBodyHtml(): ?string
     {
-        if (!Craft::$app->getUser()->checkPermission('campaignManager:viewAnalytics')) {
+        $siteId = $this->effectiveSiteId();
+
+        if ($siteId === null || !Craft::$app->getUser()->checkPermission('campaignManager:viewAnalytics')) {
             return Craft::$app->getView()->renderTemplate('lindemannrock-base/_components/dashboard-widget-empty', [
                 'title' => Craft::t('campaign-manager', 'No data available'),
             ]);
         }
 
-        $stats = CampaignManager::$plugin->analytics->getOverviewStats('all', $this->effectiveSiteId(), $this->dateRange);
+        $stats = CampaignManager::$plugin->analytics->getOverviewStats('all', $siteId, $this->dateRange);
 
         return Craft::$app->getView()->renderTemplate('campaign-manager/widgets/analytics-summary/body', [
             'stats' => $stats,

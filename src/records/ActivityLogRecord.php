@@ -23,6 +23,7 @@ use craft\db\ActiveRecord;
  * @property string $source
  * @property string|null $summary
  * @property string|null $details
+ * @property string $siteScope
  * @property \DateTime|null $dateCreated
  * @property \DateTime|null $dateUpdated
  * @property string|null $uid
@@ -31,6 +32,28 @@ use craft\db\ActiveRecord;
  */
 class ActivityLogRecord extends ActiveRecord
 {
+    /**
+     * The log covers exactly the sites in its site rows.
+     *
+     * @since 5.16.0
+     */
+    public const SCOPE_SITES = 'sites';
+
+    /**
+     * The log covers every site of the project.
+     *
+     * @since 5.16.0
+     */
+    public const SCOPE_ALL = 'all';
+
+    /**
+     * The sites the log covers are not known. Logs written before site scope
+     * was recorded have this scope.
+     *
+     * @since 5.16.0
+     */
+    public const SCOPE_UNKNOWN = 'unknown';
+
     /**
      * @inheritdoc
      */

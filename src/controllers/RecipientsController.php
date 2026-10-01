@@ -16,7 +16,9 @@ use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\helpers\PhoneHelper;
+use lindemannrock\campaignmanager\helpers\SiteAccessHelper;
 use lindemannrock\campaignmanager\jobs\SendBatchJob;
+use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use verbb\formie\Formie;
@@ -433,6 +435,9 @@ class RecipientsController extends Controller
                 'status' => $statusFilter,
                 'count' => count($rows),
             ],
+            // Every site whose recipients went into the file
+            'siteScope' => ActivityLogRecord::SCOPE_SITES,
+            'siteIds' => array_values(array_unique(array_map(static fn(RecipientRecord $recipient): int => (int)$recipient->siteId, $recipients))),
         ]);
 
         return ExportHelper::dispatchTable(
@@ -622,12 +627,7 @@ class RecipientsController extends Controller
         $request = Craft::$app->getRequest();
         $user = Craft::$app->getUser();
 
-        $siteHandle = $request->getQueryParam('site');
-        if ($siteHandle) {
-            $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-        } else {
-            $site = Craft::$app->getSites()->getCurrentSite();
-        }
+        $site = SiteAccessHelper::requireEditableSite($request->getQueryParam('site'));
 
         $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
             ->id($campaignId)
@@ -775,12 +775,7 @@ class RecipientsController extends Controller
         $this->requireLogin();
         $this->requirePermission('campaignManager:addRecipients');
 
-        $siteHandle = Craft::$app->getRequest()->getQueryParam('site');
-        if ($siteHandle) {
-            $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-        } else {
-            $site = Craft::$app->getSites()->getCurrentSite();
-        }
+        $site = SiteAccessHelper::requireEditableSite(Craft::$app->getRequest()->getQueryParam('site'));
 
         $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
             ->id($campaignId)
@@ -807,12 +802,7 @@ class RecipientsController extends Controller
         $this->requireLogin();
         $this->requirePermission('campaignManager:importRecipients');
 
-        $siteHandle = Craft::$app->getRequest()->getQueryParam('site');
-        if ($siteHandle) {
-            $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-        } else {
-            $site = Craft::$app->getSites()->getCurrentSite();
-        }
+        $site = SiteAccessHelper::requireEditableSite(Craft::$app->getRequest()->getQueryParam('site'));
 
         $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
             ->id($campaignId)
@@ -846,7 +836,8 @@ class RecipientsController extends Controller
 
         // Check if campaign is enabled
         $campaignId = (int)$this->request->getRequiredParam('campaignId');
-        $siteId = (int)$this->request->getRequiredParam('siteId');
+        $site = SiteAccessHelper::requireEditableSite($this->request->getRequiredParam('siteId'));
+        $siteId = (int)$site->id;
 
         // Load campaign for the specific site being added to
         $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
@@ -960,9 +951,11 @@ class RecipientsController extends Controller
                 'email' => $recipient->email,
                 'sms' => $recipient->sms,
                 'siteId' => $recipient->siteId,
-                'siteName' => $site?->name ?? null,
+                'siteName' => $site->name,
                 'sendInvitation' => (bool)$this->request->getBodyParam('sendInvitation'),
             ],
+            'siteScope' => ActivityLogRecord::SCOPE_SITES,
+            'siteIds' => [(int)$recipient->siteId],
         ]);
 
         // Queue invitation if requested
@@ -1025,10 +1018,14 @@ class RecipientsController extends Controller
 
         $recipientId = (int)Craft::$app->request->getRequiredBodyParam('id');
 
-        $recipient = RecipientRecord::findOne($recipientId);
+        $recipient = RecipientRecord::findOne([
+            'id' => $recipientId,
+            'siteId' => SiteAccessHelper::editableSiteIds(),
+        ]);
         if (!$recipient) {
             // Row already gone — treat as idempotent success so the UI converges
-            // (user clicked delete on a row that's no longer there).
+            // (user clicked delete on a row that's no longer there). A recipient
+            // on a site the user cannot edit gets the same answer and stays.
             return $this->asJson(['success' => true]);
         }
 
@@ -1047,10 +1044,13 @@ class RecipientsController extends Controller
                 ->one();
             CampaignManager::$plugin->activityLogs->log('recipient_deleted', [
                 'campaignId' => $recipient->campaignId,
-                'recipientId' => $recipient->id,
+                // The recipient row is gone, so its ID can only live in the
+                // details; the log's recipient reference would fail the FK
+                'recipientId' => null,
                 'source' => 'manual',
                 'summary' => Craft::t('campaign-manager', 'Recipient deleted'),
                 'details' => [
+                    'recipientId' => (int)$recipient->id,
                     'campaignName' => $campaign?->title,
                     'name' => $recipient->name,
                     'email' => $recipient->email,
@@ -1058,6 +1058,8 @@ class RecipientsController extends Controller
                     'siteId' => $recipient->siteId,
                     'siteName' => Craft::$app->getSites()->getSiteById($recipient->siteId)?->name,
                 ],
+                'siteScope' => ActivityLogRecord::SCOPE_SITES,
+                'siteIds' => [(int)$recipient->siteId],
             ]);
         } catch (\Throwable $e) {
             Craft::error('Failed to log recipient_deleted activity: ' . $e->getMessage(), __METHOD__);
@@ -1084,28 +1086,28 @@ class RecipientsController extends Controller
 
         // Pre-fetch all selected recipients in one query so the activity log
         // payload (name/email/sms/site/campaign) doesn't fire findOne() per row.
+        // Only recipients on sites the user can edit are loaded. Any other ID is
+        // reported like a recipient that no longer exists, and nothing is deleted.
         $normalizedIds = array_map('intval', (array)$recipientIds);
         /** @var RecipientRecord[] $recipientMap */
         $recipientMap = RecipientRecord::find()
-            ->where(['id' => $normalizedIds])
+            ->where(['id' => $normalizedIds, 'siteId' => SiteAccessHelper::editableSiteIds()])
             ->indexBy('id')
             ->all();
 
-        foreach ($recipientIds as $recipientId) {
+        foreach ((array)$recipientIds as $recipientId) {
             $recipient = $recipientMap[(int)$recipientId] ?? null;
-            if (CampaignManager::$plugin->recipients->deleteRecipientById((int)$recipientId)) {
+            if ($recipient && CampaignManager::$plugin->recipients->deleteRecipientById((int)$recipientId)) {
                 $count++;
-                if ($recipient) {
-                    $deleted[] = [
-                        'id' => $recipient->id,
-                        'campaignId' => $recipient->campaignId,
-                        'siteId' => $recipient->siteId,
-                        'siteName' => Craft::$app->getSites()->getSiteById($recipient->siteId)?->name,
-                        'name' => $recipient->name,
-                        'email' => $recipient->email,
-                        'sms' => $recipient->sms,
-                    ];
-                }
+                $deleted[] = [
+                    'id' => $recipient->id,
+                    'campaignId' => $recipient->campaignId,
+                    'siteId' => $recipient->siteId,
+                    'siteName' => Craft::$app->getSites()->getSiteById($recipient->siteId)?->name,
+                    'name' => $recipient->name,
+                    'email' => $recipient->email,
+                    'sms' => $recipient->sms,
+                ];
             } else {
                 $errors[] = Craft::t('campaign-manager', 'Failed to delete recipient {id}', ['id' => $recipientId]);
             }
@@ -1143,6 +1145,10 @@ class RecipientsController extends Controller
                     'campaignIds' => $campaignIds,
                     'campaignNames' => $campaignNames,
                 ],
+                // Every site a recipient was deleted from, not only the ones
+                // shown in the details above
+                'siteScope' => ActivityLogRecord::SCOPE_SITES,
+                'siteIds' => array_values(array_unique(array_map('intval', array_column($deleted, 'siteId')))),
             ]);
         }
 
@@ -1232,12 +1238,7 @@ class RecipientsController extends Controller
         $this->requireLogin();
         $this->requirePermission('campaignManager:importRecipients');
 
-        $siteHandle = Craft::$app->getRequest()->getQueryParam('site');
-        if ($siteHandle) {
-            $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-        } else {
-            $site = Craft::$app->getSites()->getCurrentSite();
-        }
+        $site = SiteAccessHelper::requireEditableSite(Craft::$app->getRequest()->getQueryParam('site'));
 
         $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
             ->id($campaignId)
@@ -1291,7 +1292,7 @@ class RecipientsController extends Controller
         if ($this->request->getIsGet()) {
             $previewData = Craft::$app->getSession()->get('recipient-import-preview');
 
-            if ($previewData && isset($previewData['validRows'])) {
+            if ($previewData && isset($previewData['validRows']) && SiteAccessHelper::canEditSite((int)$previewData['siteId'])) {
                 // Re-fetch campaign and site objects (don't store in session)
                 $campaignId = $previewData['campaignId'];
                 $siteId = $previewData['siteId'];
@@ -1332,12 +1333,7 @@ class RecipientsController extends Controller
         $mapping = $this->request->getBodyParam('mapping', []);
 
         // Get site and campaign
-        $siteHandle = $this->request->getParam('site');
-        if ($siteHandle) {
-            $site = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-        } else {
-            $site = Craft::$app->getSites()->getCurrentSite();
-        }
+        $site = SiteAccessHelper::requireEditableSite($this->request->getParam('site'));
 
         $campaign = \lindemannrock\campaignmanager\elements\Campaign::find()
             ->id($campaignId)
@@ -1698,6 +1694,7 @@ class RecipientsController extends Controller
         $imported = 0;
         $failed = 0;
         $errorMessages = [];
+        $importedSiteIds = [];
 
         foreach ($validRows as $index => $rowData) {
             $rowSiteId = (int)$rowData['siteId'];
@@ -1719,6 +1716,7 @@ class RecipientsController extends Controller
             try {
                 if ($recipient->save()) {
                     $imported++;
+                    $importedSiteIds[$rowSiteId] = $rowSiteId;
                 } else {
                     $failed++;
                     $errorMessages[] = 'Row ' . ($index + 1) . ': ' . implode(', ', $recipient->getErrorSummary(true));
@@ -1758,6 +1756,10 @@ class RecipientsController extends Controller
                 'queueSending' => (bool)$queueSending,
                 'errors' => array_slice($errorMessages, 0, 10),
             ],
+            // Every site a recipient was imported to; the site the import was
+            // started on when no row was imported
+            'siteScope' => ActivityLogRecord::SCOPE_SITES,
+            'siteIds' => $importedSiteIds !== [] ? array_values($importedSiteIds) : [(int)$previewData['siteId']],
         ]);
 
         // Queue sending if requested and we imported recipients
@@ -1794,6 +1796,9 @@ class RecipientsController extends Controller
                     'siteNames' => $siteNames,
                     'triggeredByUserId' => $triggeredByUserId,
                 ],
+                // Every site a job was queued for
+                'siteScope' => ActivityLogRecord::SCOPE_SITES,
+                'siteIds' => $siteIds !== [] ? array_map('intval', $siteIds) : array_values($importedSiteIds),
             ]);
 
             $message .= ' ' . Craft::t('campaign-manager', 'Invitation sending has been queued.');
@@ -1921,6 +1926,8 @@ class RecipientsController extends Controller
                 'siteId' => $site->id,
                 'count' => count($rows),
             ],
+            'siteScope' => ActivityLogRecord::SCOPE_SITES,
+            'siteIds' => [(int)$site->id],
         ]);
 
         return ExportHelper::dispatchTable(

@@ -9,6 +9,7 @@
 namespace lindemannrock\campaignmanager\widgets;
 
 use Craft;
+use lindemannrock\campaignmanager\helpers\SiteAccessHelper;
 
 /**
  * Shared site filter behavior for Campaign Manager dashboard widgets.
@@ -42,14 +43,22 @@ trait SiteFilterTrait
     }
 
     /**
-     * @return int|array<int>
+     * Get the sites to show, checked against the sites the user can edit now.
+     *
+     * The stored site may have been chosen before access to it was removed.
+     *
+     * @return int|array<int>|null Null when there is no editable site to show
      */
-    protected function effectiveSiteId(): int|array
+    protected function effectiveSiteId(): int|array|null
     {
-        if ($this->siteId !== 'all') {
-            return (int) $this->siteId;
+        $editableSiteIds = SiteAccessHelper::editableSiteIds();
+
+        if ($this->siteId === 'all') {
+            return $editableSiteIds !== [] ? $editableSiteIds : null;
         }
 
-        return Craft::$app->getSites()->getEditableSiteIds();
+        $siteId = (int) $this->siteId;
+
+        return in_array($siteId, $editableSiteIds, true) ? $siteId : null;
     }
 }

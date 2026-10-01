@@ -195,6 +195,22 @@ abstract class TestCase extends IntegrationTestCase
     }
 
     /**
+     * Schedule a recipient that the code under test created for cleanup.
+     */
+    protected function trackRecipientForCleanup(int $recipientId): void
+    {
+        $this->recipientIds[] = $recipientId;
+    }
+
+    /**
+     * Schedule a campaign that the code under test created for cleanup.
+     */
+    protected function trackCampaignForCleanup(int $campaignId): void
+    {
+        $this->campaignIds[] = $campaignId;
+    }
+
+    /**
      * Save a Formie submission the way Formie's submit request does, then hand
      * it to Formie's after-submission lifecycle with the invitation code in
      * the request query string.

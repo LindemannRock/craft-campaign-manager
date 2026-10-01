@@ -117,13 +117,15 @@ class CampaignPerformanceWidget extends Widget
      */
     public function getBodyHtml(): ?string
     {
-        if (!Craft::$app->getUser()->checkPermission('campaignManager:viewAnalytics')) {
+        $siteId = $this->effectiveSiteId();
+
+        if ($siteId === null || !Craft::$app->getUser()->checkPermission('campaignManager:viewAnalytics')) {
             return Craft::$app->getView()->renderTemplate('lindemannrock-base/_components/dashboard-widget-empty', [
                 'title' => Craft::t('campaign-manager', 'No data available'),
             ]);
         }
 
-        $rows = CampaignManager::$plugin->analytics->getCampaignBreakdown('all', $this->effectiveSiteId(), $this->dateRange);
+        $rows = CampaignManager::$plugin->analytics->getCampaignBreakdown('all', $siteId, $this->dateRange);
 
         return Craft::$app->getView()->renderTemplate('campaign-manager/widgets/campaign-performance/body', [
             'rows' => array_slice($rows, 0, $this->limit),

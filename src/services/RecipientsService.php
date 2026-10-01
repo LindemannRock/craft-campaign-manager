@@ -460,7 +460,7 @@ class RecipientsService extends Component
      * @param int $campaignId Campaign ID
      * @param int|null $siteId Site ID (null for all sites)
      * @param string $dateRange Date range filter (all, today, yesterday, last7days, last30days, last90days)
-     * @param array<int>|null $editableSiteIds Restrict to these site IDs when siteId is null
+     * @param array<int>|null $editableSiteIds Restrict to these site IDs, including a requested siteId
      * @param int|null $limit Maximum number of recipients to return (null for no limit)
      * @param int|null $offset Number of matching recipients to skip before returning results
      * @return array<RecipientRecord> Recipients with submissions attached
@@ -549,7 +549,7 @@ class RecipientsService extends Component
      * @param int $campaignId Campaign ID
      * @param int|null $siteId Site ID (null for all sites)
      * @param string $dateRange Date range filter
-     * @param array<int>|null $editableSiteIds Restrict to these site IDs when siteId is null
+     * @param array<int>|null $editableSiteIds Restrict to these site IDs, including a requested siteId
      * @since 5.10.0
      */
     public function countWithSubmissions(
@@ -586,7 +586,10 @@ class RecipientsService extends Component
 
         if ($siteId !== null) {
             $query->andWhere(['siteId' => $siteId]);
-        } elseif ($editableSiteIds !== null) {
+        }
+
+        // Applies to a requested site too, so a site outside the list finds nothing
+        if ($editableSiteIds !== null) {
             $query->andWhere(['siteId' => $editableSiteIds]);
         }
 

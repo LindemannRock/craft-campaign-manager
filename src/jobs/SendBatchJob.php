@@ -14,6 +14,7 @@ use Exception;
 use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\exceptions\SendBatchFailedException;
+use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -228,6 +229,8 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                 'errors' => $errors,
                 'triggeredByUserId' => $this->triggeredByUserId,
             ],
+            'siteScope' => ActivityLogRecord::SCOPE_SITES,
+            'siteIds' => [(int)$this->siteId],
         ]);
 
         // Surface total send failures to the queue UI. Partial successes (some sent,

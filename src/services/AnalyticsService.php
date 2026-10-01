@@ -348,6 +348,11 @@ class AnalyticsService extends Component
      */
     public function getCampaignBreakdown(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
+        // An empty site list means no site. Craft would read [] as the current site.
+        if ($siteId === []) {
+            return [];
+        }
+
         $campaignQuery = Campaign::find();
         if ($siteId !== 'all') {
             $campaignQuery->siteId($siteId);
@@ -444,15 +449,20 @@ class AnalyticsService extends Component
      */
     public function getCampaignOptions(int|string|array $siteId): array
     {
+        $options = [
+            ['value' => 'all', 'label' => Craft::t('campaign-manager', 'All Campaigns')],
+        ];
+
+        // An empty site list means no site. Craft would read [] as the current site.
+        if ($siteId === []) {
+            return $options;
+        }
+
         $campaignQuery = Campaign::find()->status(null)->unique();
         if ($siteId !== 'all') {
             $campaignQuery->siteId($siteId);
         }
         $campaigns = $campaignQuery->orderBy(['title' => SORT_ASC])->all();
-
-        $options = [
-            ['value' => 'all', 'label' => Craft::t('campaign-manager', 'All Campaigns')],
-        ];
 
         foreach ($campaigns as $campaign) {
             $options[] = [
@@ -468,11 +478,11 @@ class AnalyticsService extends Component
      * Get per-campaign statistics (alias for template use)
      *
      * @param int $campaignId Campaign ID
-     * @param int|null $siteId Site ID or null for all sites
+     * @param int|array<int>|null $siteId Site ID, array of site IDs, or null for all sites
      * @param string $dateRange Date range parameter
      * @return array<string, int|float>
      */
-    public function getCampaignStats(int $campaignId, ?int $siteId, string $dateRange): array
+    public function getCampaignStats(int $campaignId, int|array|null $siteId, string $dateRange): array
     {
         return $this->getOverviewStats($campaignId, $siteId ?? 'all', $dateRange);
     }
@@ -481,11 +491,11 @@ class AnalyticsService extends Component
      * Get per-campaign daily trend data (alias for template use)
      *
      * @param int $campaignId Campaign ID
-     * @param int|null $siteId Site ID or null for all sites
+     * @param int|array<int>|null $siteId Site ID, array of site IDs, or null for all sites
      * @param string $dateRange Date range parameter
      * @return array<string, mixed>
      */
-    public function getCampaignDailyTrend(int $campaignId, ?int $siteId, string $dateRange): array
+    public function getCampaignDailyTrend(int $campaignId, int|array|null $siteId, string $dateRange): array
     {
         $dates = $this->getDateRangeFromParam($dateRange);
         $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dateRange);

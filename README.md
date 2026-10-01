@@ -355,6 +355,26 @@ Campaigns are run through the Control Panel or via the queue worker. There are n
 ### Settings Permissions
 - **Manage settings**
 
+### Site Access
+
+On a multi-site install, Campaign Manager permissions work together with Craft's own site permissions. A Campaign Manager permission decides *what* a user can do; Craft's **Sites** permissions (**Edit “Site name”**) decide *where* they can do it.
+
+For example, a user with **Edit campaigns** and **Delete recipients** who can only edit the French site can change the French version of a campaign and delete French recipients, but cannot open, change, or run anything on the other sites. Deleting a campaign is different, because a campaign is shared by every site; see below.
+
+This applies everywhere in the control panel:
+
+- **Campaigns**: opening, saving, deleting, and running a campaign require access to the site being worked on. Running without choosing a site queues only the sites the user can edit.
+- **Recipients**: lists, the add and import screens, and deletion only reach recipients on sites the user can edit. When a bulk delete includes recipients from other sites, those recipients are left in place and reported as not deleted.
+- **Analytics and responses**: "All Sites" means all sites the user can edit, including the Analytics and Responses tabs on a campaign. A user who cannot edit any site sees no campaigns and no numbers.
+- **Dashboard widgets**: a widget checks its chosen site every time it loads. If the user loses access to that site, the widget shows **No data available** until they pick another site in the widget settings.
+- **Activity logs**: every log records which sites it covers. A user sees a log only when they can edit every site it covers, so a bulk delete or an export that touched two sites is shown only to users who can edit both. Logs that cover every site (saving or deleting a campaign) and logs written before site coverage was recorded are shown only to users who can edit every site. Clearing the logs removes the logs of every site, so **Clear activity logs** also requires being able to edit every site.
+
+Users who can edit every site are not affected. To give someone access to a site, grant the matching **Edit site** permission under **Settings → Users → User Groups** (or on the user's **Permissions** tab).
+
+Front-end templates and code that call `craft.campaignManager.analytics` directly are not tied to a control panel user for the per-campaign statistics: `getCampaignStats()` and `getCampaignDailyTrend()` cover every site when no site is given, as before. The control panel passes the user's editable sites to them explicitly.
+
+A campaign exists on every site, the same way a Craft entry can. Saving it on one site also updates the settings that are shared between sites, and deleting it from any site the user can edit deletes the campaign on every site.
+
 ## Events
 
 ```php

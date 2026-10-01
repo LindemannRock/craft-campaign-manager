@@ -183,8 +183,6 @@ return [
     'Activity logs cleared successfully.' => 'Registros de actividad borrados correctamente.',
     '{count} recipients' => '{count} destinatarios',
     'Campaign not found' => 'Campaña no encontrada',
-    'Site not found' => 'Sitio no encontrado',
-    'Invalid site handle: {handle}' => 'Handle del sitio no válido: {handle}',
     'Administrative changes are disallowed in this environment.' => 'Los cambios administrativos no están permitidos en este entorno.',
     'User does not have permission to access this area.' => 'El usuario no tiene permiso para acceder a esta área.',
     'User does not have permission to view this campaign.' => 'El usuario no tiene permiso para ver esta campaña.',

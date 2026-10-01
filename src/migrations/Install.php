@@ -36,6 +36,8 @@ class Install extends Migration
         $this->createCampaignsContentTable();
         $this->createRecipientsTable();
         $this->createActivityLogsTable();
+        $this->addActivityLogSiteScope();
+        $this->createActivityLogSitesTable();
     }
 
     /**
@@ -292,6 +294,7 @@ class Install extends Migration
             'source' => $this->string(50)->notNull()->defaultValue('system'),
             'summary' => $this->string(255),
             'details' => $this->text(),
+            'siteScope' => $this->string(10)->notNull()->defaultValue('unknown'),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -302,6 +305,7 @@ class Install extends Migration
         $this->createIndex(null, $tableName, ['recipientId']);
         $this->createIndex(null, $tableName, ['action']);
         $this->createIndex(null, $tableName, ['dateCreated']);
+        $this->createIndex(null, $tableName, ['siteScope']);
 
         $this->addForeignKey(
             null,
@@ -332,6 +336,68 @@ class Install extends Migration
     }
 
     /**
+     * Add the site scope column to an activity logs table created before it
+     * existed. Rows already there keep the `unknown` scope.
+     */
+    private function addActivityLogSiteScope(): void
+    {
+        $tableName = '{{%campaignmanager_activity_logs}}';
+
+        if ($this->db->columnExists($tableName, 'siteScope')) {
+            return;
+        }
+
+        $this->addColumn($tableName, 'siteScope', $this->string(10)->notNull()->defaultValue('unknown')->after('details'));
+        $this->createIndex(null, $tableName, ['siteScope']);
+    }
+
+    /**
+     * Create the table that lists the sites each activity log covers
+     */
+    private function createActivityLogSitesTable(): void
+    {
+        $tableName = '{{%campaignmanager_activity_log_sites}}';
+
+        if ($this->db->tableExists($tableName)) {
+            return;
+        }
+
+        $this->createTable($tableName, [
+            'id' => $this->primaryKey(),
+            'logId' => $this->integer()->notNull(),
+            // Null once the site has been deleted; the row stays so the log
+            // still counts the deleted site as one it covered
+            'siteId' => $this->integer(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        // One row per log and site; the visibility check looks rows up by log
+        $this->createIndex(null, $tableName, ['logId', 'siteId'], true);
+        // Deleting a site nulls its rows through the foreign key below
+        $this->createIndex(null, $tableName, ['siteId']);
+
+        $this->addForeignKey(
+            null,
+            $tableName,
+            ['logId'],
+            '{{%campaignmanager_activity_logs}}',
+            ['id'],
+            'CASCADE'
+        );
+
+        $this->addForeignKey(
+            null,
+            $tableName,
+            ['siteId'],
+            Site::tableName(),
+            ['id'],
+            'SET NULL'
+        );
+    }
+
+    /**
      * @inheritdoc
      */
     public function safeDown(): void
@@ -340,6 +406,7 @@ class Install extends Migration
         $this->delete('{{%elements}}', ['type' => Campaign::class]);
 
         // Drop tables in reverse order due to foreign key constraints
+        $this->dropTableIfExists('{{%campaignmanager_activity_log_sites}}');
         $this->dropTableIfExists('{{%campaignmanager_activity_logs}}');
         $this->dropTableIfExists('{{%campaignmanager_analytics}}');
         $this->dropTableIfExists('{{%campaignmanager_recipients}}');

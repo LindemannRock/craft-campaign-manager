@@ -183,8 +183,6 @@ return [
     'Activity logs cleared successfully.' => 'Activiteitenlogboeken succesvol gewist.',
     '{count} recipients' => '{count} ontvangers',
     'Campaign not found' => 'Campagne niet gevonden',
-    'Site not found' => 'Site niet gevonden',
-    'Invalid site handle: {handle}' => 'Ongeldige site-handle: {handle}',
     'Administrative changes are disallowed in this environment.' => 'Beheerwijzigingen zijn niet toegestaan in deze omgeving.',
     'User does not have permission to access this area.' => 'De gebruiker heeft geen toestemming om toegang te krijgen tot dit gebied.',
     'User does not have permission to view this campaign.' => 'De gebruiker heeft geen toestemming om deze campagne te bekijken.',

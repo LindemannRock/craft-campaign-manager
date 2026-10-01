@@ -11,9 +11,10 @@
 {# Get date range from URL, falling back to the plugin's configured default #}
 {% set dateRange = craft.app.request.getQueryParam('dateRange') ?? craft.app.request.getQueryParam('range') ?? lrDefaultDateRange('campaign-manager') %}
 
-{# Get analytics data for this campaign #}
-{% set stats = craft.campaignManager.analytics.getCampaignStats(campaign.id, null, dateRange) %}
-{% set dailyData = craft.campaignManager.analytics.getCampaignDailyTrend(campaign.id, null, dateRange) %}
+{# Get analytics data for this campaign, limited to the sites the user can edit #}
+{% set editableSiteIds = craft.app.sites.getEditableSiteIds() %}
+{% set stats = craft.campaignManager.analytics.getCampaignStats(campaign.id, editableSiteIds, dateRange) %}
+{% set dailyData = craft.campaignManager.analytics.getCampaignDailyTrend(campaign.id, editableSiteIds, dateRange) %}
 
 {% embed 'lindemannrock-base/_partials/analytics-panel' with {
     config: {
@@ -86,7 +87,7 @@
             </div>
 
             {# Recent Responses #}
-            {% set recentResponses = craft.campaignManager.recipients.getWithSubmissions(campaign.id, null, dateRange, craft.app.sites.getEditableSiteIds(), 10) %}
+            {% set recentResponses = craft.campaignManager.recipients.getWithSubmissions(campaign.id, null, dateRange, editableSiteIds, 10) %}
             {% if recentResponses|length %}
                 <div class="lr-chart-container lr-mt-24">
                     <h3>{{ 'Recent Responses'|t('campaign-manager') }}</h3>

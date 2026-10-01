@@ -183,8 +183,6 @@ return [
     'Activity logs cleared successfully.' => 'Aktivitetsloggar rensade.',
     '{count} recipients' => '{count} mottagare',
     'Campaign not found' => 'Kampanjen hittades inte',
-    'Site not found' => 'Webbplatsen hittades inte',
-    'Invalid site handle: {handle}' => 'Ogiltigt webbplatshandtag: {handle}',
     'Administrative changes are disallowed in this environment.' => 'Administrativa ändringar är inte tillåtna i denna miljö.',
     'User does not have permission to access this area.' => 'Användaren har inte behörighet att komma åt detta område.',
     'User does not have permission to view this campaign.' => 'Användaren har inte behörighet att visa den här kampanjen.',

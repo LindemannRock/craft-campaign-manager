@@ -183,8 +183,6 @@ return [
     'Activity logs cleared successfully.' => 'アクティビティログが正常に削除されました。',
     '{count} recipients' => '{count} 件の受信者',
     'Campaign not found' => 'キャンペーンが見つかりません',
-    'Site not found' => 'サイトが見つかりません',
-    'Invalid site handle: {handle}' => '無効なサイトハンドル: {handle}',
     'Administrative changes are disallowed in this environment.' => 'この環境では管理者による変更は許可されていません。',
     'User does not have permission to access this area.' => 'ユーザーにこの領域へアクセスする権限がありません。',
     'User does not have permission to view this campaign.' => 'ユーザーにこのキャンペーンを表示する権限がありません。',

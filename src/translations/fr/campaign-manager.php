@@ -183,8 +183,6 @@ return [
     'Activity logs cleared successfully.' => 'Journaux d\'activité effacés avec succès.',
     '{count} recipients' => '{count} destinataires',
     'Campaign not found' => 'Campagne introuvable',
-    'Site not found' => 'Site introuvable',
-    'Invalid site handle: {handle}' => 'Handle du site non valide : {handle}',
     'Administrative changes are disallowed in this environment.' => 'Les modifications administratives ne sont pas autorisées dans cet environnement.',
     'User does not have permission to access this area.' => 'L\'utilisateur n\'a pas la permission d\'accéder à cette zone.',
     'User does not have permission to view this campaign.' => 'L\'utilisateur n\'a pas la permission de consulter cette campagne.',
