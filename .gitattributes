@@ -1,25 +1,61 @@
-# Exclude dev/build files from Packagist distribution
+# Customer archives (Packagist dist, git archive, composer archive, and
+# non-symlinked path installs) ship only runtime files.
+#
+# Every excluded directory carries two rules on purpose:
+#   - "path/" marks the directory entry itself, which is what git archive
+#     checks before pruning a subtree; alone it leaves every contained file
+#     unattributed (git check-attr reports "unspecified").
+#   - "path/**" attributes every contained file, which is the form the
+#     gitattributes documentation requires for recursive matches; alone it
+#     lets git archive emit an empty directory entry and lets Composer's
+#     archive filter keep dot-files inside the directory.
+
+# VCS and editor metadata
+.gitattributes export-ignore
+.gitignore export-ignore
+.DS_Store export-ignore
+**/.DS_Store export-ignore
+
+# Internal-only records and caches
+CLAUDE.md export-ignore
+.internal/ export-ignore
+.internal/** export-ignore
+.phpunit.cache/ export-ignore
+.phpunit.cache/** export-ignore
+vendor/ export-ignore
+vendor/** export-ignore
+composer.lock export-ignore
+
+# Static analysis, style, and test configuration
 ecs.php export-ignore
 phpstan.neon export-ignore
 phpunit.xml.dist export-ignore
 tests/ export-ignore
+tests/** export-ignore
 
-# Shared asset tooling: analytics build package
+# Build tooling: the root npm wrapper and the analytics build package
+package.json export-ignore
 src/web/assets/node_modules/ export-ignore
+src/web/assets/node_modules/** export-ignore
 src/web/assets/package.json export-ignore
 src/web/assets/package-lock.json export-ignore
 
-# Analytics: only dist/ is needed
+# Analytics: only the generated dist/ bundle is needed at runtime
 src/web/assets/analytics/src/ export-ignore
+src/web/assets/analytics/src/** export-ignore
 
 # Docs are available on the website
 docs/ export-ignore
+docs/** export-ignore
 
 # Release automation (CI-only)
 release-please-config.json export-ignore
 .release-please-manifest.json export-ignore
 
-# GitHub/dev tooling
+# GitHub, hook, and script tooling
 .github/ export-ignore
+.github/** export-ignore
 .githooks/ export-ignore
+.githooks/** export-ignore
 scripts/ export-ignore
+scripts/** export-ignore

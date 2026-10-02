@@ -265,7 +265,8 @@ abstract class SiteRestrictedUserTestCase extends TestCase
         $record->handle = strtolower($this->nextTestMarker('cm_test_site_', $label));
         $record->language = $primarySite->language;
         $record->hasUrls = false;
-        $record->baseUrl = null;
+        // The site has no URLs; null is the stored value even though the record type says string.
+        $record->setAttribute('baseUrl', null);
         $record->sortOrder = (int)(new Query())->from(Table::SITES)->where(['dateDeleted' => null])->max('[[sortOrder]]') + 1;
         $record->uid = StringHelper::UUID();
 

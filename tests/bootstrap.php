@@ -3,16 +3,25 @@
 /**
  * PHPUnit bootstrap for the campaign-manager plugin.
  *
- * Delegates to the shared base-plugin bootstrap, which initialises Craft as a
- * console application. Tests run against the live DDEV database — there is no
- * transactional rollback. Cleanup is by marker (see `tests/TestCase.php`).
+ * Delegates to the shared Base integration bootstrap, which initialises Craft
+ * as a console application. Workspace runs use the DDEV Craft project root;
+ * the standalone quality gate supplies an exact disposable project root.
+ * Tests run against that project's database without transactional rollback,
+ * so cleanup is by exact ownership (see `tests/TestCase.php`).
  *
  * @since 5.11.0
  */
 
 declare(strict_types=1);
 
-$baseBootstrap = dirname(__DIR__, 3) . '/vendor/lindemannrock/craft-plugin-base/src/testing/bootstrap.php';
+$packageRoot = dirname(__DIR__);
+$configuredProjectRoot = $_SERVER['CAMPAIGN_MANAGER_TEST_PROJECT_ROOT']
+    ?? $_ENV['CAMPAIGN_MANAGER_TEST_PROJECT_ROOT']
+    ?? null;
+$projectRoot = is_string($configuredProjectRoot) && $configuredProjectRoot !== ''
+    ? $configuredProjectRoot
+    : dirname($packageRoot, 2);
+$baseBootstrap = $projectRoot . '/vendor/lindemannrock/craft-plugin-base/src/testing/bootstrap.php';
 
 if (!file_exists($baseBootstrap)) {
     fwrite(STDERR, "Base plugin testing bootstrap not found at {$baseBootstrap}\n");
@@ -22,4 +31,4 @@ if (!file_exists($baseBootstrap)) {
 
 require_once $baseBootstrap;
 
-\lindemannrock\base\testing\bootstrap();
+\lindemannrock\base\testing\bootstrap($projectRoot);

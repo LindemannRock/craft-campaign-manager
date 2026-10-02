@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+#
+# Complete package-owned quality gate for Campaign Manager.
+#
+# This is the one automated authority used locally, by GitHub Actions, and by
+# Act. Every constituent runs exactly once, in order, and the first nonzero
+# exit status is returned unchanged. Narrower commands stay available:
+# `composer ci` (PHPStan + ECS, also used by pre-commit) and `composer ci:full`
+# (adds the PHPUnit suite). PHP 8.2-8.5 release compatibility is a separate
+# release checkpoint and is intentionally not part of this gate.
+
+set -uo pipefail
+
+PACKAGE_ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+WORKSPACE_ROOT="$(CDPATH= cd -- "$PACKAGE_ROOT/../.." 2>/dev/null && pwd -P)"
+WORKSPACE_MODE=false
+if [ "$PACKAGE_ROOT" = "$WORKSPACE_ROOT/plugins/campaign-manager" ] && [ -f "$WORKSPACE_ROOT/.ddev/config.yaml" ]; then
+    WORKSPACE_MODE=true
+fi
+
+IDS=(
+    package-validation
+    platform-compatibility
+    composer-audit
+    php-quality
+    phpunit
+    customer-archive
+    ci-contract
+)
+FAMILIES=(
+    package-metadata
+    platform
+    security-audit
+    php-static-style
+    php-runtime-and-orchestration
+    package-export
+    ci-act-orchestration
+)
+
+list_only=false
+probe=""
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --list)
+            list_only=true
+            ;;
+        --probe)
+            shift
+            probe="${1:-}"
+            ;;
+        *)
+            echo "Unknown quality-gate argument: $1" >&2
+            exit 2
+            ;;
+    esac
+    shift
+done
+
+if [ "$list_only" = true ]; then
+    for index in "${!IDS[@]}"; do
+        printf '%s\t%s\n' "${IDS[$index]}" "${FAMILIES[$index]}"
+    done
+    exit 0
+fi
+
+if [ -n "$probe" ] && { [ "${probe#/}" = "$probe" ] || [ ! -x "$probe" ]; }; then
+    echo "--probe requires an absolute executable path." >&2
+    exit 2
+fi
+
+run_normal_constituent() {
+    case "$1" in
+        package-validation)
+            composer validate --no-plugins --no-check-publish --no-interaction
+            ;;
+        platform-compatibility)
+            if [ "$WORKSPACE_MODE" = true ]; then
+                (cd "$WORKSPACE_ROOT" && composer check-platform-reqs --no-interaction)
+            else
+                composer check-platform-reqs --no-interaction
+            fi
+            ;;
+        composer-audit)
+            bash scripts/composer-audit
+            ;;
+        php-quality)
+            composer ci
+            ;;
+        phpunit)
+            bash scripts/run-tests
+            ;;
+        customer-archive)
+            php scripts/check-customer-archive.php
+            ;;
+        ci-contract)
+            bash scripts/check-ci-workflow .github/workflows/ci.yml
+            ;;
+        *)
+            echo "Unknown quality-gate constituent: $1" >&2
+            return 2
+            ;;
+    esac
+}
+
+cd "$PACKAGE_ROOT" || exit 1
+for index in "${!IDS[@]}"; do
+    id="${IDS[$index]}"
+    family="${FAMILIES[$index]}"
+    printf '\n==> %s\n' "$id"
+
+    if [ -n "$probe" ]; then
+        "$probe" "$id" "$family"
+    else
+        run_normal_constituent "$id"
+    fi
+    status=$?
+    if [ "$status" -ne 0 ]; then
+        echo "$id failed with exit $status." >&2
+        exit "$status"
+    fi
+done
+
+echo
+echo "Complete Campaign Manager quality gate passed."

@@ -1,9 +1,26 @@
 #!/usr/bin/env bash
+#
+# Run the GitHub Actions quality-gates job locally with Act. The workflow is
+# checked first so Act can only ever exercise the canonical package authority.
+# Act's exact exit status is returned; the job container is removed afterwards.
+
 set -euo pipefail
 
+PACKAGE_ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+WORKFLOW="${CAMPAIGN_MANAGER_ACT_WORKFLOW:-$PACKAGE_ROOT/.github/workflows/ci.yml}"
+
+cd "$PACKAGE_ROOT"
+bash scripts/check-ci-workflow "$WORKFLOW"
+
+set +e
 act push \
-    -W .github/workflows/ci.yml \
+    -W "$WORKFLOW" \
     -j quality-gates \
     -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest \
     --container-architecture linux/amd64 \
-    "$@"
+    "$@" \
+    --rm
+status=$?
+set -e
+
+exit "$status"

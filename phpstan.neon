@@ -6,3 +6,6 @@ parameters:
     phpVersion: 80300
     paths:
         - src
+        - tests
+    scanFiles:
+        - tests/Stubs/BaseTestingBootstrap.php

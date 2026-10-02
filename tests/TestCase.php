@@ -328,7 +328,8 @@ abstract class TestCase extends IntegrationTestCase
     protected function ageRecipient(RecipientRecord $recipient, string $age): void
     {
         $aged = $this->reloadRecipient($recipient);
-        $aged->dateUpdated = Db::prepareDateForDb(new DateTime('-' . $age));
+        // Set through the raw attribute so the pre-formatted DB string is kept as the changed value.
+        $aged->setAttribute('dateUpdated', Db::prepareDateForDb(new DateTime('-' . $age)));
 
         if (!$aged->save(false)) {
             throw new RuntimeException("Test recipient {$recipient->id} failed to save.");
