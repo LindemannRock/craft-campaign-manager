@@ -769,11 +769,10 @@ class Campaign extends Element
             case 'form':
                 $form = $this->getForm();
                 if ($form) {
-                    return sprintf(
-                        '<a href="%s">%s</a>',
-                        $form->getCpEditUrl(),
-                        $form->title
-                    );
+                    // Craft renders this HTML unescaped in the element index.
+                    return Html::tag('a', Html::encode($form->title), [
+                        'href' => $form->getCpEditUrl() ?? '',
+                    ]);
                 }
                 return '—';
 
