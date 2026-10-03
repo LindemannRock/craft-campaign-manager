@@ -297,7 +297,7 @@ class RecipientsService extends Component
 
         // Use campaign's provider/sender ID if not overridden
         $providerHandle = $providerHandle ?? $campaign->providerHandle;
-        $senderIdHandle = $senderIdHandle ?? $campaign->senderId;
+        $senderIdHandle = $senderIdHandle ?? $campaign->senderHandle;
 
         $result = $this->sendSmsInvitation($smsInvitationMessage, $recipient, $providerHandle, $senderIdHandle);
         if ($result) {

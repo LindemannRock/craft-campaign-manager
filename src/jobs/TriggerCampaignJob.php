@@ -46,7 +46,7 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
     public ?string $providerHandle = null;
 
     /**
-     * @var string|null Sender ID handle to use for SMS (uses campaign's senderId if null)
+     * @var string|null Sender ID handle to use for SMS (uses the campaign's senderHandle if null)
      */
     public ?string $senderIdHandle = null;
 
@@ -223,7 +223,7 @@ class TriggerCampaignJob extends BaseJob implements RetryableJobInterface
 
             // Check for provider/sender ID - either from campaign record or job parameter
             $providerHandle = $this->providerHandle ?? $record->providerHandle;
-            $senderIdHandle = $this->senderIdHandle ?? $record->senderId;
+            $senderIdHandle = $this->senderIdHandle ?? $record->senderHandle;
 
             // If no provider or sender ID is configured, skip
             if (empty($providerHandle) && empty($senderIdHandle)) {

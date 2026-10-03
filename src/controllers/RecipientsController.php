@@ -887,12 +887,9 @@ class RecipientsController extends Controller
                 $recipient->addError('sms', Craft::t('campaign-manager', 'Please select a phone country.'));
                 $smsValid = false;
             } else {
-                // Verify the country is allowed for this campaign's provider.
-                // `campaign->providerHandle` is auto-synced from senderId on save;
-                // fall back to the provider implicit in SMS Manager's default
-                // sender for the "Use Default" sentinel case.
-                $providerHandle = $campaign->providerHandle
-                    ?: CampaignManager::$plugin->sms->getResolvedDefaultSenderProvider();
+                // Verify the country is allowed for the provider this campaign
+                // sends through, resolved from its sender.
+                $providerHandle = CampaignManager::$plugin->sms->resolveProviderHandleForSender($campaign->senderHandle);
                 $countryAllowed = true;
 
                 if ($providerHandle) {
@@ -1387,11 +1384,9 @@ class RecipientsController extends Controller
         // Get phone country for validation
         $phoneCountry = $this->request->getBodyParam('phoneCountry', '');
 
-        // Get allowed countries for validation. Same fallback chain as
-        // recipients templates: campaign.providerHandle (auto-synced from
-        // senderId), then SMS Manager's default sender's provider.
-        $providerHandle = $campaign->providerHandle
-            ?: CampaignManager::$plugin->sms->getResolvedDefaultSenderProvider();
+        // Get allowed countries for the provider this campaign sends through,
+        // resolved from its sender, as the recipients templates do.
+        $providerHandle = CampaignManager::$plugin->sms->resolveProviderHandleForSender($campaign->senderHandle);
         $allowedCountries = $providerHandle ? CampaignManager::$plugin->sms->getAllowedCountries($providerHandle) : [];
         $isAllCountries = $allowedCountries === ['*'];
 

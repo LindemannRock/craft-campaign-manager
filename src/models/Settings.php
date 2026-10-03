@@ -77,8 +77,9 @@ class Settings extends Model
      *
      * Single source of truth for the campaign-manager-wide SMS routing
      * default. The provider is implicit via this sender's `providerHandle`
-     * — the per-campaign `senderId` field and the `defaultSenderIdHandle`
-     * here both feed into `sendWithHandle()` at dispatch.
+     * — a campaign without a sender of its own (`senderHandle` null)
+     * inherits this; when this is empty too, SMS Manager's default sender
+     * is used at dispatch.
      */
     public ?string $defaultSenderIdHandle = null;
 

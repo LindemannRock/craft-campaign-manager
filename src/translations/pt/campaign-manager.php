@@ -77,6 +77,7 @@ return [
     'Title' => 'Título',
     'Updated at' => 'Atualizado a',
     'View' => 'Ver',
+    '[Dev]' => '[Dev]',
 
     // Element
     'campaign' => 'campanha',
@@ -204,6 +205,7 @@ return [
     'Default Sender ID' => 'ID de remetente predefinido',
     'The default SMS sender ID to use when sending campaign invitations.' => 'O ID de remetente de SMS predefinido a utilizar no envio de convites de campanha.',
     'Select a sender ID...' => 'Selecione um ID de remetente...',
+    'Use SMS Manager default (currently: {sender})' => 'Usar o remetente predefinido do SMS Manager (atualmente: {sender})',
     'Allowed countries for' => 'Países permitidos para',
     'All countries.' => 'Todos os países.',
     'No country restrictions for' => 'Sem restrições de país para',
@@ -255,6 +257,9 @@ return [
     'The SMS provider to use for this campaign.' => 'O fornecedor de SMS a utilizar nesta campanha.',
     'Sender ID' => 'ID de remetente',
     'The sender ID to display when sending SMS for this campaign.' => 'O ID de remetente a apresentar ao enviar SMS para esta campanha.',
+    'Use Campaign Manager default (currently: {sender})' => 'Usar o remetente predefinido do Campaign Manager (atualmente: {sender})',
+    'Use Campaign Manager default (none configured)' => 'Usar o remetente predefinido do Campaign Manager (nenhum configurado)',
+    'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.' => 'Os remetentes estão agrupados por fornecedor. Escolha "Usar o remetente predefinido do Campaign Manager" para herdar o remetente predefinido das definições do Campaign Manager; se aí não estiver configurada nenhuma predefinição, é usado o remetente predefinido do SMS Manager. Escolha um remetente específico para fixar esta campanha a esse remetente, independentemente de futuras alterações da predefinição.',
     'SMS Invitation Message' => 'Mensagem de convite por SMS',
     'Use {name} to personalize and {link} to include the invitation URL.' => 'Utilize {name} para personalizar e {link} para incluir o URL do convite.',
     'Email Settings' => 'Definições de e-mail',

@@ -89,7 +89,8 @@ class CampaignQuery extends ElementQuery
             'campaignmanager_campaigns.formId',
             'campaignmanager_campaigns.invitationDelayPeriod',
             'campaignmanager_campaigns.invitationExpiryPeriod',
-            'campaignmanager_campaigns.senderId',
+            'campaignmanager_campaigns.senderHandle',
+            'campaignmanager_campaigns.providerHandle',
             'precomputedSentCount' => (new Query())
                 ->select('COUNT(*)')
                 ->from(['recipients_sent' => $recipientTable])

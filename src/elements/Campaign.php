@@ -118,9 +118,9 @@ class Campaign extends Element
     public ?string $providerHandle = null;
 
     /**
-     * @var string|null Sender ID handle for SMS (non-translatable)
+     * @var string|null Handle of the SMS Manager sender this campaign sends through; null inherits the default sender (non-translatable)
      */
-    public ?string $senderId = null;
+    public ?string $senderHandle = null;
 
     /**
      * @var string|null Email invitation message (translatable)
@@ -755,7 +755,8 @@ class Campaign extends Element
         $rules[] = [['formId'], 'integer'];
         $rules[] = [['invitationDelayPeriod', 'invitationExpiryPeriod'], 'string', 'max' => 50];
         $rules[] = [['invitationDelayPeriod', 'invitationExpiryPeriod'], 'match', 'pattern' => self::ALLOWED_DURATION_PERIOD_PATTERN];
-        $rules[] = [['emailInvitationSubject', 'providerHandle', 'senderId'], 'string', 'max' => 255];
+        $rules[] = [['emailInvitationSubject', 'providerHandle'], 'string', 'max' => 255];
+        $rules[] = [['senderHandle'], 'string', 'max' => 64];
 
         return $rules;
     }
@@ -902,10 +903,12 @@ class Campaign extends Element
         $record->formId = $this->formId;
         $record->invitationDelayPeriod = $this->invitationDelayPeriod;
         $record->invitationExpiryPeriod = $this->invitationExpiryPeriod;
-        $record->providerHandle = $this->providerHandle;
-        $record->senderId = $this->senderId;
+        $record->senderHandle = $this->senderHandle;
 
+        // The record normalizes the sender and derives the provider when it saves
         $record->save(false);
+        $this->senderHandle = $record->senderHandle;
+        $this->providerHandle = $record->providerHandle;
 
         // Save to content table (translatable fields)
         $contentRecord = CampaignContentRecord::findOne([

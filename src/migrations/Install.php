@@ -121,7 +121,7 @@ class Install extends Migration
             'formId' => $this->integer()->null(),
             'invitationDelayPeriod' => $this->string(),
             'invitationExpiryPeriod' => $this->string(),
-            'senderId' => $this->string(),
+            'senderHandle' => $this->string(64),
             'providerHandle' => $this->string(64),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),

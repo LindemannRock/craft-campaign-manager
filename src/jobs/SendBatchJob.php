@@ -172,7 +172,7 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                         $campaign,
                         $recipient,
                         $campaign->providerHandle,
-                        $campaign->senderId,
+                        $campaign->senderHandle,
                     );
 
                     if ($result) {

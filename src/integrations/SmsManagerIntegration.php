@@ -24,9 +24,10 @@ use verbb\formie\elements\Form;
  * blocks deletion of any provider or sender that this plugin is using.
  *
  * Usage sources covered:
- *  - Per-campaign assignment (`CampaignRecord.senderId`)
+ *  - Per-campaign assignment (`CampaignRecord.senderHandle`), reported for the
+ *    sender itself and for the provider behind it
  *  - Plugin-default sender (`Settings.defaultSenderIdHandle`)
- *  - The provider implicit in that default sender (covers provider deletion)
+ *  - The provider implicit in that default sender
  *
  * @author    LindemannRock
  * @package   CampaignManager
@@ -40,6 +41,22 @@ class SmsManagerIntegration implements IntegrationInterface
     public function getProviderUsages(int $providerId): array
     {
         $usages = [];
+
+        // Every campaign that selected one of this provider's senders depends
+        // on the provider: without it those campaigns could no longer send.
+        $provider = SmsManager::$plugin->providers->getProviderById($providerId);
+        if ($provider !== null && !empty($provider->handle)) {
+            $senderHandles = [];
+            foreach (SmsManager::$plugin->senderIds->getSenderIdsByProvider((string) $provider->handle) as $sender) {
+                if (!empty($sender->handle)) {
+                    $senderHandles[] = (string) $sender->handle;
+                }
+            }
+
+            foreach ($this->campaignsUsingSenders($senderHandles) as $campaign) {
+                $usages[] = $this->campaignUsage($campaign);
+            }
+        }
 
         // Provider is implicit via the plugin-default sender. Look the
         // sender up, check whether its `providerHandle` resolves to this
@@ -71,30 +88,12 @@ class SmsManagerIntegration implements IntegrationInterface
     {
         $usages = [];
 
-        // Resolve the integer id to the sender's handle — campaigns store the
-        // handle (string) in `senderId`, not the numeric DB id. Querying with
-        // the int directly returned no matches because MySQL coerces a
-        // non-numeric string handle to 0, missing every real campaign.
+        // Resolve the integer id to the sender's handle: campaigns store the
+        // sender's handle in `senderHandle`, never its numeric DB id.
         $senderRecord = SmsManager::$plugin->senderIds->getSenderIdById($senderIdId);
         if ($senderRecord !== null && !empty($senderRecord->handle)) {
-            /** @var CampaignRecord[] $campaigns */
-            $campaigns = CampaignRecord::find()
-                ->where(['senderId' => $senderRecord->handle])
-                ->all();
-
-            foreach ($campaigns as $campaign) {
-                $label = 'Campaign #' . $campaign->id;
-                if ($campaign->formId) {
-                    $form = Form::find()->id($campaign->formId)->one();
-                    if ($form) {
-                        $label = $form->title;
-                    }
-                }
-
-                $usages[] = [
-                    'label' => $label,
-                    'editUrl' => UrlHelper::cpUrl('campaign-manager/campaigns/' . $campaign->id),
-                ];
+            foreach ($this->campaignsUsingSenders([(string) $senderRecord->handle]) as $campaign) {
+                $usages[] = $this->campaignUsage($campaign);
             }
         }
 
@@ -112,5 +111,48 @@ class SmsManagerIntegration implements IntegrationInterface
         }
 
         return $usages;
+    }
+
+    /**
+     * Campaigns whose selected sender is one of the given handles, oldest first.
+     *
+     * @param list<string> $senderHandles
+     * @return CampaignRecord[]
+     */
+    private function campaignsUsingSenders(array $senderHandles): array
+    {
+        if ($senderHandles === []) {
+            return [];
+        }
+
+        /** @var CampaignRecord[] $campaigns */
+        $campaigns = CampaignRecord::find()
+            ->where(['senderHandle' => $senderHandles])
+            ->orderBy(['id' => SORT_ASC])
+            ->all();
+
+        return $campaigns;
+    }
+
+    /**
+     * One usage entry per campaign: its form's title while the form exists,
+     * linking to the campaign.
+     *
+     * @return array{label: string, editUrl: string}
+     */
+    private function campaignUsage(CampaignRecord $campaign): array
+    {
+        $label = 'Campaign #' . $campaign->id;
+        if ($campaign->formId) {
+            $form = Form::find()->id($campaign->formId)->one();
+            if ($form) {
+                $label = $form->title;
+            }
+        }
+
+        return [
+            'label' => $label,
+            'editUrl' => UrlHelper::cpUrl('campaign-manager/campaigns/' . $campaign->id),
+        ];
     }
 }

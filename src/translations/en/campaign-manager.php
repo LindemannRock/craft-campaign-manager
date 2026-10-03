@@ -77,6 +77,7 @@ return [
     'Title' => 'Title',
     'Updated at' => 'Updated at',
     'View' => 'View',
+    '[Dev]' => '[Dev]',
 
     // Element
     'campaign' => 'campaign',
@@ -204,6 +205,7 @@ return [
     'Default Sender ID' => 'Default Sender ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'The default SMS sender ID to use when sending campaign invitations.',
     'Select a sender ID...' => 'Select a sender ID...',
+    'Use SMS Manager default (currently: {sender})' => 'Use SMS Manager default (currently: {sender})',
     'Allowed countries for' => 'Allowed countries for',
     'All countries.' => 'All countries.',
     'No country restrictions for' => 'No country restrictions for',
@@ -255,6 +257,9 @@ return [
     'The SMS provider to use for this campaign.' => 'The SMS provider to use for this campaign.',
     'Sender ID' => 'Sender ID',
     'The sender ID to display when sending SMS for this campaign.' => 'The sender ID to display when sending SMS for this campaign.',
+    'Use Campaign Manager default (currently: {sender})' => 'Use Campaign Manager default (currently: {sender})',
+    'Use Campaign Manager default (none configured)' => 'Use Campaign Manager default (none configured)',
+    'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.' => 'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.',
     'SMS Invitation Message' => 'SMS Invitation Message',
     'Use {name} to personalize and {link} to include the invitation URL.' => 'Use {name} to personalize and {link} to include the invitation URL.',
     'Email Settings' => 'Email Settings',

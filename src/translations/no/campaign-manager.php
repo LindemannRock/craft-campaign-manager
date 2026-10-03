@@ -77,6 +77,7 @@ return [
     'Title' => 'Tittel',
     'Updated at' => 'Oppdatert',
     'View' => 'Vis',
+    '[Dev]' => '[Dev]',
 
     // Element
     'campaign' => 'kampanje',
@@ -204,6 +205,7 @@ return [
     'Default Sender ID' => 'Standard avsender-ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'Standard SMS-avsender-ID som brukes ved utsending av kampanjeinvitasjoner.',
     'Select a sender ID...' => 'Velg en avsender-ID...',
+    'Use SMS Manager default (currently: {sender})' => 'Bruk standardavsenderen i SMS Manager (for øyeblikket: {sender})',
     'Allowed countries for' => 'Tillatte land for',
     'All countries.' => 'Alle land.',
     'No country restrictions for' => 'Ingen landbegrensninger for',
@@ -255,6 +257,9 @@ return [
     'The SMS provider to use for this campaign.' => 'SMS-leverandøren som brukes for denne kampanjen.',
     'Sender ID' => 'Avsender-ID',
     'The sender ID to display when sending SMS for this campaign.' => 'Avsender-ID som vises når SMS sendes for denne kampanjen.',
+    'Use Campaign Manager default (currently: {sender})' => 'Bruk standardavsenderen i Campaign Manager (for øyeblikket: {sender})',
+    'Use Campaign Manager default (none configured)' => 'Bruk standardavsenderen i Campaign Manager (ingen konfigurert)',
+    'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.' => 'Avsenderne er gruppert etter leverandør. Velg «Bruk standardavsenderen i Campaign Manager» for å arve standardavsenderen fra innstillingene i Campaign Manager; hvis ingen standard er konfigurert der, brukes standardavsenderen i SMS Manager. Velg en bestemt avsender for å låse denne kampanjen til den avsenderen uavhengig av fremtidige endringer av standardinnstillingen.',
     'SMS Invitation Message' => 'SMS-invitasjonsmelding',
     'Use {name} to personalize and {link} to include the invitation URL.' => 'Bruk {name} for å personalisere og {link} for å inkludere invitasjons-URL-en.',
     'Email Settings' => 'E-postinnstillinger',

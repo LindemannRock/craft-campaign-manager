@@ -27,7 +27,7 @@ use yii\base\Behavior;
  *
  * @property string $campaignType
  * @property int|null $formId
- * @property string|null $senderId
+ * @property string|null $senderHandle
  * @property string|null $emailInvitationSubject
  * @property string|null $invitationDelayPeriod
  * @property string|null $invitationExpiryPeriod
@@ -361,9 +361,9 @@ class CampaignBehavior extends Behavior
 
     /**
      */
-    public function getSenderId(): ?string
+    public function getSenderHandle(): ?string
     {
-        return $this->getCampaignManagerRecord()?->senderId;
+        return $this->getCampaignManagerRecord()?->senderHandle;
     }
 
     /**

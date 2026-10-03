@@ -96,11 +96,8 @@ class CampaignsController extends Controller
                 $campaign = new Campaign();
                 $campaign->siteId = $siteId;
 
-                // Set defaults from plugin settings for new campaigns.
-                // `providerHandle` is auto-derived from `senderId` in
-                // `CampaignRecord::beforeValidate()` on save.
-                $settings = CampaignManager::$plugin->getSettings();
-                $campaign->senderId = $settings->defaultSenderIdHandle;
+                // A new campaign has no sender of its own: it inherits the
+                // plugin default until a specific sender is chosen.
             }
         }
 
@@ -128,12 +125,10 @@ class CampaignsController extends Controller
             : Craft::t('campaign-manager', 'New Campaign');
 
         // Single Sender ID dropdown with `<optgroup>` provider groupings —
-        // the provider is implicit via the chosen sender's `providerHandle`,
-        // and `CampaignRecord::beforeValidate()` keeps `campaign.providerHandle`
-        // synced from `campaign.senderId` for downstream consumers
-        // (recipients pages' country-filter logic).
+        // the provider is implicit via the chosen sender and is derived
+        // from it when the campaign is saved.
         $smsService = CampaignManager::$plugin->sms;
-        $senderIdOptions = $smsService->getSenderIdOptionsWithGroups();
+        $senderIdOptions = $smsService->getCampaignSenderOptions();
 
         return $this->renderTemplate('campaign-manager/campaigns/edit', [
             'campaign' => $campaign,
@@ -199,8 +194,8 @@ class CampaignsController extends Controller
         $campaign->emailInvitationMessage = $request->getBodyParam('emailInvitationMessage');
         $campaign->emailInvitationSubject = $request->getBodyParam('emailInvitationSubject');
         $campaign->smsInvitationMessage = $request->getBodyParam('smsInvitationMessage');
-        $campaign->providerHandle = $request->getBodyParam('providerHandle') ?: null;
-        $campaign->senderId = $request->getBodyParam('senderId') ?: null;
+        $senderHandle = trim((string) $request->getBodyParam('senderHandle', ''));
+        $campaign->senderHandle = $senderHandle !== '' ? $senderHandle : null;
 
         // Set field values
         $campaign->setFieldValuesFromRequest('fields');

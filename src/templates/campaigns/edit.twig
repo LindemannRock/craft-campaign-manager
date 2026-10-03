@@ -283,8 +283,8 @@
 
         {% if craft.campaignManager.sms.isSmsManagerAvailable() %}
             {# Single Sender ID dropdown with `<optgroup>` provider groupings.
-               `CampaignRecord::beforeValidate()` auto-syncs `providerHandle`
-               from the chosen sender so recipients pages keep working. #}
+               The provider is derived from the chosen sender when the
+               campaign is saved. #}
 
             {# Build sender→provider + country lookup maps for the JS-side
                country preview update on dropdown change. #}
@@ -306,31 +306,29 @@
                 {% endfor %}
             {% endfor %}
 
-            {# Provider that the "Use SMS Manager default" sentinel currently
-               resolves to. Used for the country preview when the campaign's
-               saved sender is the sentinel (`''`). #}
-            {% set defaultSenderProviderHandle = craft.campaignManager.sms.getResolvedDefaultSenderProvider() %}
+            {# Provider a campaign without a sender of its own sends through:
+               Campaign Manager's default sender, or SMS Manager's default
+               when Campaign Manager has none. Used for the country preview
+               of the "Use Campaign Manager default" option. #}
+            {% set defaultSenderProviderHandle = craft.campaignManager.sms.resolveProviderHandleForSender(null) %}
 
-            {# Pre-select: prefer the campaign's own senderId; if it's null
-               (new campaign), fall through to the plugin's default sender. #}
-            {% set currentSenderIdHandle = campaign.senderId ?: settings.defaultSenderIdHandle %}
+            {# No sender of its own (null) selects the inherit option (''). #}
+            {% set currentSenderHandle = campaign.senderHandle ?? '' %}
             {{ forms.selectField({
                 label: 'Sender ID'|t('campaign-manager'),
-                instructions: 'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this campaign to that sender regardless of future default changes.'|t('campaign-manager'),
-                id: 'senderId',
-                name: 'senderId',
-                value: currentSenderIdHandle,
+                instructions: 'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.'|t('campaign-manager'),
+                id: 'senderHandle',
+                name: 'senderHandle',
+                value: currentSenderHandle,
                 options: senderIdOptions,
-                errors: campaign.getErrors('senderId'),
+                errors: campaign.getErrors('senderHandle'),
             }) }}
 
             {# Country preview — resolve provider from the pre-selected sender. #}
-            {% if currentSenderIdHandle is same as('') %}
+            {% if currentSenderHandle is same as('') %}
                 {% set previewProviderHandle = defaultSenderProviderHandle %}
-            {% elseif currentSenderIdHandle %}
-                {% set previewProviderHandle = senderToProvider[currentSenderIdHandle] ?? null %}
             {% else %}
-                {% set previewProviderHandle = null %}
+                {% set previewProviderHandle = senderToProvider[currentSenderHandle] ?? null %}
             {% endif %}
 
             {% set previewProvider = null %}
@@ -367,7 +365,7 @@
                     var providerNames = {{ providerNames|json_encode|raw }};
                     var countryNames = {{ countryNames|json_encode|raw }};
                     var defaultSenderProviderHandle = {{ (defaultSenderProviderHandle ?? '')|json_encode|raw }};
-                    var senderIdSelect = document.getElementById('senderId');
+                    var senderIdSelect = document.getElementById('senderHandle');
                     var countriesBox = document.getElementById('campaign-provider-countries-box');
                     var countriesMessage = document.getElementById('campaign-provider-countries-message');
 
@@ -384,7 +382,7 @@
 
                     function resolveProviderForSender(senderHandle) {
                         if (senderHandle === '') {
-                            // "Use SMS Manager default" sentinel.
+                            // "Use Campaign Manager default": inherit the default sender.
                             return defaultSenderProviderHandle;
                         }
                         return senderToProvider[senderHandle] || '';

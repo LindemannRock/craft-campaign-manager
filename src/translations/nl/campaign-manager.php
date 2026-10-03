@@ -77,6 +77,7 @@ return [
     'Title' => 'Titel',
     'Updated at' => 'Geüpdatet op',
     'View' => 'Bekijken',
+    '[Dev]' => '[Dev]',
 
     // Element
     'campaign' => 'campagne',
@@ -204,6 +205,7 @@ return [
     'Default Sender ID' => 'Standaard afzender-ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'De standaard SMS-afzender-ID voor het verzenden van campagne-uitnodigingen.',
     'Select a sender ID...' => 'Selecteer een afzender-ID...',
+    'Use SMS Manager default (currently: {sender})' => 'Standaardafzender van SMS Manager gebruiken (momenteel: {sender})',
     'Allowed countries for' => 'Toegestane landen voor',
     'All countries.' => 'Alle landen.',
     'No country restrictions for' => 'Geen landrestricties voor',
@@ -255,6 +257,9 @@ return [
     'The SMS provider to use for this campaign.' => 'De SMS-provider voor deze campagne.',
     'Sender ID' => 'Afzender-ID',
     'The sender ID to display when sending SMS for this campaign.' => 'De afzender-ID die wordt weergegeven bij het verzenden van SMS voor deze campagne.',
+    'Use Campaign Manager default (currently: {sender})' => 'Standaardafzender van Campaign Manager gebruiken (momenteel: {sender})',
+    'Use Campaign Manager default (none configured)' => 'Standaardafzender van Campaign Manager gebruiken (niet geconfigureerd)',
+    'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.' => 'Afzenders zijn gegroepeerd per provider. Kies "Standaardafzender van Campaign Manager gebruiken" om de standaardafzender uit de instellingen van Campaign Manager over te nemen; als daar geen standaard is geconfigureerd, wordt de standaardafzender van SMS Manager gebruikt. Kies een specifieke afzender om deze campagne aan die afzender te koppelen, ongeacht toekomstige wijzigingen van de standaard.',
     'SMS Invitation Message' => 'SMS-uitnodigingsbericht',
     'Use {name} to personalize and {link} to include the invitation URL.' => 'Gebruik {name} om te personaliseren en {link} om de uitnodigings-URL toe te voegen.',
     'Email Settings' => 'E-mailinstellingen',

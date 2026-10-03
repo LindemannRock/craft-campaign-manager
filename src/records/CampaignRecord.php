@@ -11,7 +11,7 @@ namespace lindemannrock\campaignmanager\records;
 use craft\base\ElementInterface;
 use craft\db\ActiveRecord;
 use craft\records\Element;
-use lindemannrock\smsmanager\SmsManager;
+use lindemannrock\campaignmanager\CampaignManager;
 use verbb\formie\elements\Form;
 use verbb\formie\Formie;
 use yii\db\ActiveQueryInterface;
@@ -29,7 +29,7 @@ use yii\db\ActiveQueryInterface;
  * @property string|null $invitationDelayPeriod
  * @property string|null $invitationExpiryPeriod
  * @property string|null $providerHandle
- * @property string|null $senderId
+ * @property string|null $senderHandle
  * @property Element $element
  */
 class CampaignRecord extends ActiveRecord
@@ -49,34 +49,26 @@ class CampaignRecord extends ActiveRecord
     /**
      * @inheritdoc
      *
-     * Derives `providerHandle` from the chosen `senderId` (which stores a
-     * sender handle, not an int — the field is misleadingly named for
-     * historical reasons). The campaign edit UI exposes only the Sender
-     * ID dropdown with optgroups; the provider is implicit via the
-     * chosen sender's `providerHandle`. Keeping the field auto-synced
-     * lets recipients pages (`recipients/map.twig`, `recipients/add.twig`)
-     * continue using `campaign.providerHandle` for country filtering
-     * without change.
-     *
-     * - `senderId = '<handle>'` → derive provider from that sender
-     * - `senderId = ''` (Use SMS Manager default) → null the provider too;
-     *   recipients pages fall back to
-     *   `SmsService::getResolvedDefaultSenderProvider()` which resolves
-     *   SMS Manager's currently-configured default sender's provider.
-     * - `senderId = null` → null the provider.
+     * `providerHandle` is derived from `senderHandle` on every save, so the
+     * stored provider is always the one behind the selected sender. No sender
+     * (stored canonically as null; an empty string is normalized to null)
+     * means the campaign inherits the default sender; that is resolved when
+     * read, through `SmsService::resolveProviderHandleForSender()`, rather
+     * than frozen here. A sender that no longer resolves stores no provider.
      */
-    public function beforeValidate(): bool
+    public function beforeSave($insert): bool
     {
-        if (!empty($this->senderId)) {
-            $sender = SmsManager::$plugin->senderIds->getSenderIdByHandle((string) $this->senderId);
-            $this->providerHandle = ($sender && $sender->providerHandle)
-                ? (string) $sender->providerHandle
-                : null;
-        } else {
-            $this->providerHandle = null;
+        if (!parent::beforeSave($insert)) {
+            return false;
         }
 
-        return parent::beforeValidate();
+        $senderHandle = trim((string) ($this->senderHandle ?? ''));
+        $this->senderHandle = $senderHandle !== '' ? $senderHandle : null;
+        $this->providerHandle = $this->senderHandle !== null
+            ? CampaignManager::$plugin->sms->resolveProviderHandleForSender($this->senderHandle)
+            : null;
+
+        return true;
     }
 
     /**

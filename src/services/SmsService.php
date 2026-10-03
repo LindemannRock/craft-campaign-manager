@@ -13,6 +13,7 @@ use craft\base\Component;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\SmsManager;
 
 /**
@@ -54,7 +55,7 @@ class SmsService extends Component
      * @param string $message Message content
      * @param string|null $language Message language ('en' or 'ar')
      * @param string|null $providerHandle Accepted for back-compat; ignored. Provider is derived from the sender ID's `providerHandle`.
-     * @param string|null $senderIdHandle Sender ID handle (uses plugin's `defaultSenderIdHandle` setting if null)
+     * @param string|null $senderIdHandle Sender ID handle; null or '' inherits the default sender described in {@see resolveSenderHandle()}
      * @param int|null $siteId Site ID for SMS Manager analytics attribution
      * @return bool
      */
@@ -74,21 +75,9 @@ class SmsService extends Component
             return false;
         }
 
+        $senderIdHandle = $this->resolveSenderHandle($senderIdHandle);
+
         if ($senderIdHandle === null) {
-            $senderIdHandle = CampaignManager::$plugin->getSettings()->defaultSenderIdHandle;
-        }
-
-        // Empty string is the "Use SMS Manager default" sentinel that lives
-        // at every layer of the dispatch chain (per-campaign senderId field,
-        // plugin defaultSenderIdHandle setting). Resolve to SMS Manager's
-        // currently-configured default sender. The 8.2 fail-loud guarantee
-        // surfaces a clear error if no default is configured plugin-wide.
-        if (empty($senderIdHandle)) {
-            $default = SmsManager::$plugin->senderIds->getDefaultSenderId();
-            $senderIdHandle = $default?->handle;
-        }
-
-        if (empty($senderIdHandle)) {
             $this->logError('No sender ID handle resolved for SMS send — set a Default Sender ID in Campaign Manager or SMS Manager settings, or pass an explicit handle.');
             return false;
         }
@@ -104,12 +93,77 @@ class SmsService extends Component
     }
 
     /**
+     * Resolve the sender handle a campaign actually sends through.
+     *
+     * A campaign's own sender handle is returned as is, even when that sender
+     * no longer exists: a named sender is never silently replaced. No sender
+     * of its own (null or '') inherits the plugin's `defaultSenderIdHandle`
+     * setting; when that is unset too, SMS Manager's configured default
+     * sender is used.
+     *
+     * Dispatch, recipient phone validation, campaign persistence and the
+     * campaign form all resolve the sender here, so they agree on which
+     * sender, and therefore which provider, a campaign uses.
+     *
+     * @param string|null $senderHandle The campaign's stored sender handle
+     * @return string|null Null when no sender can be resolved
+     * @since 5.16.0
+     */
+    public function resolveSenderHandle(?string $senderHandle): ?string
+    {
+        if ($senderHandle !== null && $senderHandle !== '') {
+            return $senderHandle;
+        }
+
+        $pluginDefault = CampaignManager::$plugin->getSettings()->defaultSenderIdHandle;
+        if ($pluginDefault !== null && $pluginDefault !== '') {
+            return $pluginDefault;
+        }
+
+        if (!$this->isSmsManagerAvailable()) {
+            return null;
+        }
+
+        $default = SmsManager::$plugin->senderIds->getDefaultSenderId();
+
+        return ($default && $default->handle) ? (string) $default->handle : null;
+    }
+
+    /**
+     * Resolve the provider handle behind a campaign's sender selection.
+     *
+     * The sender comes from {@see resolveSenderHandle()} and its provider
+     * from SMS Manager, so this is the provider the invitation is really
+     * sent through. Returns null when SMS Manager is unavailable, no sender
+     * resolves, or the resolved sender does not exist or has no provider;
+     * the default sender's provider is never substituted for an explicitly
+     * selected sender.
+     *
+     * @param string|null $senderHandle The campaign's stored sender handle
+     * @since 5.16.0
+     */
+    public function resolveProviderHandleForSender(?string $senderHandle): ?string
+    {
+        if (!$this->isSmsManagerAvailable()) {
+            return null;
+        }
+
+        $resolvedHandle = $this->resolveSenderHandle($senderHandle);
+        if ($resolvedHandle === null) {
+            return null;
+        }
+
+        $sender = SmsManager::$plugin->senderIds->getSenderIdByHandle($resolvedHandle);
+
+        return ($sender && $sender->providerHandle) ? (string) $sender->providerHandle : null;
+    }
+
+    /**
      * Resolve SMS Manager's currently-configured default sender to its
-     * provider handle. Powers the country-filter preview on the settings
-     * and campaign-edit pages when the saved sender is the "Use SMS
-     * Manager default" sentinel (`senderIdHandle === ''`) — at that point
-     * dispatch will route through whatever sms-manager has as its default,
-     * and the preview should reflect the actual destination.
+     * provider handle. Powers the country-filter preview on the plugin
+     * settings page when the saved default is "Use SMS Manager default"
+     * (`defaultSenderIdHandle === ''`). Campaigns resolve their inherited
+     * provider through {@see resolveProviderHandleForSender()} instead.
      *
      * Returns null when SMS Manager has no default configured or when the
      * default doesn't resolve to an enabled sender.
@@ -124,10 +178,10 @@ class SmsService extends Component
     }
 
     /**
-     * Build the optgroup-structured options array for a single Sender ID
-     * dropdown. Format matches Craft's `forms.selectField` macro: a flat
-     * array of `['label', 'value']` options interspersed with
-     * `['optgroup' => 'Group Label']` markers.
+     * Build the optgroup-structured options array for the plugin settings
+     * page's Default Sender ID dropdown. Format matches Craft's
+     * `forms.selectField` macro: a flat array of `['label', 'value']`
+     * options interspersed with `['optgroup' => 'Group Label']` markers.
      *
      *   [
      *       ['label' => 'Use SMS Manager default (currently: …)', 'value' => ''],
@@ -138,40 +192,77 @@ class SmsService extends Component
      *       ['label' => 'Test Config Sender Dev [Dev]', 'value' => 'dev-test'],
      *   ]
      *
-     * Drives the single-dropdown UI on both the plugin settings page and
-     * the per-campaign edit page. Mirrors `formie-sms`'s `buildSenderIdOptions()`
+     * The empty option means "use SMS Manager's default sender" and is only
+     * offered while SMS Manager has one. Campaign forms use
+     * {@see getCampaignSenderOptions()}, whose empty option inherits the
+     * plugin default instead. Mirrors `formie-sms`'s `buildSenderIdOptions()`
      * for cross-plugin consistency.
      *
      * @return array<int, array{label?: string, value?: string, optgroup?: string}>
      */
     public function getSenderIdOptionsWithGroups(): array
     {
-        $options = [];
-
         if (!$this->isSmsManagerAvailable()) {
-            return $options;
+            return [];
         }
 
-        // "Use SMS Manager default" sentinel — only included when sms-manager
-        // actually has a default sender configured. Empty value matches the
-        // dispatch sentinel `senderIdHandle === ''` that resolves at send
-        // time to whatever the live default is.
+        $options = [];
         $defaultSender = SmsManager::$plugin->senderIds->getDefaultSenderId();
         if ($defaultSender) {
-            $defaultLabel = (string) $defaultSender->name;
-            if ($defaultSender->isDev) {
-                $defaultLabel .= ' ' . Craft::t('campaign-manager', '[Dev]');
-            }
             $options[] = [
                 'value' => '',
                 'label' => Craft::t('campaign-manager', 'Use SMS Manager default (currently: {sender})', [
-                    'sender' => $defaultLabel,
+                    'sender' => $this->senderLabel($defaultSender),
                 ]),
             ];
         }
 
-        // Walk providers in their configured display order so the optgroup
-        // order in the dropdown is stable and predictable across renders.
+        return array_merge($options, $this->groupedSenderOptions());
+    }
+
+    /**
+     * Build the options array for a campaign's Sender ID dropdown, in the
+     * same format as {@see getSenderIdOptionsWithGroups()}.
+     *
+     * The empty option means the campaign has no sender of its own and
+     * inherits the default resolved by {@see resolveSenderHandle()}: the
+     * plugin's default sender, or SMS Manager's when the plugin has none.
+     * It is always offered, so a campaign that inherits can be saved as
+     * such even while no default resolves.
+     *
+     * @return array<int, array{label?: string, value?: string, optgroup?: string}>
+     * @since 5.16.0
+     */
+    public function getCampaignSenderOptions(): array
+    {
+        if (!$this->isSmsManagerAvailable()) {
+            return [];
+        }
+
+        $defaultHandle = $this->resolveSenderHandle(null);
+        $defaultSender = $defaultHandle !== null ? SmsManager::$plugin->senderIds->getSenderIdByHandle($defaultHandle) : null;
+        $options = [[
+            'value' => '',
+            'label' => $defaultSender
+                ? Craft::t('campaign-manager', 'Use Campaign Manager default (currently: {sender})', [
+                    'sender' => $this->senderLabel($defaultSender),
+                ])
+                : Craft::t('campaign-manager', 'Use Campaign Manager default (none configured)'),
+        ]];
+
+        return array_merge($options, $this->groupedSenderOptions());
+    }
+
+    /**
+     * Every enabled sender of every enabled provider, grouped under its
+     * provider in the providers' configured display order so the optgroup
+     * order in the dropdown is stable and predictable across renders.
+     *
+     * @return array<int, array{label?: string, value?: string, optgroup?: string}>
+     */
+    private function groupedSenderOptions(): array
+    {
+        $options = [];
         $providers = SmsManager::$plugin->providers->getAllProviders(true);
         $allSenders = SmsManager::$plugin->senderIds->getAllSenderIds(true);
 
@@ -194,18 +285,27 @@ class SmsService extends Component
 
             $options[] = ['optgroup' => (string) $provider->name];
             foreach ($providerSenders as $sender) {
-                $label = (string) $sender->name;
-                if ($sender->isDev) {
-                    $label .= ' ' . Craft::t('campaign-manager', '[Dev]');
-                }
                 $options[] = [
                     'value' => (string) $sender->handle,
-                    'label' => $label,
+                    'label' => $this->senderLabel($sender),
                 ];
             }
         }
 
         return $options;
+    }
+
+    /**
+     * A sender's display name, marked when it is a development sender.
+     */
+    private function senderLabel(SenderIdRecord $sender): string
+    {
+        $label = (string) $sender->name;
+        if ($sender->isDev) {
+            $label .= ' ' . Craft::t('campaign-manager', '[Dev]');
+        }
+
+        return $label;
     }
 
     /**

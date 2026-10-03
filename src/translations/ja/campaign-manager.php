@@ -77,6 +77,7 @@ return [
     'Title' => 'タイトル',
     'Updated at' => '更新日時',
     'View' => '表示',
+    '[Dev]' => '[Dev]',
 
     // Element
     'campaign' => 'キャンペーン',
@@ -204,6 +205,7 @@ return [
     'Default Sender ID' => 'デフォルト送信者 ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'キャンペーン招待を送信する際に使用するデフォルトの SMS 送信者 ID です。',
     'Select a sender ID...' => '送信者 ID を選択してください...',
+    'Use SMS Manager default (currently: {sender})' => 'SMS Manager のデフォルトを使用する（現在: {sender}）',
     'Allowed countries for' => '許可された国（対象 :',
     'All countries.' => 'すべての国。',
     'No country restrictions for' => '国の制限なし（対象 :',
@@ -255,6 +257,9 @@ return [
     'The SMS provider to use for this campaign.' => 'このキャンペーンで使用する SMS プロバイダーです。',
     'Sender ID' => '送信者 ID',
     'The sender ID to display when sending SMS for this campaign.' => 'このキャンペーンで SMS を送信する際に表示する送信者 ID です。',
+    'Use Campaign Manager default (currently: {sender})' => 'Campaign Manager のデフォルトを使用する（現在: {sender}）',
+    'Use Campaign Manager default (none configured)' => 'Campaign Manager のデフォルトを使用する（未設定）',
+    'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.' => '送信者はプロバイダーごとにグループ化されています。「Campaign Manager のデフォルトを使用する」を選択すると、Campaign Manager の設定のデフォルト送信者を引き継ぎます。そこでデフォルトが設定されていない場合は、SMS Manager のデフォルト送信者が使用されます。特定の送信者を選択すると、今後デフォルトが変更されても、このキャンペーンはその送信者に固定されます。',
     'SMS Invitation Message' => 'SMS 招待メッセージ',
     'Use {name} to personalize and {link} to include the invitation URL.' => '{name} でパーソナライズし、 {link} で招待 URL を挿入してください。',
     'Email Settings' => 'Email 設定',

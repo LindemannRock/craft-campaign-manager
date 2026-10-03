@@ -77,6 +77,7 @@ return [
     'Title' => 'Titel',
     'Updated at' => 'Aktualisiert am',
     'View' => 'Anzeigen',
+    '[Dev]' => '[Dev]',
 
     // Element
     'campaign' => 'Kampagne',
@@ -204,6 +205,7 @@ return [
     'Default Sender ID' => 'Standard-Sender-ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'Die Standard-SMS-Sender-ID für den Versand von Kampagnen-Einladungen.',
     'Select a sender ID...' => 'Sender-ID auswählen...',
+    'Use SMS Manager default (currently: {sender})' => 'Standard-Sender von SMS Manager verwenden (aktuell: {sender})',
     'Allowed countries for' => 'Erlaubte Länder für',
     'All countries.' => 'Alle Länder.',
     'No country restrictions for' => 'Keine Länderbeschränkungen für',
@@ -255,6 +257,9 @@ return [
     'The SMS provider to use for this campaign.' => 'Der SMS-Anbieter für diese Kampagne.',
     'Sender ID' => 'Sender-ID',
     'The sender ID to display when sending SMS for this campaign.' => 'Die anzuzeigende Sender-ID beim Versand von SMS für diese Kampagne.',
+    'Use Campaign Manager default (currently: {sender})' => 'Standard-Sender von Campaign Manager verwenden (aktuell: {sender})',
+    'Use Campaign Manager default (none configured)' => 'Standard-Sender von Campaign Manager verwenden (nicht konfiguriert)',
+    'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.' => 'Die Sender sind nach Anbieter gruppiert. Wählen Sie „Standard-Sender von Campaign Manager verwenden“, um den Standard-Sender aus den Einstellungen von Campaign Manager zu übernehmen; ist dort kein Standard konfiguriert, wird der Standard-Sender von SMS Manager verwendet. Wählen Sie einen bestimmten Sender, um diese Kampagne unabhängig von künftigen Änderungen des Standards auf diesen Sender festzulegen.',
     'SMS Invitation Message' => 'SMS-Einladungsnachricht',
     'Use {name} to personalize and {link} to include the invitation URL.' => 'Verwenden Sie {name} zur Personalisierung und {link}, um die Einladungs-URL einzufügen.',
     'Email Settings' => 'E-Mail-Einstellungen',

@@ -153,7 +153,7 @@ Create a Craft section for campaigns with the following fields:
 - **SMS Invitation Message** (Plain Text): SMS template with `{invitationUrl}` and `{customer_name}` tokens
 - **Email Invitation Subject** (Plain Text): Email subject line
 - **Email Invitation Message** (Rich Text): Email template with tokens
-- **Sender ID** (Text): SMS sender ID handle
+- **Sender ID** (Dropdown): The SMS Manager sender this campaign sends through. Leave it on "Use Campaign Manager default" to inherit the plugin's Default Sender ID setting; when that setting is empty, SMS Manager's default sender is used.
 - **Surveys Welcome** (Rich Text): Message shown before survey
 - **Surveys Already Responded** (Rich Text): Message for completed surveys
 - **Surveys Invitation Expired** (Rich Text): Message for expired invitations

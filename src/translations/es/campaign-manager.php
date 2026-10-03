@@ -77,6 +77,7 @@ return [
     'Title' => 'Título',
     'Updated at' => 'Actualizado el',
     'View' => 'Ver',
+    '[Dev]' => '[Dev]',
 
     // Element
     'campaign' => 'campaña',
@@ -204,6 +205,7 @@ return [
     'Default Sender ID' => 'ID de remitente predeterminado',
     'The default SMS sender ID to use when sending campaign invitations.' => 'El ID de remitente SMS predeterminado para el envío de invitaciones de campaña.',
     'Select a sender ID...' => 'Seleccione un ID de remitente...',
+    'Use SMS Manager default (currently: {sender})' => 'Usar el remitente predeterminado de SMS Manager (actualmente: {sender})',
     'Allowed countries for' => 'Países permitidos para',
     'All countries.' => 'Todos los países.',
     'No country restrictions for' => 'Sin restricciones de país para',
@@ -255,6 +257,9 @@ return [
     'The SMS provider to use for this campaign.' => 'El proveedor SMS que se usará para esta campaña.',
     'Sender ID' => 'ID de remitente',
     'The sender ID to display when sending SMS for this campaign.' => 'El ID de remitente que se mostrará al enviar SMS para esta campaña.',
+    'Use Campaign Manager default (currently: {sender})' => 'Usar el remitente predeterminado de Campaign Manager (actualmente: {sender})',
+    'Use Campaign Manager default (none configured)' => 'Usar el remitente predeterminado de Campaign Manager (ninguno configurado)',
+    'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.' => 'Los remitentes están agrupados por proveedor. Elija «Usar el remitente predeterminado de Campaign Manager» para heredar el remitente predeterminado de la configuración de Campaign Manager; si allí no hay ninguno configurado, se usa el remitente predeterminado de SMS Manager. Elija un remitente concreto para fijar esta campaña a ese remitente, independientemente de futuros cambios del valor predeterminado.',
     'SMS Invitation Message' => 'Mensaje de invitación SMS',
     'Use {name} to personalize and {link} to include the invitation URL.' => 'Utilice {name} para personalizar y {link} para incluir la URL de invitación.',
     'Email Settings' => 'Configuración de correo electrónico',

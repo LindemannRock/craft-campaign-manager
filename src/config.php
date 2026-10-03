@@ -116,11 +116,11 @@ return [
          *
          * Must match a sender ID handle from SMS Manager. The provider is
          * implicit via the sender's `providerHandle` — there's no separate
-         * `defaultProviderHandle` setting. Set to empty string `""` to use
-         * SMS Manager's plugin-wide default sender (resolved at dispatch).
+         * `defaultProviderHandle` setting. A campaign without a sender of its
+         * own inherits this default; when this is null or empty, SMS
+         * Manager's own default sender is used (resolved at dispatch).
          *
-         * Default: null (no Campaign Manager-level default; the per-campaign
-         * `senderId` field or SMS Manager's own default applies).
+         * Default: null
          */
         // 'defaultSenderIdHandle' => App::env('CAMPAIGN_SMS_SENDER'),
 

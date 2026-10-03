@@ -77,6 +77,7 @@ return [
     'Title' => 'العنوان',
     'Updated at' => 'تم التحديث في',
     'View' => 'عرض',
+    '[Dev]' => '[Dev]',
 
     // Element
     'campaign' => 'حملة',
@@ -204,6 +205,7 @@ return [
     'Default Sender ID' => 'معرّف المُرسِل الافتراضي',
     'The default SMS sender ID to use when sending campaign invitations.' => 'معرّف المُرسِل SMS الافتراضي المستخدم لإرسال دعوات الحملة.',
     'Select a sender ID...' => 'تحديد معرّف مُرسِل...',
+    'Use SMS Manager default (currently: {sender})' => 'استخدام المُرسِل الافتراضي لـ SMS Manager (حاليًا: {sender})',
     'Allowed countries for' => 'البلدان المسموح بها لـ',
     'All countries.' => 'جميع البلدان.',
     'No country restrictions for' => 'لا توجد قيود على البلدان لـ',
@@ -255,6 +257,9 @@ return [
     'The SMS provider to use for this campaign.' => 'مزوّد SMS المستخدم لهذه الحملة.',
     'Sender ID' => 'معرّف المُرسِل',
     'The sender ID to display when sending SMS for this campaign.' => 'معرّف المُرسِل المعروض عند إرسال SMS لهذه الحملة.',
+    'Use Campaign Manager default (currently: {sender})' => 'استخدام المُرسِل الافتراضي لـ Campaign Manager (حاليًا: {sender})',
+    'Use Campaign Manager default (none configured)' => 'استخدام المُرسِل الافتراضي لـ Campaign Manager (لم يتم تكوين أي مُرسِل)',
+    'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.' => 'يتم تجميع المُرسِلين حسب المزوّد. اختر "استخدام المُرسِل الافتراضي لـ Campaign Manager" لوراثة المُرسِل الافتراضي من إعدادات Campaign Manager؛ وإذا لم يتم تكوين أي مُرسِل افتراضي هناك، يُستخدم المُرسِل الافتراضي لـ SMS Manager. اختر مُرسِلًا محددًا لتثبيت هذه الحملة على ذلك المُرسِل بغض النظر عن أي تغييرات مستقبلية في الإعداد الافتراضي.',
     'SMS Invitation Message' => 'رسالة دعوة SMS',
     'Use {name} to personalize and {link} to include the invitation URL.' => 'استخدم {name} للتخصيص و{link} لتضمين عنوان URL الخاص بالدعوة.',
     'Email Settings' => 'إعدادات البريد الإلكتروني',

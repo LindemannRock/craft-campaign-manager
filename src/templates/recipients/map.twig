@@ -160,12 +160,9 @@
 
         <h3>{{ 'Phone Number Settings'|t('campaign-manager') }}</h3>
 
-        {# Get allowed countries from the campaign's provider. The campaign's
-           `providerHandle` is auto-synced from `senderId` via
-           `CampaignRecord::beforeValidate()`; fall back to the provider
-           implicit in SMS Manager's default sender when the campaign is
-           on the "Use Default" sentinel (senderId = "" / providerHandle = null). #}
-        {% set providerHandle = campaign.providerHandle ?: craft.campaignManager.sms.getResolvedDefaultSenderProvider() %}
+        {# Get allowed countries from the provider this campaign sends
+           through, resolved from its sender. #}
+        {% set providerHandle = craft.campaignManager.sms.resolveProviderHandleForSender(campaign.senderHandle) %}
         {% set allowedCountries = providerHandle ? craft.campaignManager.sms.getAllowedCountries(providerHandle) : [] %}
         {% set isAllCountries = allowedCountries == ['*'] %}
 

@@ -77,6 +77,7 @@ return [
     'Title' => 'Titre',
     'Updated at' => 'Mis à jour à',
     'View' => 'Afficher',
+    '[Dev]' => '[Dev]',
 
     // Element
     'campaign' => 'campagne',
@@ -204,6 +205,7 @@ return [
     'Default Sender ID' => 'ID expéditeur par défaut',
     'The default SMS sender ID to use when sending campaign invitations.' => 'L\'ID expéditeur SMS par défaut pour l\'envoi des invitations de campagne.',
     'Select a sender ID...' => 'Sélectionner un ID expéditeur...',
+    'Use SMS Manager default (currently: {sender})' => 'Utiliser l\'expéditeur par défaut de SMS Manager (actuellement : {sender})',
     'Allowed countries for' => 'Pays autorisés pour',
     'All countries.' => 'Tous les pays.',
     'No country restrictions for' => 'Aucune restriction de pays pour',
@@ -255,6 +257,9 @@ return [
     'The SMS provider to use for this campaign.' => 'Le fournisseur SMS à utiliser pour cette campagne.',
     'Sender ID' => 'ID expéditeur',
     'The sender ID to display when sending SMS for this campaign.' => 'L\'ID expéditeur à afficher lors de l\'envoi de SMS pour cette campagne.',
+    'Use Campaign Manager default (currently: {sender})' => 'Utiliser l\'expéditeur par défaut de Campaign Manager (actuellement : {sender})',
+    'Use Campaign Manager default (none configured)' => 'Utiliser l\'expéditeur par défaut de Campaign Manager (aucun configuré)',
+    'Senders are grouped by their provider. Pick "Use Campaign Manager default" to inherit the default sender from Campaign Manager\'s settings; when no default is configured there, SMS Manager\'s default sender is used. Pick a specific sender to pin this campaign to that sender regardless of future default changes.' => 'Les expéditeurs sont regroupés par fournisseur. Choisissez « Utiliser l\'expéditeur par défaut de Campaign Manager » pour hériter de l\'expéditeur par défaut défini dans les paramètres de Campaign Manager ; si aucun expéditeur par défaut n\'y est configuré, l\'expéditeur par défaut de SMS Manager est utilisé. Choisissez un expéditeur précis pour associer cette campagne à cet expéditeur, quelles que soient les modifications ultérieures de l\'expéditeur par défaut.',
     'SMS Invitation Message' => 'Message d\'invitation SMS',
     'Use {name} to personalize and {link} to include the invitation URL.' => 'Utilisez {name} pour personnaliser et {link} pour inclure l\'URL d\'invitation.',
     'Email Settings' => 'Paramètres e-mail',
