@@ -35,6 +35,11 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
     use QueueTtrTrait;
     use LoggingTrait;
 
+    private const OUTCOME_SENT = 'sent';
+    private const OUTCOME_FAILED = 'failed';
+    private const OUTCOME_SKIPPED = 'skipped';
+    private const OUTCOME_RECIPIENT_DELETED = 'recipientDeleted';
+
     /**
      * @var int Campaign ID
      */
@@ -165,22 +170,30 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                 continue;
             }
 
+            $recipientDeleted = false;
+
             // Send SMS if enabled and recipient has phone and hasn't received SMS yet
             if ($this->sendSms && !empty($recipient->sms) && empty($recipient->smsSendDate)) {
                 if (!empty($content->smsInvitationMessage)) {
-                    $result = CampaignManager::$plugin->recipients->processSmsInvitation(
-                        $campaign,
-                        $recipient,
-                        $campaign->providerHandle,
-                        $campaign->senderHandle,
+                    $outcome = $this->sendOncePerChannel(
+                        (int)$recipientId,
+                        'sms',
+                        static fn(RecipientRecord $pending): bool => CampaignManager::$plugin->recipients->processSmsInvitation(
+                            $campaign,
+                            $pending,
+                            $campaign->providerHandle,
+                            $campaign->senderHandle,
+                        ),
                     );
 
-                    if ($result) {
+                    if ($outcome === self::OUTCOME_SENT) {
                         $smsSent++;
                         $this->logInfo('SMS sent', ['recipientId' => $recipientId]);
-                    } else {
+                    } elseif ($outcome === self::OUTCOME_FAILED) {
                         $errors++;
                         $this->logError('SMS failed', ['recipientId' => $recipientId]);
+                    } elseif ($outcome === self::OUTCOME_RECIPIENT_DELETED) {
+                        $recipientDeleted = true;
                     }
                 } else {
                     $this->logWarning('No SMS invitation message configured', [
@@ -191,19 +204,25 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             }
 
             // Send email if enabled and recipient has email and hasn't received email yet
-            if ($this->sendEmail && !empty($recipient->email) && empty($recipient->emailSendDate)) {
+            if (!$recipientDeleted && $this->sendEmail && !empty($recipient->email) && empty($recipient->emailSendDate)) {
                 if (!empty($content->emailInvitationMessage)) {
-                    $result = CampaignManager::$plugin->emails->sendNotificationEmail(
-                        $recipient,
-                        $campaign
+                    $outcome = $this->sendOncePerChannel(
+                        (int)$recipientId,
+                        'email',
+                        static fn(RecipientRecord $pending): bool => CampaignManager::$plugin->emails->sendNotificationEmail(
+                            $pending,
+                            $campaign
+                        ),
                     );
 
-                    if ($result) {
+                    if ($outcome === self::OUTCOME_SENT) {
                         $emailSent++;
                         $this->logInfo('Email sent', ['recipientId' => $recipientId]);
-                    } else {
+                    } elseif ($outcome === self::OUTCOME_FAILED) {
                         $errors++;
                         $this->logError('Email failed', ['recipientId' => $recipientId]);
+                    } elseif ($outcome === self::OUTCOME_RECIPIENT_DELETED) {
+                        $recipientDeleted = true;
                     }
                 } else {
                     $this->logWarning('No email invitation message configured', [
@@ -211,6 +230,11 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                         'siteId' => $this->siteId,
                     ]);
                 }
+            }
+
+            if ($recipientDeleted) {
+                $this->logWarning('Recipient not found', ['recipientId' => $recipientId]);
+                $errors++;
             }
 
             $processed++;
@@ -265,6 +289,61 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                     'total' => $totalRecipients,
                 ]
             ));
+        }
+    }
+
+    /**
+     * Send one channel's invitation to a recipient unless another batch is
+     * sending it right now or has already sent it.
+     *
+     * Batches can overlap on a recipient, and each loads its recipients
+     * before sending, so two of them can both see the same invitation as
+     * pending. The send and the send-date write that follows it therefore
+     * happen under a lock for that recipient and channel, and the recipient
+     * is read again from the primary database once the lock is held. A lock
+     * held elsewhere is not waited for: the batch holding it is in the
+     * middle of this very send. SMS and email are locked separately, so one
+     * channel never holds back the other.
+     *
+     * @param callable(RecipientRecord): bool $send Sends the invitation to the freshly loaded recipient
+     * @return string One of the OUTCOME_ constants
+     */
+    private function sendOncePerChannel(int $recipientId, string $channel, callable $send): string
+    {
+        $mutex = Craft::$app->getMutex();
+        $lockName = "campaign-manager:invitation-send:{$recipientId}:{$channel}";
+
+        if (!$mutex->acquire($lockName, 0)) {
+            $this->logInfo('Invitation is being sent by another batch', [
+                'recipientId' => $recipientId,
+                'channel' => $channel,
+            ]);
+
+            return self::OUTCOME_SKIPPED;
+        }
+
+        try {
+            /** @var RecipientRecord|null $pending */
+            $pending = Craft::$app->getDb()->usePrimary(
+                static fn(): ?RecipientRecord => RecipientRecord::findOne($recipientId)
+            );
+
+            if ($pending === null) {
+                return self::OUTCOME_RECIPIENT_DELETED;
+            }
+
+            if (!empty($channel === 'sms' ? $pending->smsSendDate : $pending->emailSendDate)) {
+                $this->logInfo('Invitation was already sent by another batch', [
+                    'recipientId' => $recipientId,
+                    'channel' => $channel,
+                ]);
+
+                return self::OUTCOME_SKIPPED;
+            }
+
+            return $send($pending) ? self::OUTCOME_SENT : self::OUTCOME_FAILED;
+        } finally {
+            $mutex->release($lockName);
         }
     }
 

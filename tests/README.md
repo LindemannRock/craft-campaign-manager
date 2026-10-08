@@ -12,8 +12,26 @@ when it is created and removed by that identity in teardown (see
 |---|---|
 | `Integration/` | One behavioral family per class |
 | `Stubs/` | Recording and failing service/controller/request doubles, plus the PHPStan-only `BaseTestingBootstrap.php` declaration |
-| `Support/` | Shared owners: site-restricted user lifecycle, `CommandRunner`, `CustomerArchiveContract`, `DisposableCraftProject` |
+| `Support/` | Shared owners: site-restricted user lifecycle, invitation delivery capture (`InvitationDeliveryTestCase`), a second database lock holder (`SeparateConnectionMutex`), `CommandRunner`, `CustomerArchiveContract`, `DisposableCraftProject` |
 | `Fixtures/Project/run.php` | Entry point that runs the suite inside one disposable Craft project (standalone CI/Act) and its lifecycle probe |
+| `Fixtures/Templates/` | Site templates the invitation delivery tests pin for their duration, so an invitation email can be built in any project |
+
+## Invitation delivery tests
+
+Tests extending `Support/InvitationDeliveryTestCase.php` run batches through
+the real send services. SMS are captured where they are handed to SMS Manager
+and emails at the application mailer, so nothing is sent. These tests need
+the application mutex to be backed by the database (Craft's default); with
+any other driver they fail instead of being skipped, because overlapping
+workers could not be told apart.
+
+Craft compiles every template it renders into the project's
+`storage/runtime/compiled_templates` directory. The email layout these tests
+render is a fixture of this package, so for the duration of a test the site
+Twig environment keeps its compiled templates in memory instead; the cache
+setting is put back in teardown, which also fails the test if the fixture was
+compiled to disk anyway. Only the fixture's own compiled file, located by its
+exact Twig cache key, is ever removed; no other compiled template is touched.
 
 ## Commands
 

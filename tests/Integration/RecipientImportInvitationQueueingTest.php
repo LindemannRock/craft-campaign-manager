@@ -259,6 +259,11 @@ final class RecipientImportInvitationQueueingTest extends SiteRestrictedUserTest
         self::assertSame((int)$user->id, $batch->triggeredByUserId);
         // An import batch only sends while the campaign is still enabled for its site
         self::assertTrue($batch->onlyWhileCampaignEnabled);
+        // The batch carries those settings and nothing else
+        self::assertEqualsCanonicalizing(
+            ['description', 'campaignId', 'siteId', 'recipientIds', 'sendSms', 'sendEmail', 'triggeredByUserId', 'onlyWhileCampaignEnabled'],
+            array_keys(get_object_vars($batch)),
+        );
 
         $batch->execute(Craft::$app->getQueue());
 
