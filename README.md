@@ -1,7 +1,7 @@
 # Campaign Manager for Craft CMS
 
 [![Latest Version](https://img.shields.io/packagist/v/lindemannrock/craft-campaign-manager.svg)](https://packagist.org/packages/lindemannrock/craft-campaign-manager)
-[![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.0%2B-orange.svg)](https://craftcms.com/)
+[![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.11%2B-orange.svg)](https://craftcms.com/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://php.net/)
 [![Formie](https://img.shields.io/badge/Formie-3.0%2B-purple.svg)](https://verbb.io/craft-plugins/formie)
 [![License](https://img.shields.io/packagist/l/lindemannrock/craft-campaign-manager.svg)](LICENSE.md)
@@ -57,12 +57,12 @@ This plugin is in active development and not yet available on the Craft Plugin S
 
 ## Requirements
 
-- Craft CMS 5.0 or greater
+- Craft CMS 5.11 or greater
 - PHP 8.2 or greater
 - [Formie](https://verbb.io/craft-plugins/formie) 3.0 or greater
 - [SMS Manager](https://github.com/LindemannRock/craft-sms-manager) 5.0 or greater (for SMS invitations)
 - [Logging Library](https://github.com/LindemannRock/craft-logging-library) 5.0 or greater (installed automatically)
-- [Plugin Base](https://github.com/LindemannRock/craft-plugin-base) 5.0 or greater (installed automatically)
+- [Plugin Base](https://github.com/LindemannRock/craft-plugin-base) 5.39.0 or greater (installed automatically)
 
 ## Installation
 
