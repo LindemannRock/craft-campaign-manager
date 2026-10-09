@@ -51,6 +51,14 @@ class RecipientRecord extends BaseRecord
      */
     public ?Submission $submission = null;
 
+    /**
+     * @var string|null The invitation code this recipient was resolved by (not persisted
+     * to DB). Set by {@see \lindemannrock\campaignmanager\services\RecipientsService::getRecipientByInvitationCode()}
+     * so an open is attributed to the channel whose invitation was opened.
+     * @since 5.16.0
+     */
+    public ?string $matchedInvitationCode = null;
+
     public const TABLE_NAME = 'campaignmanager_recipients';
 
     private ?ElementInterface $_campaign = null;
@@ -109,14 +117,17 @@ class RecipientRecord extends BaseRecord
                 $this->sms = $e164;
             }
         }
-        $invitationCode = CampaignManager::$plugin->recipients->getUniqueInvitationCode();
 
+        // Each channel gets its own code so an open can be attributed to the
+        // channel it came from. Existing codes are never replaced.
         if (empty($this->emailInvitationCode)) {
-            $this->emailInvitationCode = $invitationCode;
+            $this->emailInvitationCode = CampaignManager::$plugin->recipients->getUniqueInvitationCode();
         }
 
         if (empty($this->smsInvitationCode)) {
-            $this->smsInvitationCode = $invitationCode;
+            do {
+                $this->smsInvitationCode = CampaignManager::$plugin->recipients->getUniqueInvitationCode();
+            } while ($this->smsInvitationCode === $this->emailInvitationCode);
         }
 
         if ($this->getIsNewRecord() && empty($this->invitationExpiryDate)) {

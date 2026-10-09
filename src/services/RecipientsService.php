@@ -114,6 +114,10 @@ class RecipientsService extends Component
             ])
             ->one();
 
+        if ($result !== null) {
+            $result->matchedInvitationCode = $code;
+        }
+
         return $result;
     }
 
@@ -309,13 +313,66 @@ class RecipientsService extends Component
     }
 
     /**
-     * Mark a recipient as having opened their invitation
+     * Record the first open of the invitation the recipient was resolved by
+     *
+     * Only the channel whose code was opened is marked, and only once: a
+     * later or overlapping open never moves the recorded time. A recipient
+     * whose email and SMS invitations share one code is marked on both
+     * channels, because the opened channel cannot be told apart.
      */
     public function markAsOpened(RecipientRecord $recipient): void
     {
-        $recipient->smsOpenDate = TimeHelper::now();
-        $recipient->emailOpenDate = $recipient->smsOpenDate;
-        $recipient->save(false);
+        $columns = $this->getOpenedChannelColumns($recipient);
+
+        if ($columns === []) {
+            $this->logWarning('Invitation open not recorded: the recipient was not resolved by an invitation code', [
+                'recipientId' => $recipient->id,
+            ]);
+            return;
+        }
+
+        $now = Db::prepareDateForDb(TimeHelper::now());
+
+        foreach ($columns as $column) {
+            // Conditional on the column still being empty so overlapping
+            // requests cannot overwrite the first open.
+            Craft::$app->getDb()->createCommand()
+                ->update(
+                    RecipientRecord::tableName(),
+                    [$column => $now, 'dateUpdated' => $now],
+                    ['id' => $recipient->id, $column => null],
+                )
+                ->execute();
+        }
+
+        $recipient->refresh();
+    }
+
+    /**
+     * The open-date columns an open of the resolved invitation code belongs to.
+     *
+     * @return list<string>
+     */
+    private function getOpenedChannelColumns(RecipientRecord $recipient): array
+    {
+        $emailCode = (string)$recipient->emailInvitationCode;
+        $smsCode = (string)$recipient->smsInvitationCode;
+
+        if ($emailCode !== '' && $emailCode === $smsCode) {
+            return ['emailOpenDate', 'smsOpenDate'];
+        }
+
+        $openedCode = (string)$recipient->matchedInvitationCode;
+
+        if ($openedCode !== '' && $openedCode === $emailCode) {
+            return ['emailOpenDate'];
+        }
+
+        if ($openedCode !== '' && $openedCode === $smsCode) {
+            return ['smsOpenDate'];
+        }
+
+        return [];
     }
 
     /**
