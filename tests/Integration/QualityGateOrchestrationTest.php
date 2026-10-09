@@ -103,7 +103,8 @@ final class QualityGateOrchestrationTest extends TestCase
         self::assertSame(['Composer\\Config::disableProcessTimeout', 'bash scripts/quality-gate'], $scripts['quality-gate']);
         self::assertSame(['@phpstan', '@check-cs'], $scripts['ci']);
         self::assertSame(['@ci', '@test'], $scripts['ci:full']);
-        self::assertSame('phpunit --colors=always', $scripts['test']);
+        self::assertSame('php tests/Fixtures/Project/run.php --no-progress', $scripts['test']);
+        self::assertSame('phpunit --colors=always', $scripts['test:direct']);
         self::assertStringStartsWith('ecs check --ansi', $scripts['check-cs']);
         self::assertStringNotContainsString('--fix', $scripts['check-cs']);
     }
@@ -123,6 +124,10 @@ final class QualityGateOrchestrationTest extends TestCase
         self::assertStringContainsString('composer test', $runTests);
         self::assertStringContainsString('php tests/Fixtures/Project/run.php', $runTests);
         self::assertStringContainsString('--lifecycle-probe', $runTests);
+        self::assertLessThan(
+            strpos($runTests, 'composer test'),
+            strpos($runTests, 'export CAMPAIGN_MANAGER_FIXTURE_SOURCE_VENDOR_ROOT='),
+        );
     }
 
     public function testStaticAnalysisAndStyleCoverSourceAndTests(): void

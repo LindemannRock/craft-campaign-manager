@@ -16,8 +16,8 @@ cd "$PACKAGE_ROOT"
 if [ "$PACKAGE_ROOT" = "$WORKSPACE_ROOT/plugins/campaign-manager" ] \
     && [ -f "$WORKSPACE_ROOT/bootstrap.php" ] \
     && [ -f "$WORKSPACE_ROOT/vendor/autoload.php" ]; then
-    composer test
     export CAMPAIGN_MANAGER_FIXTURE_SOURCE_VENDOR_ROOT="$WORKSPACE_ROOT/vendor"
+    composer test
     exec php tests/Fixtures/Project/run.php --lifecycle-probe
 fi
 
