@@ -11,6 +11,8 @@ namespace lindemannrock\campaignmanager\services;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\LabelHelper;
@@ -22,6 +24,7 @@ use lindemannrock\formieratingfield\fields\Rating;
 use lindemannrock\formieratingfield\FormieRatingField;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use verbb\formie\elements\Submission;
+use yii\db\Expression;
 
 /**
  * Analytics Service
@@ -46,32 +49,49 @@ class AnalyticsService extends Component
     }
 
     /**
-     * Get date range from parameter
+     * Alias of the recipients table inside analytics queries, so columns stay
+     * qualified whatever table prefix the install uses.
+     */
+    private const RECIPIENTS = 'recipients';
+
+    /**
+     * Alias of the Formie submissions table joined for response dates.
+     */
+    private const SUBMISSIONS = 'fs';
+
+    /**
+     * Get the first and last local calendar day a date range covers, for
+     * building chart buckets.
+     *
+     * "All time" reaches back to the oldest retained recipient event in the
+     * campaign and site scope instead of a fixed trailing window; without any
+     * event it covers today only.
      *
      * @param string $dateRange Date range parameter
+     * @param int|string $campaignId Campaign ID or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @return array{start: \DateTime, end: \DateTime}
      */
-    public function getDateRangeFromParam(string $dateRange): array
+    public function getDateRangeFromParam(string $dateRange, int|string $campaignId = 'all', int|string|array $siteId = 'all'): array
     {
-        // Use centralized DateRangeHelper for full date range support
-        // (today, yesterday, last7days, last30days, last90days, thisMonth, lastMonth, thisYear, lastYear, all)
         $bounds = DateRangeHelper::getBounds($dateRange);
         $tz = new \DateTimeZone(Craft::$app->getTimeZone());
 
         $start = $bounds['start'] ? (clone $bounds['start'])->setTimezone($tz) : null;
-        $end = $bounds['end'] ? (clone $bounds['end'])->setTimezone($tz)->modify('-1 day') : null;
+        // The end bound is exclusive, so the last covered day is the one before it.
+        $end = $bounds['end'] ? (clone $bounds['end'])->setTimezone($tz)->modify('-1 day') : new \DateTime('now', $tz);
 
-        if (!$start && !$end) {
-            $end = new \DateTime('now', $tz);
-            $start = (clone $end)->modify('-30 days');
-        } elseif (!$start) {
-            $start = (clone $end)->modify('-30 days');
-        } elseif (!$end) {
-            $end = new \DateTime('now', $tz);
+        if (!$start) {
+            $earliest = $this->earliestEventDate($campaignId, $siteId);
+            $start = $earliest ? $earliest->setTimezone($tz) : clone $end;
         }
 
         $start->setTime(0, 0, 0);
         $end->setTime(0, 0, 0);
+
+        if ($start > $end) {
+            $start = clone $end;
+        }
 
         return [
             'start' => $start,
@@ -89,29 +109,14 @@ class AnalyticsService extends Component
      */
     public function getOverviewStats(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $query = $this->joinSubmissions($this->scopeQuery($campaignId, $siteId));
+        $this->whereAnyEventInRange($query, $bounds);
 
-        // Run all seven counts in a single aggregate query instead of 7 cloned
-        // `SELECT COUNT(*)` round-trips against the same filtered recipient set.
-        $now = (new \DateTime())->format('Y-m-d H:i:s');
-        $row = (clone $query)
-            ->select([
-                'totalRecipients' => new \yii\db\Expression('COUNT(*)'),
-                'emailsSent' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'smsSent' => new \yii\db\Expression('SUM(CASE WHEN [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'emailsOpened' => new \yii\db\Expression('SUM(CASE WHEN [[emailOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'smsOpened' => new \yii\db\Expression('SUM(CASE WHEN [[smsOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                // Unique recipients reached / opened — used by the conversion funnel
-                // breakdown. Distinct from the per-channel sums above so a recipient
-                // with both email + SMS isn't counted twice in funnel stages.
-                'uniqueInvited' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL OR [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'uniqueOpened' => new \yii\db\Expression('SUM(CASE WHEN [[emailOpenDate]] IS NOT NULL OR [[smsOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'submissions' => new \yii\db\Expression('SUM(CASE WHEN [[submissionId]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'expired' => new \yii\db\Expression(
-                    'SUM(CASE WHEN [[invitationExpiryDate]] < :nowExpiry AND [[submissionId]] IS NULL THEN 1 ELSE 0 END)',
-                    [':nowExpiry' => $now]
-                ),
-            ])
+        // Every figure counts its own event inside the range, all in one
+        // aggregate query instead of one COUNT(*) round-trip per figure.
+        $row = $query
+            ->select($this->metricSelect($query, $bounds))
             ->one();
 
         $totalRecipients = (int)($row['totalRecipients'] ?? 0);
@@ -161,49 +166,31 @@ class AnalyticsService extends Component
      */
     public function getDailyTrend(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
-        $localDateExpr = DateFormatHelper::localDateExpression('campaignmanager_recipients.dateCreated');
+        $dates = $this->getDateRangeFromParam($dateRange, $campaignId, $siteId);
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $scope = $this->scopeQuery($campaignId, $siteId);
 
-        // Get daily counts
-        $data = (clone $query)
-            ->select([
-                'date' => $localDateExpr,
-                'COUNT(*) as recipients',
-                'SUM(CASE WHEN [[emailSendDate]] IS NOT NULL THEN 1 ELSE 0 END) as [[emailsSent]]',
-                'SUM(CASE WHEN [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END) as [[smsSent]]',
-                'SUM(CASE WHEN [[submissionId]] IS NOT NULL THEN 1 ELSE 0 END) as submissions',
-            ])
-            ->groupBy($localDateExpr)
-            ->orderBy(['date' => SORT_ASC])
-            ->all();
+        // Each series is bucketed by the day its own event happened.
+        $series = [
+            'recipients' => $this->dailyCounts($scope, self::RECIPIENTS . '.dateCreated', $bounds),
+            'emailsSent' => $this->dailyCounts($scope, self::RECIPIENTS . '.emailSendDate', $bounds),
+            'smsSent' => $this->dailyCounts($scope, self::RECIPIENTS . '.smsSendDate', $bounds),
+            'submissions' => $this->dailyCounts($this->joinSubmissions($scope), self::SUBMISSIONS . '.dateCreated', $bounds),
+        ];
 
-        // Fill in missing dates
-        $chartData = [];
+        $labels = [];
+        $values = array_fill_keys(array_keys($series), []);
         $date = clone $dates['start'];
         while ($date <= $dates['end']) {
             $dateStr = $date->format('Y-m-d');
-            $dayData = array_filter($data, fn($row) => $row['date'] === $dateStr);
-            $dayData = $dayData ? array_values($dayData)[0] : null;
-
-            $chartData[] = [
-                'date' => $date->format('M j'),
-                'recipients' => (int)($dayData['recipients'] ?? 0),
-                'emailsSent' => (int)($dayData['emailsSent'] ?? 0),
-                'smsSent' => (int)($dayData['smsSent'] ?? 0),
-                'submissions' => (int)($dayData['submissions'] ?? 0),
-            ];
-
+            $labels[] = $date->format('M j');
+            foreach ($series as $name => $counts) {
+                $values[$name][] = $counts[$dateStr] ?? 0;
+            }
             $date->modify('+1 day');
         }
 
-        return [
-            'labels' => array_column($chartData, 'date'),
-            'recipients' => array_column($chartData, 'recipients'),
-            'emailsSent' => array_column($chartData, 'emailsSent'),
-            'smsSent' => array_column($chartData, 'smsSent'),
-            'submissions' => array_column($chartData, 'submissions'),
-        ];
+        return ['labels' => $labels] + $values;
     }
 
     /**
@@ -216,16 +203,19 @@ class AnalyticsService extends Component
      */
     public function getChannelDistribution(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $emailSent = $this->eventInRange(self::RECIPIENTS . '.emailSendDate', $bounds);
+        $smsSent = $this->eventInRange(self::RECIPIENTS . '.smsSendDate', $bounds);
 
-        // Single aggregate query for all 3 mutually-exclusive channel buckets —
-        // matches the SUM(CASE WHEN…) pattern used by getOverviewStats() and
-        // getConversionFunnel().
-        $row = (clone $query)
+        // Recipients invited inside the range, split by the channels used; one
+        // aggregate query for the three exclusive buckets.
+        $query = $this->scopeQuery($campaignId, $siteId)
+            ->andWhere(['or', $emailSent, $smsSent]);
+        $row = $query
             ->select([
-                'emailOnly' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL AND [[smsSendDate]] IS NULL THEN 1 ELSE 0 END)'),
-                'smsOnly' => new \yii\db\Expression('SUM(CASE WHEN [[smsSendDate]] IS NOT NULL AND [[emailSendDate]] IS NULL THEN 1 ELSE 0 END)'),
-                'both' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL AND [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
+                'emailOnly' => $this->countWhere($query, ['and', $emailSent, ['not', $smsSent]]),
+                'smsOnly' => $this->countWhere($query, ['and', $smsSent, ['not', $emailSent]]),
+                'both' => $this->countWhere($query, ['and', $emailSent, $smsSent]),
             ])
             ->one();
 
@@ -253,49 +243,29 @@ class AnalyticsService extends Component
      */
     public function getEngagementOverTime(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
-        $emailOpenExpr = DateFormatHelper::localDateExpression('emailOpenDate');
-        $smsOpenExpr = DateFormatHelper::localDateExpression('smsOpenDate');
+        $dates = $this->getDateRangeFromParam($dateRange, $campaignId, $siteId);
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $scope = $this->scopeQuery($campaignId, $siteId);
 
-        // Get daily opens
-        $emailOpens = (clone $query)
-            ->select([
-                'date' => $emailOpenExpr,
-                'COUNT(*) as count',
-            ])
-            ->andWhere(['not', ['emailOpenDate' => null]])
-            ->groupBy($emailOpenExpr)
-            ->indexBy('date')
-            ->column();
+        $emailOpens = $this->dailyCounts($scope, self::RECIPIENTS . '.emailOpenDate', $bounds);
+        $smsOpens = $this->dailyCounts($scope, self::RECIPIENTS . '.smsOpenDate', $bounds);
 
-        $smsOpens = (clone $query)
-            ->select([
-                'date' => $smsOpenExpr,
-                'COUNT(*) as count',
-            ])
-            ->andWhere(['not', ['smsOpenDate' => null]])
-            ->groupBy($smsOpenExpr)
-            ->indexBy('date')
-            ->column();
-
-        // Fill in missing dates
-        $chartData = [];
+        $labels = [];
+        $emailSeries = [];
+        $smsSeries = [];
         $date = clone $dates['start'];
         while ($date <= $dates['end']) {
             $dateStr = $date->format('Y-m-d');
-            $chartData[] = [
-                'date' => $date->format('M j'),
-                'emailOpens' => (int)($emailOpens[$dateStr] ?? 0),
-                'smsOpens' => (int)($smsOpens[$dateStr] ?? 0),
-            ];
+            $labels[] = $date->format('M j');
+            $emailSeries[] = $emailOpens[$dateStr] ?? 0;
+            $smsSeries[] = $smsOpens[$dateStr] ?? 0;
             $date->modify('+1 day');
         }
 
         return [
-            'labels' => array_column($chartData, 'date'),
-            'emailOpens' => array_column($chartData, 'emailOpens'),
-            'smsOpens' => array_column($chartData, 'smsOpens'),
+            'labels' => $labels,
+            'emailOpens' => $emailSeries,
+            'smsOpens' => $smsSeries,
         ];
     }
 
@@ -309,18 +279,9 @@ class AnalyticsService extends Component
      */
     public function getConversionFunnel(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
-        $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange);
-
-        // Single aggregate query for all 4 funnel stages — matches the pattern
-        // used in getOverviewStats() to avoid 4 separate COUNT(*) round-trips.
-        $row = (clone $query)
-            ->select([
-                'totalRecipients' => new \yii\db\Expression('COUNT(*)'),
-                'invited' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL OR [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'opened' => new \yii\db\Expression('SUM(CASE WHEN [[emailOpenDate]] IS NOT NULL OR [[smsOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'submitted' => new \yii\db\Expression('SUM(CASE WHEN [[submissionId]] IS NOT NULL THEN 1 ELSE 0 END)'),
-            ])
-            ->one();
+        // The funnel stages are the unique-recipient figures of the summary, so
+        // the chart and the funnel table always agree.
+        $stats = $this->getOverviewStats($campaignId, $siteId, $dateRange);
 
         return [
             'labels' => [
@@ -330,10 +291,10 @@ class AnalyticsService extends Component
                 Craft::t('campaign-manager', 'Submitted'),
             ],
             'values' => [
-                (int)($row['totalRecipients'] ?? 0),
-                (int)($row['invited'] ?? 0),
-                (int)($row['opened'] ?? 0),
-                (int)($row['submitted'] ?? 0),
+                $stats['totalRecipients'],
+                $stats['uniqueInvited'],
+                $stats['uniqueOpened'],
+                $stats['submissions'],
             ],
         ];
     }
@@ -353,7 +314,9 @@ class AnalyticsService extends Component
             return [];
         }
 
-        $campaignQuery = Campaign::find();
+        // Disabled campaigns keep their history here; this is reporting, not a
+        // selector for sending.
+        $campaignQuery = Campaign::find()->status(null);
         if ($siteId !== 'all') {
             $campaignQuery->siteId($siteId);
         }
@@ -377,29 +340,18 @@ class AnalyticsService extends Component
             $siteIds[(int)$campaign->siteId] = true;
         }
 
-        $recipientTable = RecipientRecord::tableName();
-        $now = (new \DateTime())->format('Y-m-d H:i:s');
+        $bounds = DateRangeHelper::getBounds($dateRange);
         // Aggregate the same metric set as getOverviewStats() per (campaign,
         // site) so the analytics export can read this directly instead of
         // looping getOverviewStats() per row.
-        $statsRows = $this->buildRecipientQuery('all', 'all', $dateRange)
-            ->andWhere([$recipientTable . '.campaignId' => array_keys($campaignIds)])
-            ->andWhere([$recipientTable . '.siteId' => array_keys($siteIds)])
+        $statsQuery = $this->joinSubmissions($this->scopeQuery(array_keys($campaignIds), array_keys($siteIds)));
+        $this->whereAnyEventInRange($statsQuery, $bounds);
+        $statsRows = $statsQuery
             ->select([
-                'campaignId' => $recipientTable . '.campaignId',
-                'siteId' => $recipientTable . '.siteId',
-                'totalRecipients' => new \yii\db\Expression('COUNT(*)'),
-                'emailsSent' => new \yii\db\Expression('SUM(CASE WHEN [[emailSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'smsSent' => new \yii\db\Expression('SUM(CASE WHEN [[smsSendDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'emailsOpened' => new \yii\db\Expression('SUM(CASE WHEN [[emailOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'smsOpened' => new \yii\db\Expression('SUM(CASE WHEN [[smsOpenDate]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'submissions' => new \yii\db\Expression('SUM(CASE WHEN [[submissionId]] IS NOT NULL THEN 1 ELSE 0 END)'),
-                'expired' => new \yii\db\Expression(
-                    'SUM(CASE WHEN [[invitationExpiryDate]] < :nowExpiry AND [[submissionId]] IS NULL THEN 1 ELSE 0 END)',
-                    [':nowExpiry' => $now]
-                ),
-            ])
-            ->groupBy([$recipientTable . '.campaignId', $recipientTable . '.siteId'])
+                'campaignId' => self::RECIPIENTS . '.campaignId',
+                'siteId' => self::RECIPIENTS . '.siteId',
+            ] + $this->metricSelect($statsQuery, $bounds))
+            ->groupBy([self::RECIPIENTS . '.campaignId', self::RECIPIENTS . '.siteId'])
             ->all();
 
         $statsByKey = [];
@@ -497,162 +449,301 @@ class AnalyticsService extends Component
      */
     public function getCampaignDailyTrend(int $campaignId, int|array|null $siteId, string $dateRange): array
     {
-        $dates = $this->getDateRangeFromParam($dateRange);
-        $query = $this->buildRecipientQuery($campaignId, $siteId ?? 'all', $dateRange);
-        $recipientTable = RecipientRecord::tableName();
-        // localDateExpression() wraps the column in [[...]]; pass the raw table.column
-        // (without {{%...}} prefix) so Yii's quoting resolves cleanly.
-        $smsSendExpr = DateFormatHelper::localDateExpression('campaignmanager_recipients.smsSendDate');
-        $emailSendExpr = DateFormatHelper::localDateExpression('campaignmanager_recipients.emailSendDate');
-        $smsOpenExpr = DateFormatHelper::localDateExpression('campaignmanager_recipients.smsOpenDate');
-        $emailOpenExpr = DateFormatHelper::localDateExpression('campaignmanager_recipients.emailOpenDate');
-        $submissionExpr = DateFormatHelper::localDateExpression('fs.dateCreated');
+        $siteId ??= 'all';
+        $dates = $this->getDateRangeFromParam($dateRange, $campaignId, $siteId);
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $scope = $this->scopeQuery($campaignId, $siteId);
 
-        // Get daily sent counts (using send dates, not dateCreated)
+        // Sends and opens add both channels into one series; each event is
+        // bucketed by the day it happened.
+        $sent = $this->mergeDailyCounts(
+            $this->dailyCounts($scope, self::RECIPIENTS . '.emailSendDate', $bounds),
+            $this->dailyCounts($scope, self::RECIPIENTS . '.smsSendDate', $bounds),
+        );
+        $opened = $this->mergeDailyCounts(
+            $this->dailyCounts($scope, self::RECIPIENTS . '.emailOpenDate', $bounds),
+            $this->dailyCounts($scope, self::RECIPIENTS . '.smsOpenDate', $bounds),
+        );
+        $submissions = $this->dailyCounts($this->joinSubmissions($scope), self::SUBMISSIONS . '.dateCreated', $bounds);
+
+        $labels = [];
         $sentData = [];
         $openedData = [];
         $submissionData = [];
-
-        // Build date array first
-        $dateLabels = [];
         $date = clone $dates['start'];
         while ($date <= $dates['end']) {
             $dateStr = $date->format('Y-m-d');
-            $dateLabels[$dateStr] = $date->format('M j');
-            $sentData[$dateStr] = 0;
-            $openedData[$dateStr] = 0;
-            $submissionData[$dateStr] = 0;
+            $labels[] = $date->format('M j');
+            $sentData[] = $sent[$dateStr] ?? 0;
+            $openedData[] = $opened[$dateStr] ?? 0;
+            $submissionData[] = $submissions[$dateStr] ?? 0;
             $date->modify('+1 day');
         }
 
-        // Get SMS sent by date
-        $smsSentByDate = (clone $query)
-            ->select(['date' => $smsSendExpr, 'COUNT(*) as count'])
-            ->andWhere(['not', [$recipientTable . '.smsSendDate' => null]])
-            ->groupBy($smsSendExpr)
-            ->all();
-
-        foreach ($smsSentByDate as $row) {
-            if (isset($sentData[$row['date']])) {
-                $sentData[$row['date']] += (int)$row['count'];
-            }
-        }
-
-        // Get email sent by date
-        $emailSentByDate = (clone $query)
-            ->select(['date' => $emailSendExpr, 'COUNT(*) as count'])
-            ->andWhere(['not', [$recipientTable . '.emailSendDate' => null]])
-            ->groupBy($emailSendExpr)
-            ->all();
-
-        foreach ($emailSentByDate as $row) {
-            if (isset($sentData[$row['date']])) {
-                $sentData[$row['date']] += (int)$row['count'];
-            }
-        }
-
-        // Get opened by date (SMS)
-        $smsOpenedByDate = (clone $query)
-            ->select(['date' => $smsOpenExpr, 'COUNT(*) as count'])
-            ->andWhere(['not', [$recipientTable . '.smsOpenDate' => null]])
-            ->groupBy($smsOpenExpr)
-            ->all();
-
-        foreach ($smsOpenedByDate as $row) {
-            if (isset($openedData[$row['date']])) {
-                $openedData[$row['date']] += (int)$row['count'];
-            }
-        }
-
-        // Get opened by date (Email)
-        $emailOpenedByDate = (clone $query)
-            ->select(['date' => $emailOpenExpr, 'COUNT(*) as count'])
-            ->andWhere(['not', [$recipientTable . '.emailOpenDate' => null]])
-            ->groupBy($emailOpenExpr)
-            ->all();
-
-        foreach ($emailOpenedByDate as $row) {
-            if (isset($openedData[$row['date']])) {
-                $openedData[$row['date']] += (int)$row['count'];
-            }
-        }
-
-        // Get submissions - bucket by the Formie submission's dateCreated.
-        // Always in sent mode: add the leftJoin here for this sub-query only.
-        $submissionsQuery = (clone $query)
-            ->andWhere(['not', [$recipientTable . '.submissionId' => null]])
-            ->leftJoin(
-                ['fs' => '{{%formie_submissions}}'],
-                'fs.id = ' . $recipientTable . '.submissionId'
-            );
-
-        $submissionsByDate = $submissionsQuery
-            ->select(['date' => $submissionExpr, 'COUNT(*) as count'])
-            ->groupBy($submissionExpr)
-            ->all();
-
-        foreach ($submissionsByDate as $row) {
-            if (isset($submissionData[$row['date']])) {
-                $submissionData[$row['date']] = (int)$row['count'];
-            }
-        }
-
         return [
-            'labels' => array_values($dateLabels),
-            'sent' => array_values($sentData),
-            'opened' => array_values($openedData),
-            'submissions' => array_values($submissionData),
+            'labels' => $labels,
+            'sent' => $sentData,
+            'opened' => $openedData,
+            'submissions' => $submissionData,
         ];
     }
 
     /**
-     * Build a recipient query with common filters
+     * Recipients of the campaign and site scope, without any date filter.
+     *
+     * @param int|string|array<int> $campaignId Campaign ID, array of campaign IDs, or 'all'
+     * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
+     */
+    private function scopeQuery(int|string|array $campaignId, int|string|array $siteId): Query
+    {
+        $query = (new Query())
+            ->from([self::RECIPIENTS => RecipientRecord::tableName()]);
+
+        if ($campaignId !== 'all') {
+            $query->andWhere([self::RECIPIENTS . '.campaignId' => $campaignId]);
+        }
+
+        if ($siteId !== 'all') {
+            $query->andWhere([self::RECIPIENTS . '.siteId' => $siteId]);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Join the Formie submission a recipient answered with, which carries the
+     * response date. A left join keeps unanswered recipients in the result.
+     */
+    private function joinSubmissions(Query $query, bool $inner = false): Query
+    {
+        $query = clone $query;
+        $on = '[[' . self::SUBMISSIONS . '.id]] = [[' . self::RECIPIENTS . '.submissionId]]';
+        $table = [self::SUBMISSIONS => '{{%formie_submissions}}'];
+
+        return $inner ? $query->innerJoin($table, $on) : $query->leftJoin($table, $on);
+    }
+
+    /**
+     * Condition for an event column holding a moment inside the range. The
+     * start is inclusive and the end exclusive; without bounds (all time) the
+     * event only has to have happened.
+     *
+     * @param array{start: \DateTime|null, end: \DateTime|null} $bounds
+     * @return array<mixed>
+     */
+    private function eventInRange(string $column, array $bounds): array
+    {
+        $condition = ['and', ['not', [$column => null]]];
+
+        if ($bounds['start']) {
+            $condition[] = ['>=', $column, Db::prepareDateForDb($bounds['start'])];
+        }
+        if ($bounds['end']) {
+            $condition[] = ['<', $column, Db::prepareDateForDb($bounds['end'])];
+        }
+
+        return $condition;
+    }
+
+    /**
+     * Condition for an unanswered invitation whose expiry fell inside the
+     * range and has passed.
+     *
+     * @param array{start: \DateTime|null, end: \DateTime|null} $bounds
+     * @return array<mixed>
+     */
+    private function expiredInRange(array $bounds): array
+    {
+        $expiry = self::RECIPIENTS . '.invitationExpiryDate';
+
+        return [
+            'and',
+            $this->eventInRange($expiry, $bounds),
+            ['<', $expiry, Db::prepareDateForDb(new \DateTime())],
+            [self::RECIPIENTS . '.submissionId' => null],
+        ];
+    }
+
+    /**
+     * Keep only recipients with at least one event inside a bounded range, so
+     * the aggregate never has to visit rows the range cannot count.
+     *
+     * @param array{start: \DateTime|null, end: \DateTime|null} $bounds
+     */
+    private function whereAnyEventInRange(Query $query, array $bounds): void
+    {
+        if (!$bounds['start'] && !$bounds['end']) {
+            return;
+        }
+
+        $condition = ['or'];
+        foreach ($this->eventColumns() as $column) {
+            $condition[] = $this->eventInRange($column, $bounds);
+        }
+
+        $query->andWhere($condition);
+    }
+
+    /**
+     * The event columns a date range can count, with the submissions join in place.
+     *
+     * @return list<string>
+     */
+    private function eventColumns(): array
+    {
+        return [
+            self::RECIPIENTS . '.dateCreated',
+            self::RECIPIENTS . '.emailSendDate',
+            self::RECIPIENTS . '.smsSendDate',
+            self::RECIPIENTS . '.emailOpenDate',
+            self::RECIPIENTS . '.smsOpenDate',
+            self::RECIPIENTS . '.invitationExpiryDate',
+            self::SUBMISSIONS . '.dateCreated',
+        ];
+    }
+
+    /**
+     * The summary figures as aggregate selections, every one counting its own
+     * event inside the range. The query must have the submissions join.
+     *
+     * @param array{start: \DateTime|null, end: \DateTime|null} $bounds
+     * @return array<string, Expression>
+     */
+    private function metricSelect(Query $query, array $bounds): array
+    {
+        $created = $this->eventInRange(self::RECIPIENTS . '.dateCreated', $bounds);
+        $emailSent = $this->eventInRange(self::RECIPIENTS . '.emailSendDate', $bounds);
+        $smsSent = $this->eventInRange(self::RECIPIENTS . '.smsSendDate', $bounds);
+        $emailOpened = $this->eventInRange(self::RECIPIENTS . '.emailOpenDate', $bounds);
+        $smsOpened = $this->eventInRange(self::RECIPIENTS . '.smsOpenDate', $bounds);
+        $responded = $this->eventInRange(self::SUBMISSIONS . '.dateCreated', $bounds);
+
+        return [
+            'totalRecipients' => $this->countWhere($query, $created),
+            'emailsSent' => $this->countWhere($query, $emailSent),
+            'smsSent' => $this->countWhere($query, $smsSent),
+            'emailsOpened' => $this->countWhere($query, $emailOpened),
+            'smsOpened' => $this->countWhere($query, $smsOpened),
+            // Unique recipients reached / opened — used by the conversion funnel.
+            // Distinct from the per-channel sums so a recipient reached on both
+            // channels is not counted twice in a funnel stage.
+            'uniqueInvited' => $this->countWhere($query, ['or', $emailSent, $smsSent]),
+            'uniqueOpened' => $this->countWhere($query, ['or', $emailOpened, $smsOpened]),
+            'submissions' => $this->countWhere($query, $responded),
+            'expired' => $this->countWhere($query, $this->expiredInRange($bounds)),
+        ];
+    }
+
+    /**
+     * SUM(CASE WHEN … THEN 1 ELSE 0 END) for a condition, with its parameters
+     * bound on the query it will run in.
+     *
+     * @param array<mixed> $condition
+     */
+    private function countWhere(Query $query, array $condition): Expression
+    {
+        $params = $query->params;
+        $sql = Craft::$app->getDb()->getQueryBuilder()->buildCondition($condition, $params);
+        $query->addParams($params);
+
+        return new Expression("SUM(CASE WHEN {$sql} THEN 1 ELSE 0 END)");
+    }
+
+    /**
+     * Count the events of a column per local calendar day inside the range.
+     *
+     * @param array{start: \DateTime|null, end: \DateTime|null} $bounds
+     * @return array<string, int> Counts keyed by `Y-m-d`
+     */
+    private function dailyCounts(Query $query, string $column, array $bounds): array
+    {
+        $localDate = DateFormatHelper::localDateExpression($column);
+
+        $rows = (clone $query)
+            ->select(['date' => $localDate, 'count' => new Expression('COUNT(*)')])
+            ->andWhere($this->eventInRange($column, $bounds))
+            ->groupBy($localDate)
+            ->all();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(string)$row['date']] = (int)$row['count'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Add two per-day count series together.
+     *
+     * @param array<string, int> $first
+     * @param array<string, int> $second
+     * @return array<string, int>
+     */
+    private function mergeDailyCounts(array $first, array $second): array
+    {
+        foreach ($second as $date => $count) {
+            $first[$date] = ($first[$date] ?? 0) + $count;
+        }
+
+        return $first;
+    }
+
+    /**
+     * The oldest moment any retained event in the scope happened, or null when
+     * the scope has no recipient.
+     */
+    private function earliestEventDate(int|string $campaignId, int|string|array $siteId): ?\DateTime
+    {
+        $query = $this->joinSubmissions($this->scopeQuery($campaignId, $siteId));
+
+        $select = [];
+        foreach ($this->eventColumns() as $index => $column) {
+            $select['event' . $index] = new Expression('MIN([[' . $column . ']])');
+        }
+
+        $row = $query->select($select)->one();
+        if ($row === false) {
+            return null;
+        }
+
+        $earliest = null;
+        foreach ($row as $value) {
+            $date = $value !== null ? DateTimeHelper::toDateTime($value) : false;
+            if ($date !== false && ($earliest === null || $date < $earliest)) {
+                $earliest = $date;
+            }
+        }
+
+        return $earliest;
+    }
+
+    /**
+     * Recipients of the scope selected by the chosen date basis: "sent" keeps
+     * recipients invited inside the range on either channel, "response" keeps
+     * recipients whose form was submitted inside it.
      *
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
-     * @param string $dateBasis Date basis: 'sent' (filter by recipient dateCreated) or 'response' (filter by submission dateCreated via JOIN)
+     * @param string $dateBasis Date basis: 'sent' or 'response'
      * @return Query
      */
     private function buildRecipientQuery(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis = 'sent'): Query
     {
-        $recipientTable = RecipientRecord::tableName();
-
-        $query = (new Query())
-            ->from([$recipientTable]);
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $query = $this->scopeQuery($campaignId, $siteId);
 
         if ($dateBasis === 'response') {
-            // JOIN formie_submissions so we can filter and bucket by submission dateCreated
-            $query->innerJoin(
-                ['fs' => '{{%formie_submissions}}'],
-                'fs.id = ' . $recipientTable . '.submissionId'
-            );
-            $bounds = DateRangeHelper::getBounds($dateRange);
-            if ($bounds['start']) {
-                $query->andWhere(['>=', 'fs.dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
-            }
-            if ($bounds['end']) {
-                $query->andWhere(['<', 'fs.dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
-            }
-        } else {
-            $bounds = DateRangeHelper::getBounds($dateRange);
-            if ($bounds['start']) {
-                $query->andWhere(['>=', $recipientTable . '.dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['start'])]);
-            }
-            if ($bounds['end']) {
-                $query->andWhere(['<', $recipientTable . '.dateCreated', \craft\helpers\Db::prepareDateForDb($bounds['end'])]);
-            }
+            return $this->joinSubmissions($query, true)
+                ->andWhere($this->eventInRange(self::SUBMISSIONS . '.dateCreated', $bounds));
         }
 
-        if ($campaignId !== 'all') {
-            $query->andWhere([$recipientTable . '.campaignId' => $campaignId]);
-        }
-
-        if ($siteId !== 'all') {
-            $query->andWhere([$recipientTable . '.siteId' => $siteId]);
-        }
-
-        return $query;
+        return $query->andWhere([
+            'or',
+            $this->eventInRange(self::RECIPIENTS . '.emailSendDate', $bounds),
+            $this->eventInRange(self::RECIPIENTS . '.smsSendDate', $bounds),
+        ]);
     }
 
     /**
@@ -1052,7 +1143,7 @@ class AnalyticsService extends Component
 
         $isNps = $ratingField->ratingType === Rating::RATING_TYPE_NPS;
 
-        $dates = $this->getDateRangeFromParam($dateRange);
+        $dates = $this->getDateRangeFromParam($dateRange, $campaignId, $siteId);
         $start = $dates['start'];
         $end = $dates['end'];
 
@@ -1277,7 +1368,7 @@ class AnalyticsService extends Component
             $formIdByKey[$campaign->id . '-' . $campaign->siteId] = (int)($campaign->formId ?? 0);
         }
 
-        $recipientTable = RecipientRecord::tableName();
+        $recipientTable = self::RECIPIENTS;
         $recipientRows = $this->buildRecipientQuery('all', 'all', $dateRange, $dateBasis)
             ->andWhere([$recipientTable . '.campaignId' => array_keys($campaignIdsInScope)])
             ->andWhere([$recipientTable . '.siteId' => array_keys($siteIdsInScope)])
@@ -1511,7 +1602,7 @@ class AnalyticsService extends Component
             return $emptyResult;
         }
 
-        $recipientTable = RecipientRecord::tableName();
+        $recipientTable = self::RECIPIENTS;
 
         // Build recipient query scoped by filters — must have a submission
         $query = $this->buildRecipientQuery($campaignId, $siteId, $dateRange, $dateBasis);

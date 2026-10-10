@@ -116,15 +116,17 @@ abstract class TestCase extends IntegrationTestCase
     }
 
     /**
-     * Save a Formie form whose single page contains one text field per handle.
+     * Save a Formie form whose single page contains the given fields. A string
+     * is the handle of a text field; an array is a complete Formie field
+     * configuration.
      *
-     * @param list<string> $fieldHandles
+     * @param list<string|array<string, mixed>> $fieldHandles
      */
     protected function seedForm(array $fieldHandles): Form
     {
         $fields = [];
         foreach ($fieldHandles as $handle) {
-            $fields[] = [
+            $fields[] = is_array($handle) ? $handle : [
                 'type' => SingleLineText::class,
                 'handle' => $handle,
                 'label' => ucfirst($handle),
@@ -319,6 +321,25 @@ abstract class TestCase extends IntegrationTestCase
         }
 
         return $updatedAt->getTimestamp();
+    }
+
+    /**
+     * Move an owned submission's creation time, as if it had been posted at
+     * the given moment. Craft's element row and Formie's submission row both
+     * carry the time, so both are moved.
+     */
+    protected function ageSubmission(Submission $submission, DateTime $createdAt): void
+    {
+        $submissionId = (int)$submission->id;
+        $ownedSubmissionIds = $this->formFixtures[(int)$submission->formId]['submissionIds'] ?? [];
+        if (!in_array($submissionId, $ownedSubmissionIds, true)) {
+            throw new RuntimeException("Submission {$submissionId} is not owned by this test and will not be aged.");
+        }
+
+        $value = Db::prepareDateForDb($createdAt);
+        $db = Craft::$app->getDb();
+        $db->createCommand()->update('{{%elements}}', ['dateCreated' => $value], ['id' => $submissionId])->execute();
+        $db->createCommand()->update('{{%formie_submissions}}', ['dateCreated' => $value], ['id' => $submissionId])->execute();
     }
 
     /**

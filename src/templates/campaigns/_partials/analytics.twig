@@ -66,8 +66,9 @@
             } only %}
         </div>
 
-        {# Charts #}
-        {% if stats.totalRecipients > 0 %}
+        {# Charts — shown for any activity in the range, not only for recipients added in it #}
+        {% set hasActivity = stats.totalRecipients > 0 or stats.totalSent > 0 or stats.totalOpened > 0 or stats.submissions > 0 %}
+        {% if hasActivity %}
             <div class="lr-analytics-charts two-columns">
                 {# Daily Trend Chart #}
                 <div class="lr-chart-container">
@@ -129,7 +130,7 @@
                canvases when the base analytics-panel does its own date-filter AJAX. If this
                sat outside the embed, the date filter would render new canvases but no listener
                would be attached to draw into them. #}
-            {% if stats.totalRecipients > 0 %}
+            {% if hasActivity %}
                 <script>
                 document.addEventListener('lr:panelChartsReady', function() {
                     // Daily Trend Chart

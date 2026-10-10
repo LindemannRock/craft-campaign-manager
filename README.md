@@ -45,7 +45,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
   - Campaign performance comparison
   - **Ratings tab** (when `formie-rating-field` is enabled): per-campaign NPS / Star / Emoji rating analytics with rating field picker, distribution chart (donut for NPS, bar for star/emoji), trend chart, and per-campaign breakdown table
   - **Multi-section export**: Excel (multi-sheet: Summary / Per Campaign / Raw Responses), CSV (ZIP of per-section CSVs), JSON (nested with all sections); Raw Responses includes per-recipient detail (campaign, site, send/response dates, rating value)
-  - Filter by campaign, site, and date range; Ratings tab also supports a **"Date based on"** filter (Send activity vs. Response date)
+  - Filter by campaign, site, and date range; Ratings tab also supports a **"Date based on"** filter (Send activity keeps recipients invited in the range, Response date keeps forms submitted in the range)
   - Optional Craft dashboard widgets for analytics summary and campaign performance, with date-range and site filters
 - **Survey Response Tracking**:
   - Link Formie submissions to recipients
@@ -253,6 +253,10 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
    - **Engagement**: Open rates over time
    - **Conversion**: Funnel visualization and breakdown
 4. Export data using the Export button
+
+A date range counts events by when they happened: recipients by when they were added, invitations by when they were sent, opens by when they were first opened, responses by when the form was submitted, and expired invitations by when they expired. **All time** covers every retained event. The same figures appear on the Analytics page, in its export, in the dashboard widgets, and on a campaign's own Analytics tab.
+
+Disabling a campaign stops sending but keeps its history: it stays in the campaign filter, the campaign performance table, the export, and the performance widget.
 
 ### How Responses Are Linked to Recipients
 
