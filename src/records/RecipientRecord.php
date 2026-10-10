@@ -198,34 +198,4 @@ class RecipientRecord extends BaseRecord
 
         return $this->invitationExpiryDate < DateTimeHelper::now();
     }
-
-    /**
-     * Find all recipients with outstanding email invitations
-     *
-     * @return array<static>
-     */
-    public static function findAllWithOutstandingEmailInvitation(): array
-    {
-        /** @var array<static> $results */
-        $results = static::find()
-            ->where(['emailSendDate' => null])
-            ->all();
-
-        return $results;
-    }
-
-    /**
-     * Find all recipients with outstanding SMS invitations
-     *
-     * @return array<static>
-     */
-    public static function findAllWithOutstandingSmsInvitation(): array
-    {
-        /** @var array<static> $results */
-        $results = static::find()
-            ->where(['smsSendDate' => null])
-            ->all();
-
-        return $results;
-    }
 }

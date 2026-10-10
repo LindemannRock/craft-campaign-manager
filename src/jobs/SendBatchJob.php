@@ -9,12 +9,16 @@
 namespace lindemannrock\campaignmanager\jobs;
 
 use Craft;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Queue;
 use craft\queue\BaseJob;
 use Exception;
 use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
+use lindemannrock\campaignmanager\exceptions\InvalidInvitationDelayException;
 use lindemannrock\campaignmanager\exceptions\SendBatchFailedException;
+use lindemannrock\campaignmanager\helpers\InvitationScheduleHelper;
 use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
@@ -24,7 +28,11 @@ use yii\queue\RetryableJobInterface;
 /**
  * Send Batch Job
  *
- * Sends SMS and/or email invitations to a batch of recipients.
+ * Sends SMS and/or email invitations to a batch of recipients. A recipient
+ * whose invitation delay has not passed when the batch runs is not sent to;
+ * such recipients are queued again to run once the last of them is eligible.
+ * A campaign whose stored delay cannot be read fails the batch before any
+ * invitation is attempted.
  *
  * @author    LindemannRock
  * @package   CampaignManager
@@ -138,10 +146,32 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
         }
 
         $totalRecipients = count($this->recipientIds);
+
+        // A delay that cannot be read must not be mistaken for no delay:
+        // nothing is attempted until an administrator corrects the campaign
+        try {
+            InvitationScheduleHelper::delayInterval($campaign->invitationDelayPeriod);
+        } catch (InvalidInvitationDelayException $e) {
+            $this->logError('Invalid invitation delay period; nothing is sent until the campaign is corrected', [
+                'campaignId' => $this->campaignId,
+                'siteId' => $this->siteId,
+                'invitationDelayPeriod' => $campaign->invitationDelayPeriod,
+                'recipientCount' => $totalRecipients,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $this->batchFailed($totalRecipients, $totalRecipients);
+        }
+
         $processed = 0;
         $smsSent = 0;
         $emailSent = 0;
         $errors = 0;
+        // Recipients whose invitation delay has not passed yet, with the
+        // seconds each still has to wait; they are queued again below
+        /** @var array<int, int> $waiting */
+        $waiting = [];
+        $now = DateTimeHelper::now();
 
         $this->logInfo('Processing batch', [
             'campaignId' => $this->campaignId,
@@ -171,9 +201,24 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             }
 
             $recipientDeleted = false;
+            $smsPending = $this->sendSms && !empty($recipient->sms) && empty($recipient->smsSendDate);
+            $emailPending = $this->sendEmail && !empty($recipient->email) && empty($recipient->emailSendDate);
+
+            // The campaign's invitation delay counts from when the recipient
+            // was added and is read now, so a batch that runs early, or a
+            // delay lengthened since it was queued, never sends early
+            if ($smsPending || $emailPending) {
+                $wait = InvitationScheduleHelper::secondsUntilEligible($recipient->dateCreated, $campaign->invitationDelayPeriod, $now);
+                if ($wait > 0) {
+                    $waiting[(int)$recipientId] = $wait;
+                    $processed++;
+                    $this->setProgress($queue, $processed / $totalRecipients);
+                    continue;
+                }
+            }
 
             // Send SMS if enabled and recipient has phone and hasn't received SMS yet
-            if ($this->sendSms && !empty($recipient->sms) && empty($recipient->smsSendDate)) {
+            if ($smsPending) {
                 if (!empty($content->smsInvitationMessage)) {
                     $outcome = $this->sendOncePerChannel(
                         (int)$recipientId,
@@ -204,7 +249,7 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             }
 
             // Send email if enabled and recipient has email and hasn't received email yet
-            if (!$recipientDeleted && $this->sendEmail && !empty($recipient->email) && empty($recipient->emailSendDate)) {
+            if (!$recipientDeleted && $emailPending) {
                 if (!empty($content->emailInvitationMessage)) {
                     $outcome = $this->sendOncePerChannel(
                         (int)$recipientId,
@@ -241,13 +286,24 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             $this->setProgress($queue, $processed / $totalRecipients);
         }
 
+        if ($waiting !== []) {
+            $this->requeueWaiting($waiting);
+        }
+
         $logContext = [
             'campaignId' => $this->campaignId,
             'siteId' => $this->siteId,
             'smsSent' => $smsSent,
             'emailSent' => $emailSent,
             'errors' => $errors,
+            'waiting' => count($waiting),
         ];
+
+        if (count($waiting) === $totalRecipients) {
+            // Nothing was attempted; the batch continues later
+            $this->logInfo('Batch waits for the invitation delay', $logContext);
+            return;
+        }
 
         if ($smsSent === 0 && $emailSent === 0 && $errors > 0) {
             $this->logError('Batch failed', $logContext);
@@ -257,20 +313,26 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             $this->logInfo('Batch complete', $logContext);
         }
 
+        $details = [
+            'siteId' => $this->siteId,
+            'siteName' => Craft::$app->getSites()->getSiteById($this->siteId)?->name,
+            'recipientCount' => $totalRecipients,
+            'smsSent' => $smsSent,
+            'emailSent' => $emailSent,
+            'errors' => $errors,
+        ];
+        if ($waiting !== []) {
+            // Recipients held back by the invitation delay and queued again
+            $details['waiting'] = count($waiting);
+        }
+        $details['triggeredByUserId'] = $this->triggeredByUserId;
+
         CampaignManager::$plugin->activityLogs->log('invitations_sent_batch', [
             'campaignId' => $this->campaignId,
             'source' => 'queue',
             'summary' => Craft::t('campaign-manager', 'Invitation batch sent'),
             'userId' => $this->triggeredByUserId,
-            'details' => [
-                'siteId' => $this->siteId,
-                'siteName' => Craft::$app->getSites()->getSiteById($this->siteId)?->name,
-                'recipientCount' => $totalRecipients,
-                'smsSent' => $smsSent,
-                'emailSent' => $emailSent,
-                'errors' => $errors,
-                'triggeredByUserId' => $this->triggeredByUserId,
-            ],
+            'details' => $details,
             'siteScope' => ActivityLogRecord::SCOPE_SITES,
             'siteIds' => [(int)$this->siteId],
         ]);
@@ -280,16 +342,55 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
         // who already received their invite. Zero-success batches are almost always
         // a config/template/provider issue that retrying won't fix.
         if ($smsSent === 0 && $emailSent === 0 && $errors > 0) {
-            throw new SendBatchFailedException(Craft::t(
-                'campaign-manager',
-                'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.',
-                [
-                    'campaignId' => $this->campaignId,
-                    'errors' => $errors,
-                    'total' => $totalRecipients,
-                ]
-            ));
+            throw $this->batchFailed($errors, $totalRecipients);
         }
+    }
+
+    /**
+     * The failure the queue shows for a batch that could send nothing.
+     */
+    private function batchFailed(int $errors, int $totalRecipients): SendBatchFailedException
+    {
+        return new SendBatchFailedException(Craft::t(
+            'campaign-manager',
+            'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.',
+            [
+                'campaignId' => $this->campaignId,
+                'errors' => $errors,
+                'total' => $totalRecipients,
+            ]
+        ));
+    }
+
+    /**
+     * Queue the recipients whose invitation delay has not passed as a batch
+     * of their own, carrying this batch's settings, to run once the last of
+     * them is eligible. Running it then checks the delay again, so it is
+     * safe for the queue to run it early, for the delay to change, or for
+     * another batch to send to the same recipients first.
+     *
+     * @param array<int, int> $waiting Seconds to wait by recipient ID
+     */
+    private function requeueWaiting(array $waiting): void
+    {
+        $wait = max($waiting);
+
+        Queue::push(new self([
+            'campaignId' => $this->campaignId,
+            'siteId' => $this->siteId,
+            'recipientIds' => array_keys($waiting),
+            'sendSms' => $this->sendSms,
+            'sendEmail' => $this->sendEmail,
+            'triggeredByUserId' => $this->triggeredByUserId,
+            'onlyWhileCampaignEnabled' => $this->onlyWhileCampaignEnabled,
+        ]), null, $wait);
+
+        $this->logInfo('Recipients queued again for the invitation delay', [
+            'campaignId' => $this->campaignId,
+            'siteId' => $this->siteId,
+            'recipientCount' => count($waiting),
+            'waitSeconds' => $wait,
+        ]);
     }
 
     /**

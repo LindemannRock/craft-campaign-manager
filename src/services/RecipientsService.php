@@ -83,24 +83,6 @@ class RecipientsService extends Component
     }
 
     /**
-     * Get date range from parameter
-     *
-     * @param string $dateRange Date range parameter
-     * @return array{start: \DateTime, end: \DateTime}
-     */
-    public function getDateRangeFromParam(string $dateRange): array
-    {
-        // Use centralized DateRangeHelper for full date range support
-        // (today, yesterday, last7days, last30days, last90days, thisMonth, lastMonth, thisYear, lastYear, all)
-        $bounds = DateRangeHelper::getBounds($dateRange);
-
-        return [
-            'start' => $bounds['start'] ?? new \DateTime('-30 days'),
-            'end' => $bounds['end'] ?? new \DateTime(),
-        ];
-    }
-
-    /**
      * Get a recipient by invitation code
      */
     public function getRecipientByInvitationCode(string $code): ?RecipientRecord

@@ -1251,7 +1251,9 @@ class AnalyticsService extends Component
      *
      * NPS fields:        {labels: [Promoters, Passives, Detractors], data: [int, int, int], chartType: 'doughnut'}
      * Star/Emoji fields: {labels: ['1','2',...,'N'], data: [int, ...], chartType: 'bar'}
-     *                    All integer buckets from minValue to maxValue are included (zeros for missing).
+     *                    One bucket per value the field offers, from minValue to maxValue,
+     *                    half-star values included when the field allows them; a value
+     *                    nobody chose is 0.
      *
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
@@ -1294,17 +1296,17 @@ class AnalyticsService extends Component
             ];
         }
 
-        // Star/Emoji: build a full integer range from minValue to maxValue,
-        // filling missing buckets with 0 so every possible value appears in the chart.
-        $distribution = $stats['distribution'] ?? [];
-        $min = (int)($stats['minValue'] ?? 1);
-        $max = (int)($stats['maxValue'] ?? 5);
-
+        // Star/Emoji: the rating field returns one ordered bucket row per
+        // value it offers (half stars included when allowed), each carrying
+        // the number of responses that chose it, with zero for unchosen values.
         $labels = [];
         $data = [];
-        for ($v = $min; $v <= $max; $v++) {
-            $labels[] = (string)$v;
-            $data[] = (int)($distribution[$v] ?? 0);
+        foreach ($stats['distribution'] ?? [] as $bucket) {
+            if (!is_array($bucket) || !isset($bucket['value'])) {
+                continue;
+            }
+            $labels[] = (string)(float)$bucket['value'];
+            $data[] = (int)($bucket['count'] ?? 0);
         }
 
         return ['labels' => $labels, 'data' => $data, 'chartType' => 'bar'];

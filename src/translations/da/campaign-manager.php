@@ -100,7 +100,6 @@ return [
     'Run Campaign' => 'Kør kampagne',
 
     // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Udløser kampagneinvitation(er)',
     '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Importerer modtagere til kampagne #{id}',
     '{pluginName}: Processing campaign #{id}' => '{pluginName}: Behandler kampagne #{id}',
     'Campaign batches queued' => 'Kampagnebatches sat i kø',
@@ -204,7 +203,6 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'Standard-SMS-udbyderen, der bruges til afsendelse af kampagneinvitationer.',
     'Default Sender ID' => 'Standard afsender-ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'Standard-SMS-afsender-ID, der bruges til afsendelse af kampagneinvitationer.',
-    'Select a sender ID...' => 'Vælg et afsender-ID...',
     'Use SMS Manager default (currently: {sender})' => 'Brug standardafsenderen i SMS Manager (i øjeblikket: {sender})',
     'Allowed countries for' => 'Tilladte lande for',
     'All countries.' => 'Alle lande.',

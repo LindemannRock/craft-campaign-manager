@@ -9,10 +9,15 @@
 namespace lindemannrock\campaignmanager\jobs;
 
 use Craft;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Queue;
 use craft\queue\BaseJob;
 use Exception;
 use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\campaignmanager\CampaignManager;
+use lindemannrock\campaignmanager\exceptions\InvalidInvitationDelayException;
+use lindemannrock\campaignmanager\exceptions\SendBatchFailedException;
+use lindemannrock\campaignmanager\helpers\InvitationScheduleHelper;
 use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
@@ -113,9 +118,10 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
             return;
         }
 
-        // Get pending recipient IDs (not full records to save memory)
-        $recipientIds = $this->getPendingRecipientIds($campaign);
-        $totalRecipients = count($recipientIds);
+        // Get pending recipient IDs (not full records to save memory), each
+        // with how long it still has to wait for the campaign's invitation delay
+        $waitByRecipientId = $this->getPendingRecipientWaits($campaign);
+        $totalRecipients = count($waitByRecipientId);
 
         $this->logInfo('Processing campaign', [
             'campaignId' => $this->campaignId,
@@ -128,8 +134,13 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
             return;
         }
 
-        // Split into batches and queue each batch
-        $batches = array_chunk($recipientIds, self::BATCH_SIZE);
+        // Split into batches and queue each batch. Recipients eligible now
+        // are batched first and sent now. The rest are in the order they
+        // become eligible, so each of their batches waits as long as its
+        // last recipient and no recipient is sent to before its time.
+        $ready = array_keys(array_filter($waitByRecipientId, static fn(int $wait): bool => $wait === 0));
+        $waiting = array_keys(array_filter($waitByRecipientId, static fn(int $wait): bool => $wait > 0));
+        $batches = array_merge(array_chunk($ready, self::BATCH_SIZE), array_chunk($waiting, self::BATCH_SIZE));
         $totalBatches = count($batches);
 
         $this->logInfo('Creating batch jobs', [
@@ -138,14 +149,24 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
         ]);
 
         foreach ($batches as $index => $batchIds) {
-            Craft::$app->getQueue()->push(new SendBatchJob([
+            $wait = $waitByRecipientId[end($batchIds)];
+            Queue::push(new SendBatchJob([
                 'campaignId' => $this->campaignId,
                 'siteId' => $this->siteId,
                 'recipientIds' => $batchIds,
                 'sendSms' => $this->sendSms,
                 'sendEmail' => $this->sendEmail,
                 'triggeredByUserId' => $this->triggeredByUserId,
-            ]));
+            ]), null, $wait);
+
+            if ($wait > 0) {
+                $this->logInfo('Batch waits for the invitation delay', [
+                    'campaignId' => $this->campaignId,
+                    'siteId' => $this->siteId,
+                    'recipientCount' => count($batchIds),
+                    'waitSeconds' => $wait,
+                ]);
+            }
 
             $this->setProgress($queue, ($index + 1) / $totalBatches);
         }
@@ -176,11 +197,13 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
     }
 
     /**
-     * Get pending recipient IDs (recipients that need SMS or email)
+     * Get pending recipient IDs (recipients that need SMS or email), in the
+     * order they become eligible for the campaign's invitation delay, each
+     * with the seconds it still has to wait.
      *
-     * @return int[]
+     * @return array<int, int> Seconds to wait by recipient ID; 0 when eligible now
      */
-    private function getPendingRecipientIds(CampaignRecord $campaign): array
+    private function getPendingRecipientWaits(CampaignRecord $campaign): array
     {
         // Load translatable content for this site
         $content = $campaign->getContentForSite($this->siteId);
@@ -194,8 +217,9 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
         }
 
         $query = RecipientRecord::find()
-            ->select(['id'])
-            ->where(['campaignId' => $campaign->id, 'siteId' => $this->siteId]);
+            ->select(['id', 'dateCreated'])
+            ->where(['campaignId' => $campaign->id, 'siteId' => $this->siteId])
+            ->orderBy(['dateCreated' => SORT_ASC, 'id' => SORT_ASC]);
 
         // Build conditions based on what we're sending
         $conditions = ['or'];
@@ -236,9 +260,42 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
             return [];
         }
 
-        $results = $query->column();
+        $rows = $query->asArray()->all();
+        if ($rows === []) {
+            return [];
+        }
 
-        return array_map('intval', $results);
+        // A delay that cannot be read must not be mistaken for no delay:
+        // no batch is queued until an administrator corrects the campaign
+        try {
+            InvitationScheduleHelper::delayInterval($campaign->invitationDelayPeriod);
+        } catch (InvalidInvitationDelayException $e) {
+            $this->logError('Invalid invitation delay period; the campaign is not run until it is corrected', [
+                'campaignId' => $campaign->id,
+                'siteId' => $this->siteId,
+                'invitationDelayPeriod' => $campaign->invitationDelayPeriod,
+                'pendingRecipients' => count($rows),
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new SendBatchFailedException(Craft::t(
+                'campaign-manager',
+                'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.',
+                [
+                    'campaignId' => $this->campaignId,
+                    'errors' => count($rows),
+                    'total' => count($rows),
+                ]
+            ));
+        }
+
+        $waits = [];
+        $now = DateTimeHelper::now();
+        foreach ($rows as $row) {
+            $waits[(int)$row['id']] = InvitationScheduleHelper::secondsUntilEligible((string)$row['dateCreated'], $campaign->invitationDelayPeriod, $now);
+        }
+
+        return $waits;
     }
 
     /**
@@ -246,6 +303,11 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
      */
     public function canRetry($attempt, $error): bool
     {
+        // Retrying cannot read a delay the campaign still carries
+        if ($error instanceof SendBatchFailedException) {
+            return false;
+        }
+
         return ($attempt < 3) && ($error instanceof Exception);
     }
 }

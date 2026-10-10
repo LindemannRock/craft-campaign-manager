@@ -37,7 +37,6 @@ final class CustomerArchiveContract
      */
     public const REQUIRED_RUNTIME_ASSETS = [
         'src/web/assets/analytics/dist/analytics.js',
-        'src/resources/js/jquery.min.js',
     ];
 
     /**

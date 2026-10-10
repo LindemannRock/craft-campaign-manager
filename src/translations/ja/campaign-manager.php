@@ -100,7 +100,6 @@ return [
     'Run Campaign' => 'キャンペーンを実行する',
 
     // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: キャンペーン招待を実行中',
     '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: キャンペーン #{id} の受信者をインポート中',
     '{pluginName}: Processing campaign #{id}' => '{pluginName}: キャンペーン #{id} を処理中',
     'Campaign batches queued' => 'キャンペーンバッチがキューに追加されました',
@@ -204,7 +203,6 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'キャンペーン招待を送信する際に使用するデフォルトの SMS プロバイダーです。',
     'Default Sender ID' => 'デフォルト送信者 ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'キャンペーン招待を送信する際に使用するデフォルトの SMS 送信者 ID です。',
-    'Select a sender ID...' => '送信者 ID を選択してください...',
     'Use SMS Manager default (currently: {sender})' => 'SMS Manager のデフォルトを使用する（現在: {sender}）',
     'Allowed countries for' => '許可された国（対象 :',
     'All countries.' => 'すべての国。',

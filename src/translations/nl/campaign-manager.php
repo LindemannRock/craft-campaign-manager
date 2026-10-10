@@ -100,7 +100,6 @@ return [
     'Run Campaign' => 'Campagne uitvoeren',
 
     // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Campagne-uitnodigingen activeren',
     '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Ontvangers importeren voor campagne #{id}',
     '{pluginName}: Processing campaign #{id}' => '{pluginName}: Campagne #{id} verwerken',
     'Campaign batches queued' => 'Campagnebatches in wachtrij geplaatst',
@@ -204,7 +203,6 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'De standaard SMS-provider voor het verzenden van campagne-uitnodigingen.',
     'Default Sender ID' => 'Standaard afzender-ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'De standaard SMS-afzender-ID voor het verzenden van campagne-uitnodigingen.',
-    'Select a sender ID...' => 'Selecteer een afzender-ID...',
     'Use SMS Manager default (currently: {sender})' => 'Standaardafzender van SMS Manager gebruiken (momenteel: {sender})',
     'Allowed countries for' => 'Toegestane landen voor',
     'All countries.' => 'Alle landen.',

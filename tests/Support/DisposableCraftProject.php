@@ -387,13 +387,13 @@ require __DIR__ . '/bootstrap.php';
 require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php';
 $sites = Craft::$app->getSites();
 $primary = $sites->getPrimarySite();
-// Lowercase handles: the recipient import lowercases CSV site values before
-// matching handles, so mixed-case handles would never match.
-foreach (['de' => 'German', 'fr' => 'French'] as $language => $label) {
+// One handle is mixed-case: Craft allows it, and a CSV import must keep the
+// case of a Site column value to match it.
+foreach (['de' => ['siteDe', 'German'], 'fr' => ['fr', 'French']] as $language => [$handle, $label]) {
     $site = new craft\models\Site([
         'groupId' => $primary->groupId,
         'name' => 'Campaign Manager Fixture ' . $label,
-        'handle' => $language,
+        'handle' => $handle,
         'language' => $language,
         'hasUrls' => true,
         'baseUrl' => 'https://campaign-manager-fixture.example.test/' . $language . '/',

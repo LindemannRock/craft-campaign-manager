@@ -100,7 +100,6 @@ return [
     'Run Campaign' => 'تشغيل الحملة',
 
     // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: تشغيل دعوات الحملة',
     '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: استيراد المستلمين للحملة #{id}',
     '{pluginName}: Processing campaign #{id}' => '{pluginName}: معالجة الحملة #{id}',
     'Campaign batches queued' => 'تم إضافة دفعات الحملة إلى قائمة الانتظار',
@@ -204,7 +203,6 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'مزوّد SMS الافتراضي المستخدم لإرسال دعوات الحملة.',
     'Default Sender ID' => 'معرّف المُرسِل الافتراضي',
     'The default SMS sender ID to use when sending campaign invitations.' => 'معرّف المُرسِل SMS الافتراضي المستخدم لإرسال دعوات الحملة.',
-    'Select a sender ID...' => 'تحديد معرّف مُرسِل...',
     'Use SMS Manager default (currently: {sender})' => 'استخدام المُرسِل الافتراضي لـ SMS Manager (حاليًا: {sender})',
     'Allowed countries for' => 'البلدان المسموح بها لـ',
     'All countries.' => 'جميع البلدان.',

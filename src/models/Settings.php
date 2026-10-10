@@ -67,12 +67,6 @@ class Settings extends Model
     public ?string $invitationTemplate = null;
 
     /**
-     * @var int|null Default SMS Manager sender ID to use for campaigns
-     * @deprecated Use defaultSenderIdHandle instead
-     */
-    public ?int $defaultSenderIdId = null;
-
-    /**
      * @var string|null Default SMS Manager sender ID handle.
      *
      * Single source of truth for the campaign-manager-wide SMS routing
@@ -176,7 +170,6 @@ class Settings extends Model
     protected static function integerFields(): array
     {
         return [
-            'defaultSenderIdId',
             'itemsPerPage',
             'activityLogsRetention',
             'activityLogsLimit',
@@ -244,7 +237,6 @@ class Settings extends Model
             ['invitationRoute', 'match', 'pattern' => '/^[a-zA-Z0-9\-\_\/]+$/', 'message' => Craft::t('campaign-manager', 'Only letters, numbers, hyphens, underscores, and slashes are allowed.')],
             ['invitationRoute', 'validateInvitationRoute'],
             ['invitationTemplate', 'string'],
-            ['defaultSenderIdId', 'integer'],
             ['defaultSenderIdHandle', 'string', 'max' => 64],
             ['enableActivityLogs', 'boolean'],
             ['activityAutoTrimLogs', 'boolean'],
@@ -265,7 +257,6 @@ class Settings extends Model
         return array_merge([
             'invitationRoute' => Craft::t('campaign-manager', 'Invitation Route'),
             'invitationTemplate' => Craft::t('campaign-manager', 'Invitation Template'),
-            'defaultSenderIdId' => Craft::t('campaign-manager', 'Default Sender ID'),
             'defaultSenderIdHandle' => Craft::t('campaign-manager', 'Default Sender ID'),
             'enableActivityLogs' => Craft::t('campaign-manager', 'Enable Activity Logs'),
             'activityLogsRetention' => Craft::t('campaign-manager', 'Logs Retention (Days)'),

@@ -56,7 +56,6 @@ class Install extends Migration
             'pluginName' => $this->string()->defaultValue('Campaign Manager'),
             'invitationRoute' => $this->string()->defaultValue('campaign-manager/invitation'),
             'invitationTemplate' => $this->string(),
-            'defaultSenderIdId' => $this->integer(),
             'defaultSenderIdHandle' => $this->string(64),
             'campaignTypeOptions' => $this->text(),
             'itemsPerPage' => $this->integer()->defaultValue(100),

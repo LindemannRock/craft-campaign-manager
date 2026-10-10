@@ -100,7 +100,6 @@ return [
     'Run Campaign' => 'Esegui campagna',
 
     // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Attivazione invito/i campagna',
     '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Importazione destinatari per la campagna #{id}',
     '{pluginName}: Processing campaign #{id}' => '{pluginName}: Elaborazione campagna #{id}',
     'Campaign batches queued' => 'Batch di campagna accodati',
@@ -204,7 +203,6 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'Il provider SMS predefinito da utilizzare per l\'invio degli inviti alle campagne.',
     'Default Sender ID' => 'ID mittente predefinito',
     'The default SMS sender ID to use when sending campaign invitations.' => 'L\'ID mittente SMS predefinito da utilizzare per l\'invio degli inviti alle campagne.',
-    'Select a sender ID...' => 'Seleziona un ID mittente...',
     'Use SMS Manager default (currently: {sender})' => 'Usa il mittente predefinito di SMS Manager (attualmente: {sender})',
     'Allowed countries for' => 'Paesi consentiti per',
     'All countries.' => 'Tutti i paesi.',

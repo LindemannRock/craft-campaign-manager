@@ -471,6 +471,18 @@ abstract class SiteRestrictedUserTestCase extends TestCase
      */
     protected function queuedJobs(int $campaignId): array
     {
+        return array_column($this->queuedJobsWithDelay($campaignId), 'job');
+    }
+
+    /**
+     * The Campaign Manager jobs queued for an owned campaign, each with the
+     * seconds the queue holds it back before a worker may take it, oldest
+     * first.
+     *
+     * @return list<array{job: object, delay: int}>
+     */
+    protected function queuedJobsWithDelay(int $campaignId): array
+    {
         $this->requireOwnedCampaign($campaignId);
 
         $queue = Craft::$app->getQueue();
@@ -480,7 +492,7 @@ abstract class SiteRestrictedUserTestCase extends TestCase
 
         $jobs = [];
         $rows = (new Query())
-            ->select(['id', 'job'])
+            ->select(['id', 'job', 'delay'])
             ->from($queue->tableName)
             ->where(['like', 'job', 'campaignmanager'])
             ->orderBy('id')
@@ -495,7 +507,7 @@ abstract class SiteRestrictedUserTestCase extends TestCase
             if (!is_object($job)) {
                 throw new RuntimeException('A queued job could not be read back.');
             }
-            $jobs[] = $job;
+            $jobs[] = ['job' => $job, 'delay' => (int)$row['delay']];
         }
 
         return $jobs;

@@ -100,7 +100,6 @@ return [
     'Run Campaign' => 'Run Campaign',
 
     // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Triggering campaign invitation(s)',
     '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Importing recipients for campaign #{id}',
     '{pluginName}: Processing campaign #{id}' => '{pluginName}: Processing campaign #{id}',
     'Campaign batches queued' => 'Campaign batches queued',
@@ -204,7 +203,6 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'The default SMS provider to use when sending campaign invitations.',
     'Default Sender ID' => 'Default Sender ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'The default SMS sender ID to use when sending campaign invitations.',
-    'Select a sender ID...' => 'Select a sender ID...',
     'Use SMS Manager default (currently: {sender})' => 'Use SMS Manager default (currently: {sender})',
     'Allowed countries for' => 'Allowed countries for',
     'All countries.' => 'All countries.',

@@ -12,7 +12,6 @@ namespace lindemannrock\campaignmanager\tests\Integration;
 
 use Craft;
 use craft\db\Query;
-use lindemannrock\base\helpers\CsvImportHelper;
 use lindemannrock\campaignmanager\controllers\RecipientsController;
 use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\jobs\ProcessCampaignJob;
@@ -20,11 +19,9 @@ use lindemannrock\campaignmanager\jobs\SendBatchJob;
 use lindemannrock\campaignmanager\records\ActivityLogRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\campaignmanager\tests\Stubs\FailingActivityLogsService;
-use lindemannrock\campaignmanager\tests\Stubs\InMemorySession;
-use lindemannrock\campaignmanager\tests\Stubs\OwnedCsvUpload;
 use lindemannrock\campaignmanager\tests\Stubs\RecordingEmailsService;
 use lindemannrock\campaignmanager\tests\Stubs\RecordingSmsInvitationService;
-use lindemannrock\campaignmanager\tests\Stubs\SessionApplication;
+use lindemannrock\campaignmanager\tests\Support\ImportSessionSupport;
 use lindemannrock\campaignmanager\tests\Support\SiteRestrictedUserTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use RuntimeException;
@@ -51,18 +48,18 @@ final class RecipientImportInvitationQueueingTest extends SiteRestrictedUserTest
         'campaignManager:importRecipients',
     ];
 
-    private ?InMemorySession $session = null;
+    use ImportSessionSupport;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->session = new InMemorySession();
+        $this->installImportSession();
     }
 
     protected function cleanupExternalState(): void
     {
-        $this->session = null;
+        $this->dropImportSession();
         parent::cleanupExternalState();
     }
 
@@ -500,55 +497,6 @@ final class RecipientImportInvitationQueueingTest extends SiteRestrictedUserTest
         }
 
         return $row;
-    }
-
-    /**
-     * Parse a CSV the way the upload step does, from a file the test owns.
-     *
-     * @return array{headers: list<string>, allRows: list<list<string>>, rowCount: int}
-     */
-    private function parseOwnedCsv(string $contents): array
-    {
-        $path = $this->createTrackedTempDirectory('cm_import_') . '/recipients.csv';
-        file_put_contents($path, $contents);
-
-        return CsvImportHelper::parseUpload(OwnedCsvUpload::fromPath($path), [
-            'maxRows' => CsvImportHelper::DEFAULT_MAX_ROWS,
-            'maxBytes' => CsvImportHelper::DEFAULT_MAX_BYTES,
-            'delimiter' => null,
-            'detectDelimiter' => true,
-        ]);
-    }
-
-    private function session(): InMemorySession
-    {
-        if ($this->session === null) {
-            throw new RuntimeException('No import session is installed.');
-        }
-
-        return $this->session;
-    }
-
-    /**
-     * Run a controller action with the in-memory session available as the
-     * application session, then put the real application back.
-     */
-    private function withSession(callable $action): mixed
-    {
-        $application = Craft::$app;
-        if (!$application instanceof \craft\console\Application) {
-            throw new RuntimeException('The test runtime is expected to be a console application.');
-        }
-        $proxy = new SessionApplication($application, $this->session());
-        Craft::$app = $proxy;
-        \Yii::$app = $proxy;
-
-        try {
-            return $action();
-        } finally {
-            Craft::$app = $application;
-            \Yii::$app = $application;
-        }
     }
 
     /**

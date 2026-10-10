@@ -18,6 +18,8 @@ use craft\elements\User;
 use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
+use DateInterval;
+use Exception;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\db\CampaignQuery;
@@ -47,9 +49,9 @@ class Campaign extends Element
     /**
      * Regex pattern matching the ISO 8601 duration strings accepted for the
      * invitation delay and invitation expiry fields. Mirrors the unit choices
-     * offered by the campaign edit form (`H`, `D`, `W`, `M`); anything outside
-     * this set is rejected by validation so malformed values can never reach
-     * {@see \DateInterval} downstream.
+     * offered by the campaign edit form (`H`, `D`, `W`, `M`). Matching it is
+     * necessary but not sufficient: {@see self::isValidDurationPeriod()} also
+     * requires that PHP can read the value as a {@see \DateInterval}.
      *
      * @since 5.11.0
      */
@@ -58,7 +60,9 @@ class Campaign extends Element
     /**
      * Whether the given string is a valid invitation duration period. Empty
      * and null values are treated as valid (they represent "no delay" / "no
-     * expiry"); any non-empty value must match {@see self::ALLOWED_DURATION_PERIOD_PATTERN}.
+     * expiry"); any non-empty value must match {@see self::ALLOWED_DURATION_PERIOD_PATTERN}
+     * and be readable as a {@see \DateInterval}, so a stored period can
+     * always be read where the delay or expiry is applied.
      *
      * @since 5.11.0
      */
@@ -68,7 +72,18 @@ class Campaign extends Element
             return true;
         }
 
-        return (bool) preg_match(self::ALLOWED_DURATION_PERIOD_PATTERN, $period);
+        if (!preg_match(self::ALLOWED_DURATION_PERIOD_PATTERN, $period)) {
+            return false;
+        }
+
+        try {
+            new DateInterval($period);
+        } catch (Exception) {
+            // The parser refuses some digit runs the pattern allows
+            return false;
+        }
+
+        return true;
     }
 
     // Properties
@@ -754,11 +769,24 @@ class Campaign extends Element
         $rules[] = [['campaignType'], 'string', 'max' => 255];
         $rules[] = [['formId'], 'integer'];
         $rules[] = [['invitationDelayPeriod', 'invitationExpiryPeriod'], 'string', 'max' => 50];
-        $rules[] = [['invitationDelayPeriod', 'invitationExpiryPeriod'], 'match', 'pattern' => self::ALLOWED_DURATION_PERIOD_PATTERN];
+        $rules[] = [['invitationDelayPeriod', 'invitationExpiryPeriod'], 'validateDurationPeriod'];
         $rules[] = [['emailInvitationSubject', 'providerHandle'], 'string', 'max' => 255];
         $rules[] = [['senderHandle'], 'string', 'max' => 64];
 
         return $rules;
+    }
+
+    /**
+     * Rejects an invitation delay or expiry period that is not a valid
+     * duration, see {@see self::isValidDurationPeriod()}.
+     */
+    public function validateDurationPeriod(string $attribute): void
+    {
+        if (!self::isValidDurationPeriod($this->$attribute)) {
+            $this->addError($attribute, Craft::t('yii', '{attribute} is invalid.', [
+                'attribute' => $this->getAttributeLabel($attribute),
+            ]));
+        }
     }
 
     /**

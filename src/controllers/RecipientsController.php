@@ -9,12 +9,15 @@
 namespace lindemannrock\campaignmanager\controllers;
 
 use Craft;
+use craft\helpers\Queue;
 use craft\web\Controller;
 use craft\web\UploadedFile;
 use lindemannrock\base\helpers\CsvImportHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\campaignmanager\CampaignManager;
+use lindemannrock\campaignmanager\exceptions\InvalidInvitationDelayException;
+use lindemannrock\campaignmanager\helpers\InvitationScheduleHelper;
 use lindemannrock\campaignmanager\helpers\PhoneHelper;
 use lindemannrock\campaignmanager\helpers\SiteAccessHelper;
 use lindemannrock\campaignmanager\jobs\ProcessCampaignJob;
@@ -956,19 +959,21 @@ class RecipientsController extends Controller
             'siteIds' => [(int)$recipient->siteId],
         ]);
 
-        // Queue invitation if requested
+        // Queue invitation if requested, after the campaign's invitation
+        // delay when it has one. A delay that cannot be read queues nothing:
+        // the recipient waits for the campaign to be corrected
         $sendInvitation = $this->request->getBodyParam('sendInvitation');
         if ($sendInvitation) {
             $campaign = CampaignRecord::findOneForSite($recipient->campaignId, $recipient->siteId);
-            if ($campaign) {
-                Craft::$app->getQueue()->push(new SendBatchJob([
+            if ($campaign && $this->invitationDelayIsReadable((int)$campaign->id, $campaign->invitationDelayPeriod)) {
+                Queue::push(new SendBatchJob([
                     'campaignId' => $recipient->campaignId,
                     'siteId' => $recipient->siteId,
                     'recipientIds' => [$recipient->id],
                     'sendSms' => !empty($recipient->sms),
                     'sendEmail' => !empty($recipient->email),
                     'triggeredByUserId' => Craft::$app->getUser()->getIdentity()?->id,
-                ]));
+                ]), null, InvitationScheduleHelper::secondsUntilEligible($recipient->dateCreated, $campaign->invitationDelayPeriod));
             }
         }
 
@@ -1453,8 +1458,10 @@ class RecipientsController extends Controller
                 continue;
             }
 
-            // Determine site ID from site column or use fallback
-            $siteValue = $hasSiteMapping ? strtolower(trim($recipientData['site'] ?? '')) : '';
+            // Determine site ID from site column or use fallback. Craft looks
+            // handles up exactly as spelled, and a handle may be mixed-case,
+            // so only surrounding whitespace is removed.
+            $siteValue = $hasSiteMapping ? trim($recipientData['site'] ?? '') : '';
             $siteId = $defaultSiteId;
 
             if ($siteValue !== '') {
@@ -1693,6 +1700,13 @@ class RecipientsController extends Controller
         // The recipients this import creates, by site; only they are sent
         /** @var array<int, list<int>> $importedRecipientIdsBySite */
         $importedRecipientIdsBySite = [];
+        // How long each of them still has to wait for the campaign's invitation delay
+        /** @var array<int, int> $waitByRecipientId */
+        $waitByRecipientId = [];
+        $invitationDelayPeriod = CampaignRecord::findOne($campaignId)?->invitationDelayPeriod;
+        // A delay that cannot be read queues nothing: the recipients are
+        // still imported and wait for the campaign to be corrected
+        $queueSending = $queueSending && $this->invitationDelayIsReadable($campaignId, $invitationDelayPeriod);
 
         foreach ($validRows as $index => $rowData) {
             $rowSiteId = (int)$rowData['siteId'];
@@ -1715,6 +1729,9 @@ class RecipientsController extends Controller
                 if ($recipient->save()) {
                     $imported++;
                     $importedRecipientIdsBySite[$rowSiteId][] = (int)$recipient->id;
+                    if ($queueSending) {
+                        $waitByRecipientId[(int)$recipient->id] = InvitationScheduleHelper::secondsUntilEligible($recipient->dateCreated, $invitationDelayPeriod);
+                    }
                 } else {
                     $failed++;
                     $errorMessages[] = 'Row ' . ($index + 1) . ': ' . implode(', ', $recipient->getErrorSummary(true));
@@ -1762,7 +1779,9 @@ class RecipientsController extends Controller
 
         // Queue sending if requested and we imported recipients. Only the
         // recipients this import created are sent; the campaign's other
-        // pending recipients are left to a campaign run.
+        // pending recipients are left to a campaign run. A batch waits as
+        // long as the recipient in it who has to wait longest for the
+        // campaign's invitation delay.
         if ($queueSending && $imported > 0) {
             $triggeredByUserId = Craft::$app->getUser()->getIdentity()?->id;
             $siteNames = [];
@@ -1772,7 +1791,8 @@ class RecipientsController extends Controller
                 $siteNames[$siteId] = Craft::$app->getSites()->getSiteById($siteId)?->name;
 
                 foreach (array_chunk($recipientIds, ProcessCampaignJob::BATCH_SIZE) as $batchIds) {
-                    Craft::$app->getQueue()->push(new SendBatchJob([
+                    $wait = max(array_map(static fn(int $id): int => $waitByRecipientId[$id] ?? 0, $batchIds));
+                    Queue::push(new SendBatchJob([
                         'campaignId' => $campaignId,
                         'siteId' => $siteId,
                         'recipientIds' => $batchIds,
@@ -1783,7 +1803,7 @@ class RecipientsController extends Controller
                         // campaign is disabled for the site by the time the
                         // batch runs
                         'onlyWhileCampaignEnabled' => true,
-                    ]));
+                    ]), null, $wait);
                     $batchesQueued++;
                 }
             }
@@ -1990,6 +2010,30 @@ class RecipientsController extends Controller
         ] + $routeParams);
 
         return null;
+    }
+
+    /**
+     * Whether the campaign's invitation delay can be read as a duration.
+     * When it cannot, nothing may be queued for the campaign; the reason is
+     * logged for the administrator who has to correct the campaign.
+     */
+    private function invitationDelayIsReadable(int $campaignId, ?string $invitationDelayPeriod): bool
+    {
+        try {
+            InvitationScheduleHelper::delayInterval($invitationDelayPeriod);
+        } catch (InvalidInvitationDelayException $e) {
+            // Match the "message | {json-context}" format the LoggingTrait emits
+            $context = json_encode([
+                'campaignId' => $campaignId,
+                'invitationDelayPeriod' => $invitationDelayPeriod,
+                'error' => $e->getMessage(),
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            Craft::error('Invalid invitation delay period; invitations are not queued until the campaign is corrected | ' . $context, 'campaign-manager');
+
+            return false;
+        }
+
+        return true;
     }
 
     /**

@@ -23,8 +23,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * without validation. POST tampering could produce strings like `P1foo`
  * which the model would happily save and which would later crash `new
  * DateInterval()` when a recipient was created on that campaign. The fix
- * is a single-source-of-truth allowlist regex anchored on the Campaign
- * element, enforced via a `match` rule so errors surface in the edit form.
+ * is a single-source-of-truth allowlist anchored on the Campaign element
+ * and enforced as a validation rule so errors surface in the edit form.
+ *
+ * A value is valid only when it has an offered unit and PHP can read it as
+ * a duration: a run of digits the parser refuses is rejected too, so a
+ * stored period can always be read where it is used.
  *
  * @since 5.11.0
  */
@@ -70,6 +74,8 @@ final class CampaignDurationPeriodValidationTest extends TestCase
             'trailing_whitespace' => ['P1D '],
             'no_digits' => ['PXD'],
             'extra_suffix' => ['P1Dfoo'],
+            'hours_php_cannot_read' => ['PT213213213213123H'],
+            'days_php_cannot_read' => ['P9999999999999D'],
         ];
     }
 
@@ -91,6 +97,32 @@ final class CampaignDurationPeriodValidationTest extends TestCase
         self::assertNotEmpty(
             $campaign->getErrors('invitationDelayPeriod'),
             'Malformed delay period should fail the match rule.',
+        );
+    }
+
+    public function testValidationRuleRejectsADelayPeriodPhpCannotRead(): void
+    {
+        $campaign = new Campaign();
+        $campaign->invitationDelayPeriod = 'PT213213213213123H';
+
+        $campaign->validate(['invitationDelayPeriod']);
+
+        self::assertNotEmpty(
+            $campaign->getErrors('invitationDelayPeriod'),
+            'A delay period PHP cannot read as a duration must not be accepted.',
+        );
+    }
+
+    public function testValidationRuleRejectsAnExpiryPeriodPhpCannotRead(): void
+    {
+        $campaign = new Campaign();
+        $campaign->invitationExpiryPeriod = 'PT213213213213123H';
+
+        $campaign->validate(['invitationExpiryPeriod']);
+
+        self::assertNotEmpty(
+            $campaign->getErrors('invitationExpiryPeriod'),
+            'An expiry period PHP cannot read as a duration must not be accepted.',
         );
     }
 

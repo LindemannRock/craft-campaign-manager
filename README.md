@@ -218,7 +218,7 @@ Create a template for the survey page (e.g., `templates/survey.twig`):
    - `Name` (required)
    - `Email` (optional)
    - `Phone` (optional)
-   - `Site` (optional: site handle like `en`, `ar` or site ID like `1`, `2`)
+   - `Site` (optional: site handle exactly as spelled in Craft, like `en`, `ar` or `site2En`, or site ID like `1`, `2`; a value that names no site leaves the row on the default site chosen for the import)
 4. Choose whether to send invitations after import. This sends invitations only to the recipients this import creates; recipients that were already waiting are not sent until you run the campaign
 5. Click Import
 
@@ -242,6 +242,15 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
 1. Navigate to **Campaign Manager → Campaigns**
 2. Click **Run All**
 3. All campaigns will be processed
+
+#### Invitation Delay
+
+A campaign's **Invitation Delay** holds every invitation back until the recipient has been in the campaign for that long, counted from when the recipient was added. It applies however the invitation is queued: adding a recipient with **Send Invitation**, importing with **Send invitations** on, or running the campaign. Leave the delay empty to send right away.
+
+- A batch is queued to run only once every recipient in it is eligible. When a campaign run finds recipients who have already waited long enough, they are sent to right away; the others are batched in the order they become eligible.
+- The delay is read from the campaign again when a batch runs. Lengthening it after queueing holds the recipients back for the rest of the new delay; shortening or removing it lets them go out at once.
+- A recipient who is still waiting when a batch runs is not skipped: those recipients are queued again automatically, so nothing needs to be run twice.
+- A stored delay the plugin cannot read as a duration holds everything back rather than sending early: nothing is queued or sent for that campaign, the plugin log names the invalid value, and a campaign run or batch that meets it fails in the queue. The value is never changed for you. Correct the delay on the campaign (the edit form no longer accepts such a value), then run the campaign again.
 
 ### Viewing Analytics
 

@@ -100,7 +100,6 @@ return [
     'Run Campaign' => 'Kör kampanj',
 
     // Jobs
-    '{pluginName}: Triggering campaign invitation(s)' => '{pluginName}: Utlöser kampanjinbjudan/inbjudningar',
     '{pluginName}: Importing recipients for campaign #{id}' => '{pluginName}: Importerar mottagare för kampanj #{id}',
     '{pluginName}: Processing campaign #{id}' => '{pluginName}: Bearbetar kampanj #{id}',
     'Campaign batches queued' => 'Kampanjomgångar köade',
@@ -204,7 +203,6 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'Standard-SMS-leverantören som används vid utskick av kampanjinbjudningar.',
     'Default Sender ID' => 'Standard avsändar-ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'Standard-SMS-avsändar-ID som används vid utskick av kampanjinbjudningar.',
-    'Select a sender ID...' => 'Välj ett avsändar-ID...',
     'Use SMS Manager default (currently: {sender})' => 'Använd standardavsändaren i SMS Manager (för närvarande: {sender})',
     'Allowed countries for' => 'Tillåtna länder för',
     'All countries.' => 'Alla länder.',
