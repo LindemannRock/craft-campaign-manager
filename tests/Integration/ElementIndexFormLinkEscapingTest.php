@@ -24,7 +24,9 @@ use verbb\formie\Formie;
  * Craft's element index renders `getAttributeHtml()` output unescaped, so the
  * Formie form title and its CP edit URL must be encoded by the element itself.
  * Formie accepts any string of up to 255 characters as a form title, including
- * HTML, so an authored title must render as text rather than as markup.
+ * HTML, so an authored title must render as text rather than as markup. A user
+ * to whom Formie offers no edit URL sees the title as plain text, not as a
+ * link to nowhere.
  *
  * @since 5.16.0
  */
@@ -70,6 +72,34 @@ final class ElementIndexFormLinkEscapingTest extends TestCase
         self::assertStringContainsString('Tom &amp; Jerry&#039;s &quot;Q&amp;A&quot; &lt;2026&gt;', $html);
         self::assertStringNotContainsString('&amp;amp;', $html);
         self::assertSame($this->expectedLink($editUrl, $title), $html);
+    }
+
+    public function testTitleRendersAsPlainTextWhenTheUserMayNotEditFormieForms(): void
+    {
+        $form = $this->seedForm(['name']);
+        $this->actAsCampaignManagerUserWithoutFormieAccess();
+        self::assertNull($form->getCpEditUrl(), 'Formie offers no edit URL to this user.');
+
+        $html = $this->seedCampaign($form)->getAttributeHtml('form');
+
+        self::assertSame(Html::encode((string)$form->title), $html, 'Without an edit URL the title is text, not an empty link.');
+        self::assertStringNotContainsString('<a', $html);
+        self::assertStringNotContainsString('href', $html);
+    }
+
+    public function testMarkupInFormTitleRendersAsTextWithoutALink(): void
+    {
+        $title = $this->nextTestMarker('Campaign Manager test ', 'form')
+            . ' <script>alert("cm")</script><img src=x onerror="alert(1)">';
+        $form = $this->renameFormThroughValidatedSave($this->seedForm(['name']), $title);
+        $this->actAsCampaignManagerUserWithoutFormieAccess();
+
+        $html = $this->seedCampaign($form)->getAttributeHtml('form');
+
+        self::assertSame(Html::encode($title), $html);
+        self::assertStringNotContainsString('<script', $html);
+        self::assertStringNotContainsString('<img', $html);
+        self::assertStringNotContainsString('<a', $html);
     }
 
     public function testCampaignWithoutFormRendersPlaceholder(): void
@@ -120,6 +150,20 @@ final class ElementIndexFormLinkEscapingTest extends TestCase
         $user = $this->createTestUser('Campaign Manager test ');
         $this->grantPermissions($user, ['formie-accessForms', 'formie-manageForms']);
         $this->actingAs($user);
+
+        return $user;
+    }
+
+    /**
+     * A Campaign Manager user who may manage campaigns but holds no Formie
+     * permission; Formie offers such a user no form edit URL.
+     */
+    private function actAsCampaignManagerUserWithoutFormieAccess(): User
+    {
+        $user = $this->createTestUser('Campaign Manager test ');
+        $this->grantPermissions($user, ['accessCp', 'campaignManager:manageCampaigns']);
+        $this->actingAs($user);
+        self::assertFalse($user->can('formie-manageForms'));
 
         return $user;
     }

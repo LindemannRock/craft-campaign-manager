@@ -547,13 +547,19 @@ final class RecipientImportInvitationQueueingTest extends SiteRestrictedUserTest
         $imported = $this->latestOwnedLog('recipients_imported');
         self::assertNotNull($imported);
         self::assertSame((int)$campaign->id, (int)$imported->campaignId);
+        self::assertSame('import', $imported->source);
         self::assertSame(ActivityLogRecord::SCOPE_SITES, $imported->siteScope);
         self::assertSame($importedSiteIds, $this->logSiteIds((int)$imported->id));
 
         $queued = $this->latestOwnedLog('campaign_invitations_queued');
         self::assertNotNull($queued);
         self::assertSame((int)$campaign->id, (int)$queued->campaignId);
+        self::assertSame('import', $queued->source, 'Queueing after an import is part of that import, not system activity.');
+        self::assertSame((int)Craft::$app->getUser()->getId(), (int)$queued->userId, 'The importing user stays on the queueing log.');
         self::assertSame(ActivityLogRecord::SCOPE_SITES, $queued->siteScope);
         self::assertSame($queuedSiteIds, $this->logSiteIds((int)$queued->id));
+        $detailSiteIds = array_values(array_map('intval', json_decode((string)$queued->details, true)['siteIds'] ?? []));
+        sort($detailSiteIds);
+        self::assertSame($queuedSiteIds, $detailSiteIds, 'The queued sites stay in the log details.');
     }
 }

@@ -83,6 +83,9 @@ class AnalyticsController extends Controller
         // Get campaign breakdown (filtered by selected campaign)
         $campaignBreakdown = $analyticsService->getCampaignBreakdown($campaignId, $effectiveSiteId, $dateRange);
 
+        // The funnel the Conversion tab's chart and table both show
+        $conversionFunnel = $analyticsService->getConversionFunnel($campaignId, $effectiveSiteId, $dateRange);
+
         // Pass display-friendly siteId (string/int) for template filters/JS, not the array
         $displaySiteId = is_array($effectiveSiteId) ? 'all' : $effectiveSiteId;
 
@@ -117,6 +120,7 @@ class AnalyticsController extends Controller
             'summaryStats' => $summaryStats,
             'campaignOptions' => $campaignOptions,
             'campaignBreakdown' => $campaignBreakdown,
+            'conversionFunnel' => $conversionFunnel,
             'sites' => $sites,
             'pluginHandle' => CampaignManager::$plugin->id,
             'ratingFields' => $ratingFields,

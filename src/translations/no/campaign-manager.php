@@ -106,11 +106,11 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Sender invitasjoner til {count} mottakere',
     'Invitation batch sent' => 'Invitasjonspakke sendt',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampanje {campaignId} batch mislyktes: {errors} av {total} mottakere kunne ikke sendes. Sjekk plugin-loggen for detaljer.',
+    'Campaign {campaignId} could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.' => 'Kampanje {campaignId} kunne ikke kjøres: invitasjonsforsinkelsen er ugyldig, og ingen invitasjoner ble lagt i kø. Rett forsinkelsen på kampanjen, og kjør den deretter på nytt.',
     'Campaign is disabled for site {site}.' => 'Kampanjen er deaktivert for nettstedet {site}.',
 
     // Controller messages
     'New Campaign' => 'Ny kampanje',
-    'Select a provider first...' => 'Velg en leverandør først...',
     'Couldn\'t save campaign.' => 'Kampanjen kunne ikke lagres.',
     'Campaign created' => 'Kampanje opprettet',
     'Campaign updated' => 'Kampanje oppdatert',
@@ -159,6 +159,8 @@ return [
     'Recipients imported' => 'Mottakere importert',
     'Invitation sending queued after import' => 'Utsending av invitasjoner lagt i kø etter import',
     'Invitation sending has been queued.' => 'Utsending av invitasjoner er lagt i kø.',
+    'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.' => 'Mottaker lagt til, men invitasjonen ble ikke lagt i kø: kampanjens invitasjonsforsinkelse er ugyldig. Rett forsinkelsen på kampanjen, og send deretter invitasjonen ved å kjøre kampanjen.',
+    'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.' => 'Invitasjonene ble ikke lagt i kø: kampanjens invitasjonsforsinkelse er ugyldig. Rett forsinkelsen på kampanjen, og send deretter invitasjonene ved å kjøre kampanjen.',
     'No recipients to export.' => 'Ingen mottakere å eksportere.',
     'Campaign recipients exported' => 'Kampanjemottakere eksportert',
     'ID' => 'ID',
@@ -203,7 +205,12 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'Standard SMS-leverandør som brukes ved utsending av kampanjeinvitasjoner.',
     'Default Sender ID' => 'Standard avsender-ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'Standard SMS-avsender-ID som brukes ved utsending av kampanjeinvitasjoner.',
+    'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this default to that sender regardless of future SMS Manager changes.' => 'Avsenderne er gruppert etter leverandør. Velg «Bruk standardavsenderen i SMS Manager» for å følge konfigurasjonen som gjelder for hele plugin-programmet; velg en bestemt avsender for å låse denne standarden til den avsenderen uavhengig av fremtidige endringer i SMS Manager.',
+    'Plugin Default Sender ID' => 'Plugin-programmets standard avsender-ID',
+    'Plugin Default Sender ID provider' => 'Leverandør for plugin-programmets standard avsender-ID',
+    'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.' => 'Plugin-programmet SMS Manager er ikke installert eller aktivert. <a href="{url}">Aktiver SMS Manager</a> for å konfigurere SMS-innstillingene.',
     'Use SMS Manager default (currently: {sender})' => 'Bruk standardavsenderen i SMS Manager (for øyeblikket: {sender})',
+    'Use SMS Manager default (none configured)' => 'Bruk standardavsenderen i SMS Manager (ingen konfigurert)',
     'Allowed countries for' => 'Tillatte land for',
     'All countries.' => 'Alle land.',
     'No country restrictions for' => 'Ingen landbegrensninger for',
@@ -268,6 +275,7 @@ return [
     'Campaign Actions' => 'Kampanjehandlinger',
     'Campaign job queued. Check the queue for progress.' => 'Kampanjejobb lagt i kø. Sjekk køen for fremdrift.',
     'Failed to run campaign' => 'Kunne ikke kjøre kampanjen',
+    'Failed to load tab content' => 'Kunne ikke laste inn fanens innhold',
 
     // Campaign: Analytics
     'Daily Activity' => 'Daglig aktivitet',
@@ -287,6 +295,8 @@ return [
     'No form fields to display.' => 'Ingen skjemafelt å vise.',
     'No responses yet.' => 'Ingen svar ennå.',
     'Recipients who submit the form will appear here.' => 'Mottakere som sender inn skjemaet vil vises her.',
+    'Showing {start}–{end} of {total}' => 'Viser {start}–{end} av {total}',
+    'Page {page} of {total}' => 'Side {page} av {total}',
 
     // Recipients: Index
     'Date Range' => 'Datoperiode',
@@ -295,6 +305,7 @@ return [
     'Response' => 'Svar',
     'No recipients found.' => 'Ingen mottakere funnet.',
     'recipient' => 'mottaker',
+    'recipients' => 'mottakere',
     'View Response' => 'Vis svar',
     'Delete {count} recipient? This cannot be undone.' => 'Slett {count} mottaker? Denne handlingen kan ikke angres.',
     'Delete {count} recipients? This cannot be undone.' => 'Slett {count} mottakere? Denne handlingen kan ikke angres.',
@@ -390,6 +401,7 @@ return [
     'Rows to Import' => 'Rader å importere',
 
     // Recipients: Preview
+    'Import Preview' => 'Importforhåndsvisning',
     'Total Rows' => 'Totale rader',
     'Valid' => 'Gyldige',
     'Duplicates' => 'Duplikater',
@@ -457,6 +469,7 @@ return [
     'Opened Invitations' => 'Åpnede invitasjoner',
     'Conversion Funnel' => 'Konverteringstakt',
     'Funnel Breakdown' => 'Traktfordeling',
+    'Recipients added in the selected date range, followed through each stage up to the end of the range. Each stage counts only recipients from the stage before it.' => 'Mottakere lagt til i den valgte datoperioden, fulgt gjennom hvert trinn frem til periodens slutt. Hvert trinn teller bare mottakere fra trinnet før.',
     'Stage' => 'Trinn',
     'Percentage' => 'Prosent',
     'Drop-off' => 'Frafall',
@@ -514,6 +527,8 @@ return [
     'Welcome! Please complete the form below.' => 'Velkommen! Vennligst fyll ut skjemaet nedenfor.',
     'Invalid Invitation' => 'Ugyldig invitasjon',
     'This invitation link is not valid or has expired.' => 'Denne invitasjonslenken er ikke gyldig eller har utløpt.',
+    'Invalid or missing invitation code.' => 'Ugyldig eller manglende invitasjonskode.',
+    'The campaign for this invitation could not be found.' => 'Kampanjen for denne invitasjonen ble ikke funnet.',
 
     // Activity Logs
     'User' => 'Bruker',
@@ -524,6 +539,7 @@ return [
     'Activity logs are currently disabled in settings.' => 'Aktivitetslogger er for øyeblikket deaktivert i innstillingene.',
     'Invitations queued' => 'Invitasjoner lagt i kø',
     'Campaigns queued' => 'Kampanjer lagt i kø',
+    'Recipients deleted' => 'Mottakere slettet',
     'Added' => 'Lagt til',
     'Invitation queued' => 'Invitasjon lagt i kø',
     'Deleted' => 'Slettet',

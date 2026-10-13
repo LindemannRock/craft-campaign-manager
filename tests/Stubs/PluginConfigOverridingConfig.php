@@ -15,9 +15,10 @@ use craft\services\Config;
 
 /**
  * Craft config service that adds settings to what a plugin's config file
- * provides, as if the file contained them. A test uses it to pin a plugin
- * setting that the project's own config file would otherwise override on
- * every read.
+ * provides, as if the file contained them, or leaves settings out of it, as
+ * if the file did not contain them. A test uses it to pin a plugin setting
+ * that the project's own config file would otherwise override on every
+ * read, or to make such a setting editable again.
  *
  * @since 5.16.0
  */
@@ -29,9 +30,15 @@ final class PluginConfigOverridingConfig extends Config
     private array $fileOverrides = [];
 
     /**
-     * @param array<string, array<string, mixed>> $fileOverrides
+     * @var array<string, list<string>> Config file name => settings left out of that file's values
      */
-    public static function wrapping(Config $original, array $fileOverrides): self
+    private array $fileRemovals = [];
+
+    /**
+     * @param array<string, array<string, mixed>> $fileOverrides
+     * @param array<string, list<string>> $fileRemovals
+     */
+    public static function wrapping(Config $original, array $fileOverrides, array $fileRemovals = []): self
     {
         $config = new self([
             'appType' => $original->appType,
@@ -40,6 +47,7 @@ final class PluginConfigOverridingConfig extends Config
             'appDefaultsDir' => $original->appDefaultsDir,
         ]);
         $config->fileOverrides = $fileOverrides;
+        $config->fileRemovals = $fileRemovals;
 
         return $config;
     }
@@ -48,10 +56,14 @@ final class PluginConfigOverridingConfig extends Config
     {
         $config = parent::getConfigFromFile($filename);
 
-        if (!isset($this->fileOverrides[$filename]) || !is_array($config)) {
+        if (!is_array($config)) {
             return $config;
         }
 
-        return array_merge($config, $this->fileOverrides[$filename]);
+        foreach ($this->fileRemovals[$filename] ?? [] as $key) {
+            unset($config[$key]);
+        }
+
+        return array_merge($config, $this->fileOverrides[$filename] ?? []);
     }
 }

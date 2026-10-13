@@ -132,14 +132,16 @@ final class AnalyticsEventDateRangeTest extends SiteRestrictedUserTestCase
         self::assertSame([3, 1, 1], $channels['values'], 'Email only, SMS only and both, counted among recipients invited inside the range.');
     }
 
-    public function testConversionFunnelCountsUniqueRecipientsPerStageInTheRange(): void
+    public function testConversionFunnelFollowsTheRecipientsAddedInTheRange(): void
     {
         [$siteA] = $this->siteIds(1);
         $matrix = $this->seedAnalyticsEventMatrix($siteA);
+        $campaignId = (int)$matrix['campaign']->id;
 
-        $funnel = $this->analytics()->getConversionFunnel((int)$matrix['campaign']->id, [$siteA], self::MATRIX_RANGE);
+        $funnel = $this->analytics()->getConversionFunnel($campaignId, [$siteA], self::MATRIX_RANGE);
 
-        self::assertSame([3, 5, 3, 2], $funnel['values']);
+        self::assertSame([3, 0, 0, 0], $funnel['values'], 'The three recipients added in the range had not been invited by its end; the old recipients\' activity is not their conversion.');
+        self::assertSame([13, 11, 5, 3], $this->analytics()->getConversionFunnel($campaignId, [$siteA], 'all')['values'], 'All time: every recipient, of whom 11 were invited, 5 of those opened, and 3 of those responded.');
     }
 
     public function testUniqueCountsDoNotDoubleCountARecipientReachedOnBothChannels(): void

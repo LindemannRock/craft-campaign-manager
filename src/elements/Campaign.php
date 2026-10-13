@@ -799,9 +799,14 @@ class Campaign extends Element
                 $form = $this->getForm();
                 if ($form) {
                     // Craft renders this HTML unescaped in the element index.
-                    return Html::tag('a', Html::encode($form->title), [
-                        'href' => $form->getCpEditUrl() ?? '',
-                    ]);
+                    // Formie offers an edit URL only to users who may manage
+                    // the form; everyone else sees the title as text.
+                    $editUrl = $form->getCpEditUrl();
+                    if ($editUrl === null) {
+                        return Html::encode($form->title);
+                    }
+
+                    return Html::tag('a', Html::encode($form->title), ['href' => $editUrl]);
                 }
                 return '—';
 

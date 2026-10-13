@@ -192,11 +192,13 @@ class SmsService extends Component
      *       ['label' => 'Test Config Sender Dev [Dev]', 'value' => 'dev-test'],
      *   ]
      *
-     * The empty option means "use SMS Manager's default sender" and is only
-     * offered while SMS Manager has one. Campaign forms use
-     * {@see getCampaignSenderOptions()}, whose empty option inherits the
-     * plugin default instead. Mirrors `formie-sms`'s `buildSenderIdOptions()`
-     * for cross-plugin consistency.
+     * The empty option means "use SMS Manager's default sender" and is
+     * always offered, since an empty setting is a valid saved choice: while
+     * SMS Manager has a default it names it, otherwise it says that none is
+     * configured, so the browser never presents a real sender in its place.
+     * Campaign forms use {@see getCampaignSenderOptions()}, whose empty
+     * option inherits the plugin default instead. Mirrors `formie-sms`'s
+     * `buildSenderIdOptions()` for cross-plugin consistency.
      *
      * @return array<int, array{label?: string, value?: string, optgroup?: string}>
      */
@@ -206,16 +208,15 @@ class SmsService extends Component
             return [];
         }
 
-        $options = [];
         $defaultSender = SmsManager::$plugin->senderIds->getDefaultSenderId();
-        if ($defaultSender) {
-            $options[] = [
-                'value' => '',
-                'label' => Craft::t('campaign-manager', 'Use SMS Manager default (currently: {sender})', [
+        $options = [[
+            'value' => '',
+            'label' => $defaultSender
+                ? Craft::t('campaign-manager', 'Use SMS Manager default (currently: {sender})', [
                     'sender' => $this->senderLabel($defaultSender),
-                ]),
-            ];
-        }
+                ])
+                : Craft::t('campaign-manager', 'Use SMS Manager default (none configured)'),
+        ]];
 
         return array_merge($options, $this->groupedSenderOptions());
     }
@@ -353,10 +354,14 @@ class SmsService extends Component
     }
 
     /**
-     * Get allowed countries for a provider
+     * Get allowed countries for a provider.
+     *
+     * Follows SMS Manager's provider contract: a provider with no country
+     * selected, like one listing `*`, allows every country. Country codes
+     * are returned upper-case, as SMS Manager compares them.
      *
      * @param string|null $providerHandle Provider handle
-     * @return array Array of country codes (e.g., ['KW', 'SA']) or ['*'] for all
+     * @return list<string> Country codes (e.g., ['KW', 'SA']) or ['*'] for all
      */
     public function getAllowedCountries(?string $providerHandle = null): array
     {
@@ -364,7 +369,34 @@ class SmsService extends Component
             return ['*'];
         }
 
-        return SmsManager::$plugin->providers->getAllowedCountries($providerHandle);
+        $countries = SmsManager::$plugin->providers->getAllowedCountries($providerHandle);
+        if ($countries === [] || in_array('*', $countries, true)) {
+            return ['*'];
+        }
+
+        return array_values(array_map(static fn($code): string => strtoupper((string)$code), $countries));
+    }
+
+    /**
+     * The countries a campaign may send SMS to, resolved through the
+     * provider behind its sender (see {@see resolveProviderHandleForSender()})
+     * and read with {@see getAllowedCountries()}.
+     *
+     * Adding a recipient, mapping CSV columns and previewing an import all
+     * resolve the countries here, so they agree on which numbers a campaign
+     * accepts. No provider is a different answer from a provider that allows
+     * every country: without a provider no country can be offered at all.
+     *
+     * @param string|null $senderHandle The campaign's stored sender handle
+     * @return list<string>|null ['*'] when every country is allowed, the
+     * allowed country codes otherwise, or null when no provider resolves
+     * @since 5.16.0
+     */
+    public function resolveAllowedCountriesForSender(?string $senderHandle): ?array
+    {
+        $providerHandle = $this->resolveProviderHandleForSender($senderHandle);
+
+        return $providerHandle === null ? null : $this->getAllowedCountries($providerHandle);
     }
 
     /**

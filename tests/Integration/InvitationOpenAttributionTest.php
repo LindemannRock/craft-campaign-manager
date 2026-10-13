@@ -205,7 +205,10 @@ final class InvitationOpenAttributionTest extends TestCase
         self::assertSame(2, $overview['emailsOpened']);
         self::assertSame(2, $overview['smsOpened']);
         self::assertSame(3, $overview['uniqueOpened']);
-        self::assertSame(3, $funnel['values'][2]);
+        // The funnel follows the recipients through sent, then opened: an open
+        // recorded for a recipient who was never sent an invitation is activity,
+        // not conversion, so it does not reach the funnel's opened stage.
+        self::assertSame([4, 0, 0, 0], $funnel['values']);
         self::assertNull($this->reloadRecipient($unopened)->emailOpenDate);
         self::assertNull($this->reloadRecipient($unopened)->smsOpenDate);
     }

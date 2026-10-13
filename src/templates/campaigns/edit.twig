@@ -418,7 +418,7 @@
         {% else %}
             {% include 'lindemannrock-base/_components/info-box' with {
                 type: 'notice',
-                message: 'SMS Manager plugin is not installed or enabled. <a href="' ~ cpUrl('settings/plugins') ~ '">Enable SMS Manager</a> to configure SMS settings.'|t('campaign-manager')
+                message: 'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.'|t('campaign-manager', { url: cpUrl('settings/plugins') })
             } %}
         {% endif %}
 
@@ -560,7 +560,7 @@
             (function() {
                 var endpoint = {{ tabLoadEndpoint|json_encode|raw }};
                 var baseParams = {{ tabLoadParams|json_encode|raw }};
-                var errorMsg = {{ 'Failed to load tab content.'|t('campaign-manager')|json_encode|raw }};
+                var errorMsg = {{ 'Failed to load tab content'|t('campaign-manager')|json_encode|raw }};
 
                 // innerHTML doesn't execute <script> tags — re-attach as live elements so they run.
                 function executeScripts(container) {
@@ -765,6 +765,8 @@
     {% endif %}
 {% endblock %}
 
+{# The queue link label is built by JavaScript, so its translation is registered for Craft.t() #}
+{% do view.registerTranslations('campaign-manager', ['View']) %}
 {% js %}
     // Set platform-specific keyboard shortcut
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
@@ -787,7 +789,7 @@
                     var queueUrl = {{ cpUrl('utilities/queue-manager')|json_encode|raw }};
                     var queueMsg = {{ 'Campaign job queued. Check the queue for progress.'|t('campaign-manager')|json_encode|raw }};
                     Craft.cp.displayNotice(queueMsg, {
-                        details: $('<a/>', {href: queueUrl, text: Craft.t('app', 'View')}),
+                        details: $('<a/>', {href: queueUrl, text: Craft.t('campaign-manager', 'View')}),
                     });
                 }
             }).catch(function(error) {

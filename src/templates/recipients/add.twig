@@ -102,16 +102,16 @@
         }) }}
 
         {# SMS field with country code selector. The countries come from the
-           provider this campaign sends through, resolved from its sender. #}
-        {% set providerHandle = craft.campaignManager.sms.resolveProviderHandleForSender(campaign.senderHandle) %}
-        {% set allowedCountries = providerHandle ? craft.campaignManager.sms.getAllowedCountries(providerHandle) : [] %}
+           provider this campaign sends through, resolved by the controller
+           (`allowedCountries`: ['*'] for every country, a list of codes, or
+           null when no provider resolves). #}
         {% set isAllCountries = allowedCountries == ['*'] %}
 
         {# Build country options and dial code mapping for the dropdown #}
         {% set countryOptions = [] %}
         {% set dialCodeList = [] %}
         {% for item in lrCountryDialCodeData() %}
-            {% if isAllCountries or item.countryCode in allowedCountries %}
+            {% if allowedCountries is not null and (isAllCountries or item.countryCode in allowedCountries) %}
                 {% set countryOptions = countryOptions|merge([{
                     label: item.countryCode ~ ' +' ~ item.dialCode,
                     value: item.countryCode

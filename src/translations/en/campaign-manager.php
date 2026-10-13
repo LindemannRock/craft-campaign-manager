@@ -106,11 +106,11 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Sending invitations to {count} recipients',
     'Invitation batch sent' => 'Invitation batch sent',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.',
+    'Campaign {campaignId} could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.' => 'Campaign {campaignId} could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.',
     'Campaign is disabled for site {site}.' => 'Campaign is disabled for site {site}.',
 
     // Controller messages
     'New Campaign' => 'New Campaign',
-    'Select a provider first...' => 'Select a provider first...',
     'Couldn\'t save campaign.' => 'Couldn\'t save campaign.',
     'Campaign created' => 'Campaign created',
     'Campaign updated' => 'Campaign updated',
@@ -159,6 +159,8 @@ return [
     'Recipients imported' => 'Recipients imported',
     'Invitation sending queued after import' => 'Invitation sending queued after import',
     'Invitation sending has been queued.' => 'Invitation sending has been queued.',
+    'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.' => 'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.',
+    'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.' => 'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.',
     'No recipients to export.' => 'No recipients to export.',
     'Campaign recipients exported' => 'Campaign recipients exported',
     'ID' => 'ID',
@@ -203,7 +205,12 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'The default SMS provider to use when sending campaign invitations.',
     'Default Sender ID' => 'Default Sender ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'The default SMS sender ID to use when sending campaign invitations.',
+    'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this default to that sender regardless of future SMS Manager changes.' => 'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this default to that sender regardless of future SMS Manager changes.',
+    'Plugin Default Sender ID' => 'Plugin Default Sender ID',
+    'Plugin Default Sender ID provider' => 'Plugin Default Sender ID provider',
+    'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.' => 'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.',
     'Use SMS Manager default (currently: {sender})' => 'Use SMS Manager default (currently: {sender})',
+    'Use SMS Manager default (none configured)' => 'Use SMS Manager default (none configured)',
     'Allowed countries for' => 'Allowed countries for',
     'All countries.' => 'All countries.',
     'No country restrictions for' => 'No country restrictions for',
@@ -268,6 +275,7 @@ return [
     'Campaign Actions' => 'Campaign Actions',
     'Campaign job queued. Check the queue for progress.' => 'Campaign job queued. Check the queue for progress.',
     'Failed to run campaign' => 'Failed to run campaign',
+    'Failed to load tab content' => 'Failed to load tab content',
 
     // Campaign: Analytics
     'Daily Activity' => 'Daily Activity',
@@ -287,6 +295,8 @@ return [
     'No form fields to display.' => 'No form fields to display.',
     'No responses yet.' => 'No responses yet.',
     'Recipients who submit the form will appear here.' => 'Recipients who submit the form will appear here.',
+    'Showing {start}–{end} of {total}' => 'Showing {start}–{end} of {total}',
+    'Page {page} of {total}' => 'Page {page} of {total}',
 
     // Recipients: Index
     'Date Range' => 'Date Range',
@@ -295,6 +305,7 @@ return [
     'Response' => 'Response',
     'No recipients found.' => 'No recipients found.',
     'recipient' => 'recipient',
+    'recipients' => 'recipients',
     'View Response' => 'View Response',
     'Delete {count} recipient? This cannot be undone.' => 'Delete {count} recipient? This cannot be undone.',
     'Delete {count} recipients? This cannot be undone.' => 'Delete {count} recipients? This cannot be undone.',
@@ -390,6 +401,7 @@ return [
     'Rows to Import' => 'Rows to Import',
 
     // Recipients: Preview
+    'Import Preview' => 'Import Preview',
     'Total Rows' => 'Total Rows',
     'Valid' => 'Valid',
     'Duplicates' => 'Duplicates',
@@ -457,6 +469,7 @@ return [
     'Opened Invitations' => 'Opened Invitations',
     'Conversion Funnel' => 'Conversion Funnel',
     'Funnel Breakdown' => 'Funnel Breakdown',
+    'Recipients added in the selected date range, followed through each stage up to the end of the range. Each stage counts only recipients from the stage before it.' => 'Recipients added in the selected date range, followed through each stage up to the end of the range. Each stage counts only recipients from the stage before it.',
     'Stage' => 'Stage',
     'Percentage' => 'Percentage',
     'Drop-off' => 'Drop-off',
@@ -514,6 +527,8 @@ return [
     'Welcome! Please complete the form below.' => 'Welcome! Please complete the form below.',
     'Invalid Invitation' => 'Invalid Invitation',
     'This invitation link is not valid or has expired.' => 'This invitation link is not valid or has expired.',
+    'Invalid or missing invitation code.' => 'Invalid or missing invitation code.',
+    'The campaign for this invitation could not be found.' => 'The campaign for this invitation could not be found.',
 
     // Activity Logs
     'User' => 'User',
@@ -524,6 +539,7 @@ return [
     'Activity logs are currently disabled in settings.' => 'Activity logs are currently disabled in settings.',
     'Invitations queued' => 'Invitations queued',
     'Campaigns queued' => 'Campaigns queued',
+    'Recipients deleted' => 'Recipients deleted',
     'Added' => 'Added',
     'Invitation queued' => 'Invitation queued',
     'Deleted' => 'Deleted',

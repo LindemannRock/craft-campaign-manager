@@ -210,8 +210,8 @@
         {% if not item.email and not item.sms %}<span class="light">-</span>{% endif %}
     </td>
 
-    {# Invitation code #}
-    <td><code>{{ item.smsInvitationCode ?? item.emailInvitationCode ?? '-' }}</code></td>
+    {# Invitation codes, one per contact channel the recipient has #}
+    <td>{% include 'campaign-manager/recipients/_partials/invitation-codes' with { item: item } only %}</td>
 
     {# Status badge #}
     <td>
@@ -263,6 +263,8 @@
    ============================================================================ #}
 
 {% block scripts %}
+    {# The queue link label is built by JavaScript, so its translation is registered for Craft.t() #}
+    {% do view.registerTranslations('campaign-manager', ['View']) %}
     <script>
     (function() {
         if (typeof Craft === 'undefined') return;
@@ -291,7 +293,7 @@
                     if (jobsQueued > 0) {
                         const queueUrl = {{ cpUrl('utilities/queue-manager')|json_encode|raw }};
                         Craft.cp.displayNotice(T.campaignQueued, {
-                            details: $('<a/>', {href: queueUrl, text: Craft.t('app', 'View')}),
+                            details: $('<a/>', {href: queueUrl, text: Craft.t('campaign-manager', 'View')}),
                         });
                     } else {
                         Craft.cp.displayNotice(T.noPending);

@@ -157,6 +157,9 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
                 'sendSms' => $this->sendSms,
                 'sendEmail' => $this->sendEmail,
                 'triggeredByUserId' => $this->triggeredByUserId,
+                // Nothing is sent if the campaign is disabled for the site by
+                // the time the batch runs, however long it waited
+                'onlyWhileCampaignEnabled' => true,
             ]), null, $wait);
 
             if ($wait > 0) {
@@ -278,14 +281,12 @@ class ProcessCampaignJob extends BaseJob implements RetryableJobInterface
                 'error' => $e->getMessage(),
             ]);
 
+            // No batch exists yet, so the queue is told what actually
+            // happened: the run itself was refused
             throw new SendBatchFailedException(Craft::t(
                 'campaign-manager',
-                'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.',
-                [
-                    'campaignId' => $this->campaignId,
-                    'errors' => count($rows),
-                    'total' => count($rows),
-                ]
+                'Campaign {campaignId} could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.',
+                ['campaignId' => $this->campaignId]
             ));
         }
 

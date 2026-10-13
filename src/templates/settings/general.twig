@@ -170,7 +170,7 @@
     {% else %}
         {% include 'lindemannrock-base/_components/info-box' with {
             type: 'notice',
-            message: 'SMS Manager plugin is not installed or enabled. <a href="' ~ cpUrl('settings/plugins') ~ '">Enable SMS Manager</a> to configure SMS settings.'|t('campaign-manager')
+            message: 'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.'|t('campaign-manager', { url: cpUrl('settings/plugins') })
         } %}
     {% endif %}
 

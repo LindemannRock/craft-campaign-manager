@@ -106,11 +106,11 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Skickar inbjudningar till {count} mottagare',
     'Invitation batch sent' => 'Inbjudningsomgång skickad',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampanj {campaignId} batch misslyckades: {errors} av {total} mottagare kunde inte skickas. Kontrollera plugin-loggen för detaljer.',
+    'Campaign {campaignId} could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.' => 'Kampanj {campaignId} kunde inte köras: dess inbjudningsfördröjning är ogiltig och inga inbjudningar köades. Korrigera fördröjningen i kampanjen och kör den sedan igen.',
     'Campaign is disabled for site {site}.' => 'Kampanjen är inaktiverad för webbplatsen {site}.',
 
     // Controller messages
     'New Campaign' => 'Ny kampanj',
-    'Select a provider first...' => 'Välj en leverantör först...',
     'Couldn\'t save campaign.' => 'Kampanjen kunde inte sparas.',
     'Campaign created' => 'Kampanj skapad',
     'Campaign updated' => 'Kampanj uppdaterad',
@@ -159,6 +159,8 @@ return [
     'Recipients imported' => 'Mottagare importerade',
     'Invitation sending queued after import' => 'Utskick av inbjudningar köat efter import',
     'Invitation sending has been queued.' => 'Utskick av inbjudningar har köats.',
+    'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.' => 'Mottagare tillagd, men inbjudan köades inte: kampanjens inbjudningsfördröjning är ogiltig. Korrigera fördröjningen i kampanjen och skicka sedan inbjudan genom att köra kampanjen.',
+    'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.' => 'Inbjudningarna köades inte: kampanjens inbjudningsfördröjning är ogiltig. Korrigera fördröjningen i kampanjen och skicka sedan inbjudningarna genom att köra kampanjen.',
     'No recipients to export.' => 'Inga mottagare att exportera.',
     'Campaign recipients exported' => 'Kampanjmottagare exporterade',
     'ID' => 'ID',
@@ -203,7 +205,12 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'Standard-SMS-leverantören som används vid utskick av kampanjinbjudningar.',
     'Default Sender ID' => 'Standard avsändar-ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'Standard-SMS-avsändar-ID som används vid utskick av kampanjinbjudningar.',
+    'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this default to that sender regardless of future SMS Manager changes.' => 'Avsändarna är grupperade efter leverantör. Välj «Använd standardavsändaren i SMS Manager» för att följa den konfiguration som gäller för hela plugin-programmet; välj en specifik avsändare för att låsa den här standarden till den avsändaren oavsett framtida ändringar i SMS Manager.',
+    'Plugin Default Sender ID' => 'Plugin-programmets standard avsändar-ID',
+    'Plugin Default Sender ID provider' => 'Leverantör för plugin-programmets standard avsändar-ID',
+    'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.' => 'Plugin-programmet SMS Manager är inte installerat eller aktiverat. <a href="{url}">Aktivera SMS Manager</a> för att konfigurera SMS-inställningarna.',
     'Use SMS Manager default (currently: {sender})' => 'Använd standardavsändaren i SMS Manager (för närvarande: {sender})',
+    'Use SMS Manager default (none configured)' => 'Använd standardavsändaren i SMS Manager (ingen konfigurerad)',
     'Allowed countries for' => 'Tillåtna länder för',
     'All countries.' => 'Alla länder.',
     'No country restrictions for' => 'Inga länderbegränsningar för',
@@ -268,6 +275,7 @@ return [
     'Campaign Actions' => 'Kampanjåtgärder',
     'Campaign job queued. Check the queue for progress.' => 'Kampanjjobb köat. Kontrollera kön för att följa förloppet.',
     'Failed to run campaign' => 'Det gick inte att köra kampanjen',
+    'Failed to load tab content' => 'Det gick inte att läsa in flikens innehåll',
 
     // Campaign: Analytics
     'Daily Activity' => 'Daglig aktivitet',
@@ -287,6 +295,8 @@ return [
     'No form fields to display.' => 'Inga formulärfält att visa.',
     'No responses yet.' => 'Inga svar än.',
     'Recipients who submit the form will appear here.' => 'Mottagare som skickar in formuläret visas här.',
+    'Showing {start}–{end} of {total}' => 'Visar {start}–{end} av {total}',
+    'Page {page} of {total}' => 'Sida {page} av {total}',
 
     // Recipients: Index
     'Date Range' => 'Datumintervall',
@@ -295,6 +305,7 @@ return [
     'Response' => 'Svar',
     'No recipients found.' => 'Inga mottagare hittades.',
     'recipient' => 'mottagare',
+    'recipients' => 'mottagare',
     'View Response' => 'Visa svar',
     'Delete {count} recipient? This cannot be undone.' => 'Ta bort {count} mottagare? Den här åtgärden kan inte ångras.',
     'Delete {count} recipients? This cannot be undone.' => 'Ta bort {count} mottagare? Den här åtgärden kan inte ångras.',
@@ -390,6 +401,7 @@ return [
     'Rows to Import' => 'Rader att importera',
 
     // Recipients: Preview
+    'Import Preview' => 'Importförhandsvisning',
     'Total Rows' => 'Totalt antal rader',
     'Valid' => 'Giltiga',
     'Duplicates' => 'Dubbletter',
@@ -457,6 +469,7 @@ return [
     'Opened Invitations' => 'Öppnade inbjudningar',
     'Conversion Funnel' => 'Konverteringstratt',
     'Funnel Breakdown' => 'Trattfördelning',
+    'Recipients added in the selected date range, followed through each stage up to the end of the range. Each stage counts only recipients from the stage before it.' => 'Mottagare som lagts till i det valda datumintervallet, följda genom varje steg fram till intervallets slut. Varje steg räknar endast mottagare från steget före.',
     'Stage' => 'Steg',
     'Percentage' => 'Procent',
     'Drop-off' => 'Avhopp',
@@ -514,6 +527,8 @@ return [
     'Welcome! Please complete the form below.' => 'Välkommen! Fyll i formuläret nedan.',
     'Invalid Invitation' => 'Ogiltig inbjudan',
     'This invitation link is not valid or has expired.' => 'Den här inbjudningslänken är inte giltig eller har gått ut.',
+    'Invalid or missing invitation code.' => 'Ogiltig eller saknad inbjudningskod.',
+    'The campaign for this invitation could not be found.' => 'Kampanjen för den här inbjudan hittades inte.',
 
     // Activity Logs
     'User' => 'Användare',
@@ -524,6 +539,7 @@ return [
     'Activity logs are currently disabled in settings.' => 'Aktivitetsloggar är för närvarande inaktiverade i inställningarna.',
     'Invitations queued' => 'Inbjudningar köade',
     'Campaigns queued' => 'Kampanjer köade',
+    'Recipients deleted' => 'Mottagare borttagna',
     'Added' => 'Tillagd',
     'Invitation queued' => 'Inbjudan köad',
     'Deleted' => 'Borttagen',

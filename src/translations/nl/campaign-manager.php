@@ -106,11 +106,11 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Uitnodigingen verzenden naar {count} ontvangers',
     'Invitation batch sent' => 'Uitnodigingsbatch verzonden',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Campagne {campaignId} batch mislukt: {errors} van {total} ontvangers konden niet worden verzonden. Raadpleeg het plugin-logboek voor details.',
+    'Campaign {campaignId} could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.' => 'Campagne {campaignId} kon niet worden uitgevoerd: de uitnodigingsvertraging is ongeldig en er zijn geen uitnodigingen in de wachtrij geplaatst. Corrigeer de vertraging van de campagne en voer de campagne daarna opnieuw uit.',
     'Campaign is disabled for site {site}.' => 'Campagne is uitgeschakeld voor site {site}.',
 
     // Controller messages
     'New Campaign' => 'Nieuwe campagne',
-    'Select a provider first...' => 'Selecteer eerst een provider...',
     'Couldn\'t save campaign.' => 'Campagne kon niet worden opgeslagen.',
     'Campaign created' => 'Campagne aangemaakt',
     'Campaign updated' => 'Campagne bijgewerkt',
@@ -159,6 +159,8 @@ return [
     'Recipients imported' => 'Ontvangers geïmporteerd',
     'Invitation sending queued after import' => 'Verzenden van uitnodigingen na import in wachtrij geplaatst',
     'Invitation sending has been queued.' => 'Verzenden van uitnodigingen is in de wachtrij geplaatst.',
+    'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.' => 'Ontvanger toegevoegd, maar de uitnodiging is niet in de wachtrij geplaatst: de uitnodigingsvertraging van de campagne is ongeldig. Corrigeer de vertraging van de campagne en verzend de uitnodiging daarna door de campagne uit te voeren.',
+    'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.' => 'De uitnodigingen zijn niet in de wachtrij geplaatst: de uitnodigingsvertraging van de campagne is ongeldig. Corrigeer de vertraging van de campagne en verzend de uitnodigingen daarna door de campagne uit te voeren.',
     'No recipients to export.' => 'Geen ontvangers te exporteren.',
     'Campaign recipients exported' => 'Campagne-ontvangers geëxporteerd',
     'ID' => 'ID',
@@ -203,7 +205,12 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'De standaard SMS-provider voor het verzenden van campagne-uitnodigingen.',
     'Default Sender ID' => 'Standaard afzender-ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'De standaard SMS-afzender-ID voor het verzenden van campagne-uitnodigingen.',
+    'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this default to that sender regardless of future SMS Manager changes.' => 'Afzenders zijn gegroepeerd per provider. Kies "Standaardafzender van SMS Manager gebruiken" om de plugin-brede configuratie te volgen; kies een specifieke afzender om deze standaard aan die afzender te koppelen, ongeacht toekomstige wijzigingen in SMS Manager.',
+    'Plugin Default Sender ID' => 'Standaard afzender-ID van de plugin',
+    'Plugin Default Sender ID provider' => 'Provider van de standaard afzender-ID van de plugin',
+    'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.' => 'De plugin SMS Manager is niet geïnstalleerd of ingeschakeld. <a href="{url}">Schakel SMS Manager in</a> om de SMS-instellingen te configureren.',
     'Use SMS Manager default (currently: {sender})' => 'Standaardafzender van SMS Manager gebruiken (momenteel: {sender})',
+    'Use SMS Manager default (none configured)' => 'Standaardafzender van SMS Manager gebruiken (niet geconfigureerd)',
     'Allowed countries for' => 'Toegestane landen voor',
     'All countries.' => 'Alle landen.',
     'No country restrictions for' => 'Geen landrestricties voor',
@@ -268,6 +275,7 @@ return [
     'Campaign Actions' => 'Campagneacties',
     'Campaign job queued. Check the queue for progress.' => 'Campagnetaak in wachtrij geplaatst. Controleer de wachtrij voor de voortgang.',
     'Failed to run campaign' => 'Campagne uitvoeren mislukt',
+    'Failed to load tab content' => 'Tabbladinhoud kon niet worden geladen',
 
     // Campaign: Analytics
     'Daily Activity' => 'Dagelijkse activiteit',
@@ -287,6 +295,8 @@ return [
     'No form fields to display.' => 'Geen formuliervelden om weer te geven.',
     'No responses yet.' => 'Nog geen reacties.',
     'Recipients who submit the form will appear here.' => 'Ontvangers die het formulier indienen, verschijnen hier.',
+    'Showing {start}–{end} of {total}' => '{start}–{end} van {total} worden weergegeven',
+    'Page {page} of {total}' => 'Pagina {page} van {total}',
 
     // Recipients: Index
     'Date Range' => 'Datumbereik',
@@ -295,6 +305,7 @@ return [
     'Response' => 'Reactie',
     'No recipients found.' => 'Geen ontvangers gevonden.',
     'recipient' => 'ontvanger',
+    'recipients' => 'ontvangers',
     'View Response' => 'Reactie bekijken',
     'Delete {count} recipient? This cannot be undone.' => '{count} ontvanger verwijderen? Dit kan niet ongedaan worden gemaakt.',
     'Delete {count} recipients? This cannot be undone.' => '{count} ontvangers verwijderen? Dit kan niet ongedaan worden gemaakt.',
@@ -390,6 +401,7 @@ return [
     'Rows to Import' => 'Te importeren rijen',
 
     // Recipients: Preview
+    'Import Preview' => 'Importvoorbeeld',
     'Total Rows' => 'Totaal rijen',
     'Valid' => 'Geldig',
     'Duplicates' => 'Duplicaten',
@@ -457,6 +469,7 @@ return [
     'Opened Invitations' => 'Geopende uitnodigingen',
     'Conversion Funnel' => 'Conversietrechter',
     'Funnel Breakdown' => 'Trechteroverzicht',
+    'Recipients added in the selected date range, followed through each stage up to the end of the range. Each stage counts only recipients from the stage before it.' => 'Ontvangers die in het geselecteerde datumbereik zijn toegevoegd, gevolgd door elke fase tot het einde van het bereik. Elke fase telt alleen ontvangers uit de voorgaande fase.',
     'Stage' => 'Fase',
     'Percentage' => 'Percentage',
     'Drop-off' => 'Uitval',
@@ -514,6 +527,8 @@ return [
     'Welcome! Please complete the form below.' => 'Welkom! Vul het onderstaande formulier in.',
     'Invalid Invitation' => 'Ongeldige uitnodiging',
     'This invitation link is not valid or has expired.' => 'Deze uitnodigingslink is niet geldig of is verlopen.',
+    'Invalid or missing invitation code.' => 'Ongeldige of ontbrekende uitnodigingscode.',
+    'The campaign for this invitation could not be found.' => 'De campagne voor deze uitnodiging is niet gevonden.',
 
     // Activity Logs
     'User' => 'Gebruiker',
@@ -524,6 +539,7 @@ return [
     'Activity logs are currently disabled in settings.' => 'Activiteitenlogboeken zijn momenteel uitgeschakeld in de instellingen.',
     'Invitations queued' => 'Uitnodigingen in wachtrij geplaatst',
     'Campaigns queued' => 'Campagnes in wachtrij geplaatst',
+    'Recipients deleted' => 'Ontvangers verwijderd',
     'Added' => 'Toegevoegd',
     'Invitation queued' => 'Uitnodiging in wachtrij geplaatst',
     'Deleted' => 'Verwijderd',

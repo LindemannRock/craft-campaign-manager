@@ -40,6 +40,7 @@
 {# Funnel Breakdown Table #}
 <div class="lr-chart-container lr-mt-24">
     <h3>{{ 'Funnel Breakdown'|t('campaign-manager') }}</h3>
+    <p class="lr-text-muted">{{ 'Recipients added in the selected date range, followed through each stage up to the end of the range. Each stage counts only recipients from the stage before it.'|t('campaign-manager') }}</p>
     <div class="lr-table-scroll">
         <table class="data fullwidth">
             <thead>
@@ -51,16 +52,14 @@
                 </tr>
             </thead>
             <tbody>
-                {# Funnel stages count UNIQUE recipients at each step (a recipient
-                   with both email + SMS counts once, not twice — otherwise stages
-                   can exceed Total Recipients). #}
-                {% set stages = [
-                    { name: 'Total Recipients'|t('campaign-manager'), count: summaryStats.totalRecipients },
-                    { name: 'Invitations Sent'|t('campaign-manager'), count: summaryStats.uniqueInvited },
-                    { name: 'Opened'|t('campaign-manager'), count: summaryStats.uniqueOpened },
-                    { name: 'Responded'|t('campaign-manager'), count: summaryStats.submissions },
-                ] %}
-                {% set baseline = summaryStats.totalRecipients %}
+                {# The stages come from the service with the chart's data: the
+                   recipients added in the range, then those of them sent to,
+                   opened and responded, each a subset of the stage before. #}
+                {% set stages = [] %}
+                {% for label in conversionFunnel.labels %}
+                    {% set stages = stages|merge([{ name: label, count: conversionFunnel.values[loop.index0] }]) %}
+                {% endfor %}
+                {% set baseline = conversionFunnel.values[0] %}
                 {% for stage in stages %}
                     {% set pct = baseline > 0 ? (stage.count / baseline * 100)|round(1) : 0 %}
                     {% set prevCount = loop.first ? stage.count : stages[loop.index0 - 1].count %}

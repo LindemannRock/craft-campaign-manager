@@ -160,13 +160,12 @@
 
         <h3>{{ 'Phone Number Settings'|t('campaign-manager') }}</h3>
 
-        {# Get allowed countries from the provider this campaign sends
-           through, resolved from its sender. #}
-        {% set providerHandle = craft.campaignManager.sms.resolveProviderHandleForSender(campaign.senderHandle) %}
-        {% set allowedCountries = providerHandle ? craft.campaignManager.sms.getAllowedCountries(providerHandle) : [] %}
+        {# The allowed countries come from the provider this campaign sends
+           through, resolved by the controller (`allowedCountries`: ['*'] for
+           every country, a list of codes, or null when no provider resolves). #}
         {% set isAllCountries = allowedCountries == ['*'] %}
 
-        {% if allowedCountries|length > 0 %}
+        {% if allowedCountries is not null %}
             <p>{{ 'Select the country for phone numbers in the CSV. Numbers with country codes (e.g., +965...) will be auto-detected.'|t('campaign-manager') }}</p>
 
             {# Build country options #}

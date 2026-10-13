@@ -15,6 +15,7 @@ use craft\web\UploadedFile;
 use lindemannrock\base\helpers\CsvImportHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
+use lindemannrock\base\helpers\GeoHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\exceptions\InvalidInvitationDelayException;
 use lindemannrock\campaignmanager\helpers\InvitationScheduleHelper;
@@ -795,6 +796,7 @@ class RecipientsController extends Controller
             'campaign' => $campaign,
             'campaignId' => $campaignId,
             'site' => $site,
+            'allowedCountries' => CampaignManager::$plugin->sms->resolveAllowedCountriesForSender($campaign->senderHandle),
         ]);
     }
 
@@ -891,19 +893,15 @@ class RecipientsController extends Controller
                 $smsValid = false;
             } else {
                 // Verify the country is allowed for the provider this campaign
-                // sends through, resolved from its sender.
-                $providerHandle = CampaignManager::$plugin->sms->resolveProviderHandleForSender($campaign->senderHandle);
+                // sends through, resolved from its sender. Without a provider
+                // the form offers no country, so there is nothing to check here.
+                $allowedCountries = CampaignManager::$plugin->sms->resolveAllowedCountriesForSender($campaign->senderHandle);
                 $countryAllowed = true;
 
-                if ($providerHandle) {
-                    $allowedCountries = CampaignManager::$plugin->sms->getAllowedCountries($providerHandle);
-                    $isAllCountries = $allowedCountries === ['*'];
-
-                    if (!$isAllCountries && !in_array($smsCountry, $allowedCountries, true)) {
-                        $recipient->addError('sms', Craft::t('campaign-manager', 'Country {country} is not allowed for this campaign\'s SMS provider.', ['country' => $smsCountry]));
-                        $smsValid = false;
-                        $countryAllowed = false;
-                    }
+                if ($allowedCountries !== null && $allowedCountries !== ['*'] && !in_array(strtoupper((string)$smsCountry), $allowedCountries, true)) {
+                    $recipient->addError('sms', Craft::t('campaign-manager', 'Country {country} is not allowed for this campaign\'s SMS provider.', ['country' => $smsCountry]));
+                    $smsValid = false;
+                    $countryAllowed = false;
                 }
 
                 // Validate phone with explicit country code (only if country is allowed)
@@ -961,8 +959,10 @@ class RecipientsController extends Controller
 
         // Queue invitation if requested, after the campaign's invitation
         // delay when it has one. A delay that cannot be read queues nothing:
-        // the recipient waits for the campaign to be corrected
+        // the recipient waits for the campaign to be corrected, and the
+        // administrator is told so
         $sendInvitation = $this->request->getBodyParam('sendInvitation');
+        $warning = null;
         if ($sendInvitation) {
             $campaign = CampaignRecord::findOneForSite($recipient->campaignId, $recipient->siteId);
             if ($campaign && $this->invitationDelayIsReadable((int)$campaign->id, $campaign->invitationDelayPeriod)) {
@@ -973,11 +973,16 @@ class RecipientsController extends Controller
                     'sendSms' => !empty($recipient->sms),
                     'sendEmail' => !empty($recipient->email),
                     'triggeredByUserId' => Craft::$app->getUser()->getIdentity()?->id,
+                    // Nothing is sent if the campaign is disabled for the
+                    // site by the time the batch runs
+                    'onlyWhileCampaignEnabled' => true,
                 ]), null, InvitationScheduleHelper::secondsUntilEligible($recipient->dateCreated, $campaign->invitationDelayPeriod));
+            } elseif ($campaign) {
+                $warning = Craft::t('campaign-manager', 'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.');
             }
         }
 
-        return $this->returnSuccessResponse($recipient);
+        return $this->returnSuccessResponse($recipient, $warning);
     }
 
     /**
@@ -1278,6 +1283,7 @@ class RecipientsController extends Controller
             'previewRows' => $previewRows,
             'rowCount' => $importData['rowCount'],
             'queueSending' => $importData['queueSending'],
+            'allowedCountries' => CampaignManager::$plugin->sms->resolveAllowedCountriesForSender($campaign->senderHandle),
         ]);
     }
 
@@ -1390,23 +1396,29 @@ class RecipientsController extends Controller
         $phoneCountry = $this->request->getBodyParam('phoneCountry', '');
 
         // Get allowed countries for the provider this campaign sends through,
-        // resolved from its sender, as the recipients templates do.
-        $providerHandle = CampaignManager::$plugin->sms->resolveProviderHandleForSender($campaign->senderHandle);
-        $allowedCountries = $providerHandle ? CampaignManager::$plugin->sms->getAllowedCountries($providerHandle) : [];
-        $isAllCountries = $allowedCountries === ['*'];
+        // resolved from its sender, as the Add Recipient form and the mapping
+        // step do. Only a provider with countries selected restricts rows.
+        $allowedCountries = CampaignManager::$plugin->sms->resolveAllowedCountriesForSender($campaign->senderHandle);
+        $restrictedCountries = $allowedCountries !== null && $allowedCountries !== ['*'] ? $allowedCountries : [];
 
-        // Build dial code to country mapping for auto-detection
-        $dialCodeToCountry = [];
-        if (!empty($allowedCountries) && !$isAllCountries) {
-            foreach ($allowedCountries as $code) {
-                $dialCode = \lindemannrock\base\helpers\GeoHelper::getDialCode($code);
-                if ($dialCode) {
-                    $dialCodeToCountry[$dialCode] = $code;
-                }
+        // Build the dial-code detection map. A restricted provider detects its
+        // allowed countries; an unrestricted provider detects every supported
+        // country, but only from numbers written in international format (+ or
+        // 00), because a national number's leading digits can coincide with
+        // another country's dial code (a US "212…" number is not Moroccan).
+        // Countries sharing a dial code (+1, +44, +7) are kept together and
+        // told apart by libphonenumber once a number matches.
+        $detectsEveryCountry = $restrictedCountries === [] && $allowedCountries === ['*'];
+        $detectableCountries = $restrictedCountries !== [] ? $restrictedCountries : ($detectsEveryCountry ? array_keys(GeoHelper::getAllDialCodes()) : []);
+        $dialCodeToCountries = [];
+        foreach ($detectableCountries as $code) {
+            $dialCode = GeoHelper::getDialCode($code);
+            if ($dialCode) {
+                $dialCodeToCountries[$dialCode][] = $code;
             }
         }
         // Sort by dial code length descending (longer codes first)
-        uksort($dialCodeToCountry, fn($a, $b) => strlen($b) - strlen($a));
+        uksort($dialCodeToCountries, fn($a, $b) => strlen((string)$b) - strlen((string)$a));
 
         // Track duplicates within this CSV batch
         $batchPhoneKeys = [];
@@ -1499,32 +1511,59 @@ class RecipientsController extends Controller
                 // Determine the country to use for validation
                 $detectedCountry = null;
                 $numberToValidate = $cleanedSms;
+                $phoneValidation = null;
 
                 // Strip + or 00 prefix for detection
                 $digitsOnly = preg_replace('/[^0-9]/', '', $cleanedSms);
+                $isInternational = str_starts_with($cleanedSms, '+');
 
-                // Try to auto-detect country from dial code
-                foreach ($dialCodeToCountry as $dialCode => $country) {
-                    if (str_starts_with($digitsOnly, $dialCode)) {
-                        $detectedCountry = $country;
-                        break;
+                // A number without an international mark is first taken as a
+                // local number of the selected country. Only when it is not
+                // valid there are its leading digits read as a dial code (the
+                // country-code-without-+ form), so a local number is never
+                // taken for another allowed country whose dial code its first
+                // digits happen to spell (a US 212… number is not Moroccan).
+                if (!$isInternational && $restrictedCountries !== [] && is_string($phoneCountry) && $phoneCountry !== '') {
+                    $localValidation = PhoneHelper::validateWithCountry($cleanedSms, $phoneCountry);
+                    if ($localValidation['valid']) {
+                        $phoneValidation = $localValidation;
                     }
                 }
 
-                // Use detected country or fall back to selected phone country
-                $countryForValidation = $detectedCountry ?? $phoneCountry;
-
-                if (empty($countryForValidation)) {
-                    $errorRows[] = [
-                        'rowNumber' => $rowNumber,
-                        'name' => $recipientData['name'],
-                        'error' => Craft::t('campaign-manager', 'No phone country configured'),
-                    ];
-                    continue;
+                // Try to auto-detect country from dial code: always for
+                // international input, and for unmarked input only when a
+                // restricted provider's selected country did not accept it
+                if ($phoneValidation === null && ($isInternational || $restrictedCountries !== [])) {
+                    foreach ($dialCodeToCountries as $dialCode => $countries) {
+                        if (str_starts_with($digitsOnly, (string)$dialCode)) {
+                            $detectedCountry = count($countries) === 1
+                                ? $countries[0]
+                                : (PhoneHelper::getCountry('+' . $digitsOnly) ?? end($countries));
+                            if (!in_array($detectedCountry, $countries, true)) {
+                                $detectedCountry = end($countries);
+                            }
+                            break;
+                        }
+                    }
                 }
 
-                // Validate with the determined country
-                $phoneValidation = PhoneHelper::validateWithCountry($cleanedSms, $countryForValidation);
+                if ($phoneValidation === null) {
+                    // Use detected country or fall back to selected phone country
+                    $countryForValidation = $detectedCountry ?? $phoneCountry;
+
+                    if (empty($countryForValidation)) {
+                        $errorRows[] = [
+                            'rowNumber' => $rowNumber,
+                            'name' => $recipientData['name'],
+                            'error' => Craft::t('campaign-manager', 'No phone country configured'),
+                        ];
+                        continue;
+                    }
+
+                    // Validate with the determined country
+                    $phoneValidation = PhoneHelper::validateWithCountry($cleanedSms, $countryForValidation);
+                }
+
                 if (!$phoneValidation['valid']) {
                     $errorRows[] = [
                         'rowNumber' => $rowNumber,
@@ -1535,9 +1574,9 @@ class RecipientsController extends Controller
                 }
 
                 // Verify the validated number's country is in allowed list
-                if (!$isAllCountries && !empty($allowedCountries)) {
+                if ($restrictedCountries !== []) {
                     $validatedCountry = $phoneValidation['country'];
-                    if ($validatedCountry && !in_array($validatedCountry, $allowedCountries, true)) {
+                    if ($validatedCountry && !in_array(strtoupper((string)$validatedCountry), $restrictedCountries, true)) {
                         $errorRows[] = [
                             'rowNumber' => $rowNumber,
                             'name' => $recipientData['name'],
@@ -1705,8 +1744,11 @@ class RecipientsController extends Controller
         $waitByRecipientId = [];
         $invitationDelayPeriod = CampaignRecord::findOne($campaignId)?->invitationDelayPeriod;
         // A delay that cannot be read queues nothing: the recipients are
-        // still imported and wait for the campaign to be corrected
-        $queueSending = $queueSending && $this->invitationDelayIsReadable($campaignId, $invitationDelayPeriod);
+        // still imported and wait for the campaign to be corrected, and the
+        // administrator is told so once the import is done
+        $invitationDelayIsReadable = $this->invitationDelayIsReadable($campaignId, $invitationDelayPeriod);
+        $queueSendingDeclined = $queueSending && !$invitationDelayIsReadable;
+        $queueSending = $queueSending && $invitationDelayIsReadable;
 
         foreach ($validRows as $index => $rowData) {
             $rowSiteId = (int)$rowData['siteId'];
@@ -1810,7 +1852,8 @@ class RecipientsController extends Controller
 
             CampaignManager::$plugin->activityLogs->log('campaign_invitations_queued', [
                 'campaignId' => $campaignId,
-                'source' => 'system',
+                // The queueing is part of the import the user ran
+                'source' => 'import',
                 'summary' => Craft::t('campaign-manager', 'Invitation sending queued after import'),
                 'userId' => $triggeredByUserId,
                 'details' => [
@@ -1842,6 +1885,10 @@ class RecipientsController extends Controller
 
         Craft::$app->getSession()->setNotice($message);
 
+        if ($queueSendingDeclined) {
+            Craft::$app->getSession()->setError(Craft::t('campaign-manager', 'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.'));
+        }
+
         $siteHandle = $this->request->getParam('site', 'en');
         return $this->redirect("campaign-manager/campaigns/{$campaignId}/recipients?site={$siteHandle}");
     }
@@ -1860,16 +1907,11 @@ class RecipientsController extends Controller
 
         $request = Craft::$app->getRequest();
         $campaignId = (int)$request->getRequiredBodyParam('campaignId');
-        $siteHandle = $request->getBodyParam('site');
-        $site = $siteHandle ? Craft::$app->getSites()->getSiteByHandle($siteHandle) : Craft::$app->getSites()->getPrimarySite();
+        // The requested site, or the user's current site, must be one the
+        // user may edit; a site that does not exist is refused the same way
+        $site = SiteAccessHelper::requireEditableSite($request->getBodyParam('site'));
         $dateRange = $request->getBodyParam('dateRange', DateRangeHelper::getDefaultDateRange(CampaignManager::$plugin->id));
         $format = $request->getBodyParam('format', 'csv');
-
-        // Validate site is editable
-        $editableSiteIds = Craft::$app->getSites()->getEditableSiteIds();
-        if (!in_array($site->id, $editableSiteIds, true)) {
-            throw new \yii\web\ForbiddenHttpException(Craft::t('campaign-manager', 'User does not have permission to export recipients for this site.'));
-        }
 
         // Validate format is enabled
         if (!ExportHelper::isFormatEnabled($format, CampaignManager::$plugin->id)) {
@@ -1989,6 +2031,7 @@ class RecipientsController extends Controller
             'campaignId' => $recipient->campaignId,
             'site' => $site,
             'recipient' => $recipient,
+            'allowedCountries' => $campaign ? CampaignManager::$plugin->sms->resolveAllowedCountriesForSender($campaign->senderHandle) : null,
         ]);
     }
 
@@ -2037,12 +2080,17 @@ class RecipientsController extends Controller
     }
 
     /**
-     * Return a success response
+     * Return a success response. A warning names the part of the request
+     * that did not happen although the action itself succeeded.
      */
-    protected function returnSuccessResponse(mixed $returnUrlObject = null): Response
+    protected function returnSuccessResponse(mixed $returnUrlObject = null, ?string $warning = null): Response
     {
         if (Craft::$app->getRequest()->getAcceptsJson()) {
-            return $this->asJson(['success' => true]);
+            return $this->asJson(['success' => true] + ($warning !== null ? ['warning' => $warning] : []));
+        }
+
+        if ($warning !== null) {
+            Craft::$app->getSession()->setError($warning);
         }
 
         return $this->redirectToPostedUrl($returnUrlObject, Craft::$app->getRequest()->getReferrer());

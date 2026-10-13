@@ -20,6 +20,8 @@
     {% endif %}
 {% endblock %}
 
+{# The queue link label is built by JavaScript, so its translation is registered for Craft.t() #}
+{% do view.registerTranslations('campaign-manager', ['View']) %}
 {% js %}
 // Initialize menu buttons when table updates
 Garnish.on(Craft.BaseElementIndex, 'updateElements', function() {
@@ -55,7 +57,7 @@ document.addEventListener('click', function(e) {
             var queueUrl = {{ cpUrl('utilities/queue-manager')|json_encode|raw }};
             var queueMsg = {{ 'Campaign job queued. Check the queue for progress.'|t('campaign-manager')|json_encode|raw }};
             Craft.cp.displayNotice(queueMsg, {
-                details: $('<a/>', {href: queueUrl, text: Craft.t('app', 'View')}),
+                details: $('<a/>', {href: queueUrl, text: Craft.t('campaign-manager', 'View')}),
             });
         }
     }).catch(function(error) {

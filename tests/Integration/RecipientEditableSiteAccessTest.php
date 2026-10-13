@@ -32,6 +32,11 @@ final class RecipientEditableSiteAccessTest extends SiteRestrictedUserTestCase
         'campaignManager:deleteRecipients',
     ];
 
+    private const EXPORT_PERMISSIONS = [
+        'campaignManager:manageRecipients',
+        'campaignManager:exportRecipients',
+    ];
+
     public function testRecipientListShowsAnEditableSite(): void
     {
         [$siteA, $siteB] = $this->siteIds(2);
@@ -261,6 +266,57 @@ final class RecipientEditableSiteAccessTest extends SiteRestrictedUserTestCase
 
         self::assertSame(2, $response->data['count']);
         self::assertSame([], $response->data['errors']);
+    }
+
+    public function testExportRefusesAnUnknownSiteTheSameWayAsAForbiddenOne(): void
+    {
+        [$siteA, $siteB] = $this->siteIds(2);
+        $campaign = $this->seedOwnedCampaign();
+        $this->seedOwnedRecipient($campaign, $siteA);
+        $this->seedOwnedRecipient($campaign, $siteB);
+        $this->actAsUserRestrictedTo([$siteA], self::EXPORT_PERMISSIONS);
+
+        foreach ([$this->siteHandle($siteB), 'noSuchSiteHandle'] as $handle) {
+            $this->request('POST', [], ['campaignId' => (string)$campaign->id, 'site' => $handle, 'format' => 'csv', 'dateRange' => 'all']);
+            $this->assertDenied(fn() => $this->recipientsController()->actionExportRecipients(), "The export must be refused for site {$handle}.");
+        }
+
+        self::assertSame(0, $this->ownedActivityLogCount(), 'A refused export writes no activity log.');
+    }
+
+    public function testExportDeliversTheRecipientsOfAnEditableSite(): void
+    {
+        [$siteA, $siteB] = $this->siteIds(2);
+        $campaign = $this->seedOwnedCampaign();
+        $allowed = $this->seedOwnedRecipient($campaign, $siteA);
+        $other = $this->seedOwnedRecipient($campaign, $siteB);
+        $this->actAsUserRestrictedTo([$siteA], self::EXPORT_PERMISSIONS);
+
+        $this->request('POST', [], ['campaignId' => (string)$campaign->id, 'site' => $this->siteHandle($siteA), 'format' => 'csv', 'dateRange' => 'all']);
+        $csv = (string)$this->recipientsController()->actionExportRecipients()->content;
+
+        self::assertStringContainsString((string)$allowed->email, $csv);
+        self::assertStringNotContainsString((string)$other->email, $csv);
+        $log = $this->latestOwnedLog('campaign_recipients_exported');
+        self::assertNotNull($log);
+        self::assertSame([$siteA], $this->logSiteIds((int)$log->id));
+    }
+
+    public function testExportWithoutASiteUsesASiteTheUserMayEdit(): void
+    {
+        [$siteA, $siteB] = $this->siteIds(2);
+        $campaign = $this->seedOwnedCampaign();
+        $this->seedOwnedRecipient($campaign, $siteA);
+        $allowed = $this->seedOwnedRecipient($campaign, $siteB);
+        $this->actAsUserRestrictedTo([$siteB], self::EXPORT_PERMISSIONS);
+
+        $this->request('POST', [], ['campaignId' => (string)$campaign->id, 'format' => 'csv', 'dateRange' => 'all']);
+        $csv = (string)$this->recipientsController()->actionExportRecipients()->content;
+
+        self::assertStringContainsString((string)$allowed->email, $csv, 'Without a site, the export covers a site the user may edit.');
+        $log = $this->latestOwnedLog('campaign_recipients_exported');
+        self::assertNotNull($log);
+        self::assertSame([$siteB], $this->logSiteIds((int)$log->id));
     }
 
     private function assertReachesImportSession(callable $action): void

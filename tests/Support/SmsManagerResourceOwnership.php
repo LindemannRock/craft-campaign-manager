@@ -115,6 +115,21 @@ trait SmsManagerResourceOwnership
      */
     protected function useSmsManagerDefaultSender(SenderIdRecord $sender): void
     {
+        $this->useSmsManagerDefaultSenderHandle((string)$sender->handle);
+    }
+
+    /**
+     * Leave SMS Manager without a usable default sender for the rest of the
+     * test: its configured default names a sender that no longer exists, the
+     * state a deleted or renamed default sender leaves behind.
+     */
+    protected function useNoSmsManagerDefaultSender(): void
+    {
+        $this->useSmsManagerDefaultSenderHandle(strtolower($this->nextTestMarker('cm_test_missing_', 'sender')));
+    }
+
+    private function useSmsManagerDefaultSenderHandle(string $handle): void
+    {
         $settings = SmsManager::$plugin->getSettings();
 
         if (!$this->smsManagerDefaultSenderChanged) {
@@ -122,7 +137,30 @@ trait SmsManagerResourceOwnership
             $this->smsManagerDefaultSenderChanged = true;
         }
 
-        $settings->defaultSenderIdHandle = (string)$sender->handle;
+        $settings->defaultSenderIdHandle = $handle;
+    }
+
+    /**
+     * Let Campaign Manager's default sender be saved from the settings page
+     * for the rest of the test, as in a project whose config file does not
+     * set it. Only the in-memory config service changes; it is put back
+     * exactly afterwards.
+     */
+    protected function letCampaignManagerDefaultSenderBeSaved(): void
+    {
+        if (!$this->campaignManagerDefaultSenderChanged) {
+            $this->originalCampaignManagerDefaultSender = CampaignManager::$plugin->getSettings()->defaultSenderIdHandle;
+            $this->campaignManagerDefaultSenderChanged = true;
+        }
+
+        $this->originalConfigService ??= Craft::$app->getConfig();
+        Craft::$app->set('config', PluginConfigOverridingConfig::wrapping($this->originalConfigService, [], [
+            'campaign-manager' => ['defaultSenderIdHandle'],
+        ]));
+
+        if (CampaignManager::$plugin->getSettings()->isOverriddenByConfig('defaultSenderIdHandle')) {
+            throw new RuntimeException('The Campaign Manager default sender is still pinned by config.');
+        }
     }
 
     /**

@@ -106,11 +106,11 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: {count} 件の受信者に招待を送信中',
     'Invitation batch sent' => '招待バッチが送信されました',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'キャンペーン {campaignId} のバッチが失敗しました: {total} 件中 {errors} 件の宛先に送信できませんでした。詳細はプラグインのログを確認してください。',
+    'Campaign {campaignId} could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.' => 'キャンペーン {campaignId} を実行できませんでした：招待の遅延が無効なため、招待はキューに追加されませんでした。キャンペーンの遅延を修正してから、もう一度実行してください。',
     'Campaign is disabled for site {site}.' => 'キャンペーンはサイト {site} で無効になっています。',
 
     // Controller messages
     'New Campaign' => '新しいキャンペーン',
-    'Select a provider first...' => '最初にプロバイダーを選択してください...',
     'Couldn\'t save campaign.' => 'キャンペーンを保存できませんでした。',
     'Campaign created' => 'キャンペーンが作成されました',
     'Campaign updated' => 'キャンペーンが更新されました',
@@ -159,6 +159,8 @@ return [
     'Recipients imported' => '受信者がインポートされました',
     'Invitation sending queued after import' => 'インポート後に招待の送信がキューに追加されました',
     'Invitation sending has been queued.' => '招待の送信がキューに追加されました。',
+    'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.' => '受信者は追加されましたが、招待はキューに追加されませんでした：キャンペーンの招待の遅延が無効です。キャンペーンの遅延を修正してから、キャンペーンを実行して招待を送信してください。',
+    'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.' => '招待はキューに追加されませんでした：キャンペーンの招待の遅延が無効です。キャンペーンの遅延を修正してから、キャンペーンを実行して招待を送信してください。',
     'No recipients to export.' => 'エクスポートする受信者がいません。',
     'Campaign recipients exported' => 'キャンペーンの受信者がエクスポートされました',
     'ID' => 'ID',
@@ -203,7 +205,12 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'キャンペーン招待を送信する際に使用するデフォルトの SMS プロバイダーです。',
     'Default Sender ID' => 'デフォルト送信者 ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'キャンペーン招待を送信する際に使用するデフォルトの SMS 送信者 ID です。',
+    'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this default to that sender regardless of future SMS Manager changes.' => '送信者はプロバイダーごとにグループ化されています。「SMS Manager のデフォルトを使用する」を選択すると、プラグイン全体の設定に従います。特定の送信者を選択すると、今後 SMS Manager が変更されても、このデフォルトはその送信者に固定されます。',
+    'Plugin Default Sender ID' => 'プラグインのデフォルト送信者 ID',
+    'Plugin Default Sender ID provider' => 'プラグインのデフォルト送信者 ID のプロバイダー',
+    'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.' => 'SMS Manager プラグインがインストールされていないか、有効になっていません。SMS 設定を構成するには、<a href="{url}">SMS Manager を有効にしてください</a>。',
     'Use SMS Manager default (currently: {sender})' => 'SMS Manager のデフォルトを使用する（現在: {sender}）',
+    'Use SMS Manager default (none configured)' => 'SMS Manager のデフォルトを使用する（未設定）',
     'Allowed countries for' => '許可された国（対象 :',
     'All countries.' => 'すべての国。',
     'No country restrictions for' => '国の制限なし（対象 :',
@@ -268,6 +275,7 @@ return [
     'Campaign Actions' => 'キャンペーンアクション',
     'Campaign job queued. Check the queue for progress.' => 'キャンペーンジョブがキューに追加されました。進捗状況はキューを確認してください。',
     'Failed to run campaign' => 'キャンペーンの実行に失敗しました',
+    'Failed to load tab content' => 'タブの内容を読み込めませんでした',
 
     // Campaign: Analytics
     'Daily Activity' => '日別アクティビティ',
@@ -287,6 +295,8 @@ return [
     'No form fields to display.' => '表示するフォームフィールドがありません。',
     'No responses yet.' => 'まだ回答がありません。',
     'Recipients who submit the form will appear here.' => 'フォームを送信した受信者がここに表示されます。',
+    'Showing {start}–{end} of {total}' => '{total} 件中 {start} 〜 {end} 件を表示中',
+    'Page {page} of {total}' => '{total} ページ中 {page} ページ目',
 
     // Recipients: Index
     'Date Range' => '期間',
@@ -295,6 +305,7 @@ return [
     'Response' => '回答',
     'No recipients found.' => '受信者が見つかりません。',
     'recipient' => '受信者',
+    'recipients' => '受信者',
     'View Response' => '回答を表示する',
     'Delete {count} recipient? This cannot be undone.' => '{count} 件の受信者を削除しますか？この操作は元に戻せません。',
     'Delete {count} recipients? This cannot be undone.' => '{count} 件の受信者を削除しますか？この操作は元に戻せません。',
@@ -390,6 +401,7 @@ return [
     'Rows to Import' => 'インポートする行数',
 
     // Recipients: Preview
+    'Import Preview' => 'インポートプレビュー',
     'Total Rows' => '合計行数',
     'Valid' => '有効',
     'Duplicates' => '重複',
@@ -457,6 +469,7 @@ return [
     'Opened Invitations' => '開封済み招待',
     'Conversion Funnel' => 'コンバージョンファネル',
     'Funnel Breakdown' => 'ファネル内訳',
+    'Recipients added in the selected date range, followed through each stage up to the end of the range. Each stage counts only recipients from the stage before it.' => '選択した期間内に追加された受信者を、期間の終了時点まで各ステージで追跡します。各ステージは、直前のステージの受信者のみを集計します。',
     'Stage' => 'ステージ',
     'Percentage' => 'パーセンテージ',
     'Drop-off' => '離脱',
@@ -514,6 +527,8 @@ return [
     'Welcome! Please complete the form below.' => 'ようこそ！以下のフォームにご記入ください。',
     'Invalid Invitation' => '無効な招待',
     'This invitation link is not valid or has expired.' => 'この招待リンクは無効または期限切れです。',
+    'Invalid or missing invitation code.' => '招待コードが無効または指定されていません。',
+    'The campaign for this invitation could not be found.' => 'この招待のキャンペーンが見つかりませんでした。',
 
     // Activity Logs
     'User' => 'ユーザー',
@@ -524,6 +539,7 @@ return [
     'Activity logs are currently disabled in settings.' => 'アクティビティログは現在設定で無効になっています。',
     'Invitations queued' => '招待がキューに追加されました',
     'Campaigns queued' => 'キャンペーンがキューに追加されました',
+    'Recipients deleted' => '受信者が削除されました',
     'Added' => '追加',
     'Invitation queued' => '招待がキューに追加されました',
     'Deleted' => '削除',

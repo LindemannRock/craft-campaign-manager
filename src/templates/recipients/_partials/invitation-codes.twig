@@ -1,0 +1,20 @@
+{#
+ # Invitation codes of one recipient, for the Code column of the recipient
+ # list. Each contact channel the recipient has shows its own code: the
+ # email code for an email address, the SMS code for a phone number. With
+ # both channels the codes are labelled; a recipient from before the
+ # channels had separate codes shares one code, shown once.
+ #
+ # @var item \lindemannrock\campaignmanager\records\RecipientRecord|array
+ #}
+{% set emailCode = item.email ? (item.emailInvitationCode ?? null) : null %}
+{% set smsCode = item.sms ? (item.smsInvitationCode ?? null) : null %}
+
+{% if emailCode and smsCode and emailCode != smsCode %}
+    <span class="light">{{ 'Email'|t('campaign-manager') }}:</span> <code>{{ emailCode }}</code><br>
+    <span class="light">{{ 'SMS'|t('campaign-manager') }}:</span> <code>{{ smsCode }}</code>
+{% elseif emailCode or smsCode %}
+    <code>{{ emailCode ?? smsCode }}</code>
+{% else %}
+    <span class="light">-</span>
+{% endif %}

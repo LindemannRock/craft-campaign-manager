@@ -106,11 +106,11 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: إرسال الدعوات إلى {count} مستلمين',
     'Invitation batch sent' => 'تم إرسال دفعة الدعوات',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'فشلت دفعة الحملة {campaignId}: لم يتمكن من إرسالها إلى {errors} من أصل {total} مستلم. راجع سجل الإضافة للاطلاع على التفاصيل.',
+    'Campaign {campaignId} could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.' => 'تعذّر تشغيل الحملة {campaignId}: تأخير الدعوة الخاص بها غير صالح ولم يتم إضافة أي دعوات إلى قائمة الانتظار. صحّح التأخير في الحملة، ثم شغّلها مجددًا.',
     'Campaign is disabled for site {site}.' => 'الحملة معطّلة للموقع {site}.',
 
     // Controller messages
     'New Campaign' => 'حملة جديدة',
-    'Select a provider first...' => 'الرجاء تحديد مزوّد أولاً...',
     'Couldn\'t save campaign.' => 'تعذّر حفظ الحملة.',
     'Campaign created' => 'تم إنشاء الحملة',
     'Campaign updated' => 'تم تحديث الحملة',
@@ -159,6 +159,8 @@ return [
     'Recipients imported' => 'تم استيراد المستلمين',
     'Invitation sending queued after import' => 'تم إضافة إرسال الدعوات إلى قائمة الانتظار بعد الاستيراد',
     'Invitation sending has been queued.' => 'تم إضافة إرسال الدعوات إلى قائمة الانتظار.',
+    'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.' => 'تم إضافة المستلم، لكن لم يتم إضافة الدعوة إلى قائمة الانتظار: تأخير الدعوة الخاص بالحملة غير صالح. صحّح التأخير في الحملة، ثم أرسل الدعوة عن طريق تشغيل الحملة.',
+    'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.' => 'لم يتم إضافة الدعوات إلى قائمة الانتظار: تأخير الدعوة الخاص بالحملة غير صالح. صحّح التأخير في الحملة، ثم أرسل الدعوات عن طريق تشغيل الحملة.',
     'No recipients to export.' => 'لا يوجد مستلمون للتصدير.',
     'Campaign recipients exported' => 'تم تصدير مستلمي الحملة',
     'ID' => 'ID',
@@ -203,7 +205,12 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'مزوّد SMS الافتراضي المستخدم لإرسال دعوات الحملة.',
     'Default Sender ID' => 'معرّف المُرسِل الافتراضي',
     'The default SMS sender ID to use when sending campaign invitations.' => 'معرّف المُرسِل SMS الافتراضي المستخدم لإرسال دعوات الحملة.',
+    'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this default to that sender regardless of future SMS Manager changes.' => 'يتم تجميع المُرسِلين حسب المزوّد. اختر "استخدام المُرسِل الافتراضي لـ SMS Manager" لاتباع الإعداد المكوّن على مستوى الإضافة؛ واختر مُرسِلًا محددًا لتثبيت هذا الإعداد الافتراضي على ذلك المُرسِل بغض النظر عن أي تغييرات مستقبلية في SMS Manager.',
+    'Plugin Default Sender ID' => 'معرّف المُرسِل الافتراضي للإضافة',
+    'Plugin Default Sender ID provider' => 'مزوّد معرّف المُرسِل الافتراضي للإضافة',
+    'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.' => 'إضافة SMS Manager غير مثبتة أو غير مفعّلة. <a href="{url}">فعّل SMS Manager</a> لتكوين إعدادات SMS.',
     'Use SMS Manager default (currently: {sender})' => 'استخدام المُرسِل الافتراضي لـ SMS Manager (حاليًا: {sender})',
+    'Use SMS Manager default (none configured)' => 'استخدام المُرسِل الافتراضي لـ SMS Manager (لم يتم تكوين أي مُرسِل)',
     'Allowed countries for' => 'البلدان المسموح بها لـ',
     'All countries.' => 'جميع البلدان.',
     'No country restrictions for' => 'لا توجد قيود على البلدان لـ',
@@ -268,6 +275,7 @@ return [
     'Campaign Actions' => 'إجراءات الحملة',
     'Campaign job queued. Check the queue for progress.' => 'تم إضافة مهمة الحملة إلى قائمة الانتظار. تحقق من قائمة الانتظار لمتابعة التقدم.',
     'Failed to run campaign' => 'فشل تشغيل الحملة',
+    'Failed to load tab content' => 'فشل تحميل محتوى علامة التبويب',
 
     // Campaign: Analytics
     'Daily Activity' => 'النشاط اليومي',
@@ -287,6 +295,8 @@ return [
     'No form fields to display.' => 'لا توجد حقول نموذج لعرضها.',
     'No responses yet.' => 'لا توجد ردود حتى الآن.',
     'Recipients who submit the form will appear here.' => 'سيظهر هنا المستلمون الذين يرسلون النموذج.',
+    'Showing {start}–{end} of {total}' => 'عرض {start}–{end} من {total}',
+    'Page {page} of {total}' => 'الصفحة {page} من {total}',
 
     // Recipients: Index
     'Date Range' => 'نطاق التاريخ',
@@ -295,6 +305,7 @@ return [
     'Response' => 'الرد',
     'No recipients found.' => 'لم يتم العثور على مستلمين.',
     'recipient' => 'مستلم',
+    'recipients' => 'مستلمين',
     'View Response' => 'عرض الرد',
     'Delete {count} recipient? This cannot be undone.' => 'هل تريد حذف {count} مستلم؟ لا يمكن التراجع عن هذا الإجراء.',
     'Delete {count} recipients? This cannot be undone.' => 'هل تريد حذف {count} مستلمين؟ لا يمكن التراجع عن هذا الإجراء.',
@@ -390,6 +401,7 @@ return [
     'Rows to Import' => 'الصفوف المراد استيرادها',
 
     // Recipients: Preview
+    'Import Preview' => 'معاينة الاستيراد',
     'Total Rows' => 'إجمالي الصفوف',
     'Valid' => 'صالح',
     'Duplicates' => 'مكررات',
@@ -457,6 +469,7 @@ return [
     'Opened Invitations' => 'الدعوات المفتوحة',
     'Conversion Funnel' => 'قمع التحويل',
     'Funnel Breakdown' => 'تفصيل القمع',
+    'Recipients added in the selected date range, followed through each stage up to the end of the range. Each stage counts only recipients from the stage before it.' => 'المستلمون الذين تم إضافتهم في نطاق التاريخ المحدد، مع تتبّعهم عبر كل مرحلة حتى نهاية النطاق. لا تحتسب كل مرحلة سوى المستلمين من المرحلة السابقة لها.',
     'Stage' => 'المرحلة',
     'Percentage' => 'النسبة المئوية',
     'Drop-off' => 'معدل الانسحاب',
@@ -514,6 +527,8 @@ return [
     'Welcome! Please complete the form below.' => 'أهلاً وسهلاً! الرجاء إكمال النموذج أدناه.',
     'Invalid Invitation' => 'دعوة غير صالحة',
     'This invitation link is not valid or has expired.' => 'رابط الدعوة هذا غير صالح أو انتهت صلاحيته.',
+    'Invalid or missing invitation code.' => 'رمز الدعوة غير صالح أو مفقود.',
+    'The campaign for this invitation could not be found.' => 'لم يتم العثور على الحملة الخاصة بهذه الدعوة.',
 
     // Activity Logs
     'User' => 'المستخدم',
@@ -524,6 +539,7 @@ return [
     'Activity logs are currently disabled in settings.' => 'سجلات النشاط معطّلة حالياً في الإعدادات.',
     'Invitations queued' => 'تم إضافة الدعوات إلى قائمة الانتظار',
     'Campaigns queued' => 'تم إضافة الحملات إلى قائمة الانتظار',
+    'Recipients deleted' => 'تم حذف المستلمين',
     'Added' => 'تمت الإضافة',
     'Invitation queued' => 'تم إضافة الدعوة إلى قائمة الانتظار',
     'Deleted' => 'تم الحذف',

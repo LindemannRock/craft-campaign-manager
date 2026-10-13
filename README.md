@@ -102,6 +102,7 @@ Navigate to **Campaign Manager → Settings** in the control panel to configure:
 **General Settings:**
 - **Plugin Name**: Customize the display name in the control panel
 - **Campaign Section Handle**: The section handle where campaigns are stored
+- **Default Sender ID**: The SMS Manager sender that campaigns without a sender of their own send through. Leave it on **Use SMS Manager default** to inherit whatever SMS Manager has configured as its default sender; the option names that sender while one resolves and reads **none configured** when no sender currently resolves, for example because SMS Manager has no default or its default sender is disabled. Pick a specific sender to pin the plugin default regardless of later SMS Manager changes.
 
 **Bitly Settings:**
 - **Bitly API Key**: API key for URL shortening (environment variable recommended)
@@ -243,6 +244,10 @@ Ahmed Ali,ahmed@example.com,96598765432,ar
 2. Click **Run All**
 3. All campaigns will be processed
 
+#### Disabling a Campaign
+
+Disabling a campaign for a site stops its invitations. A batch queued by adding a recipient, by an import, or by a campaign run sends nothing when it runs after the campaign was disabled for that site, however long it waited for an invitation delay; its recipients keep waiting. Enabling the campaign again does not resend those batches: run the campaign to queue its pending recipients again.
+
 #### Invitation Delay
 
 A campaign's **Invitation Delay** holds every invitation back until the recipient has been in the campaign for that long, counted from when the recipient was added. It applies however the invitation is queued: adding a recipient with **Send Invitation**, importing with **Send invitations** on, or running the campaign. Leave the delay empty to send right away.
@@ -250,7 +255,7 @@ A campaign's **Invitation Delay** holds every invitation back until the recipien
 - A batch is queued to run only once every recipient in it is eligible. When a campaign run finds recipients who have already waited long enough, they are sent to right away; the others are batched in the order they become eligible.
 - The delay is read from the campaign again when a batch runs. Lengthening it after queueing holds the recipients back for the rest of the new delay; shortening or removing it lets them go out at once.
 - A recipient who is still waiting when a batch runs is not skipped: those recipients are queued again automatically, so nothing needs to be run twice.
-- A stored delay the plugin cannot read as a duration holds everything back rather than sending early: nothing is queued or sent for that campaign, the plugin log names the invalid value, and a campaign run or batch that meets it fails in the queue. The value is never changed for you. Correct the delay on the campaign (the edit form no longer accepts such a value), then run the campaign again.
+- A stored delay the plugin cannot read as a duration holds everything back rather than sending early: nothing is queued or sent for that campaign, and the value is never changed for you. Adding a recipient with **Send Invitation** still adds the recipient and tells you that the invitation was not queued; importing with **Send invitations** on still imports the recipients and tells you the same. A campaign run fails in the queue with a message naming the invalid delay, before any batch exists, and a batch that was already queued fails rather than sending. The plugin log names the invalid value. Correct the delay on the campaign (the edit form no longer accepts such a value), then run the campaign to send the waiting invitations.
 
 ### Viewing Analytics
 
@@ -264,6 +269,8 @@ A campaign's **Invitation Delay** holds every invitation back until the recipien
 4. Export data using the Export button
 
 A date range counts events by when they happened: recipients by when they were added, invitations by when they were sent, opens by when they were first opened, responses by when the form was submitted, and expired invitations by when they expired. **All time** covers every retained event. The same figures appear on the Analytics page, in its export, in the dashboard widgets, and on a campaign's own Analytics tab.
+
+The **Conversion** tab's funnel is the one exception: it follows a single group, the recipients added inside the selected date range. As of the end of that range it counts how many of them had been sent an invitation on either channel, how many of those had opened one, and how many of those had responded, each recipient once. Every stage is a subset of the stage before it, so the percentages and drop-offs in the funnel table stay between 0% and 100%. Invitations, opens and responses of recipients added before the range are activity of the range and appear in the summary cards and charts, not in the funnel. **All time** follows every recipient through every retained event.
 
 Disabling a campaign stops sending but keeps its history: it stays in the campaign filter, the campaign performance table, the export, and the performance widget.
 
@@ -385,6 +392,8 @@ This applies everywhere in the control panel:
 Users who can edit every site are not affected. To give someone access to a site, grant the matching **Edit site** permission under **Settings → Users → User Groups** (or on the user's **Permissions** tab).
 
 Front-end templates and code that call `craft.campaignManager.analytics` directly are not tied to a control panel user for the per-campaign statistics: `getCampaignStats()` and `getCampaignDailyTrend()` cover every site when no site is given, as before. The control panel passes the user's editable sites to them explicitly.
+
+The rating analytics methods (`getRatingFieldsInScope()`, `getRatingStats()`, `getCampaignRatingBreakdown()`, `getRatingTrend()`, `getRatingDistribution()` and `getRawRatingResponses()`) follow the same rule: a site scope of `'all'` means every site of the project, including disabled sites, whoever is calling. Their answer for `'all'` is therefore the same for a front-end template, a console command, or any control panel user. The control panel never passes `'all'` to them; it passes the IDs of the sites the current user can edit, so the Ratings tab shows only those sites.
 
 A campaign exists on every site, the same way a Craft entry can. Saving it on one site also updates the settings that are shared between sites, and deleting it from any site the user can edit deletes the campaign on every site.
 

@@ -106,11 +106,11 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Invio inviti a {count} destinatari',
     'Invitation batch sent' => 'Batch di inviti inviato',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Batch della campagna {campaignId} non riuscito: {errors} su {total} destinatari non hanno potuto essere inviati. Controllare il registro del plugin per i dettagli.',
+    'Campaign {campaignId} could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.' => 'Impossibile eseguire la campagna {campaignId}: il ritardo invito non è valido e nessun invito è stato accodato. Correggere il ritardo nella campagna, quindi eseguirla di nuovo.',
     'Campaign is disabled for site {site}.' => 'La campagna è disabilitata per il sito {site}.',
 
     // Controller messages
     'New Campaign' => 'Nuova campagna',
-    'Select a provider first...' => 'Seleziona prima un provider...',
     'Couldn\'t save campaign.' => 'Impossibile salvare la campagna.',
     'Campaign created' => 'Campagna creata',
     'Campaign updated' => 'Campagna aggiornata',
@@ -159,6 +159,8 @@ return [
     'Recipients imported' => 'Destinatari importati',
     'Invitation sending queued after import' => 'Invio degli inviti accodato dopo l\'importazione',
     'Invitation sending has been queued.' => 'L\'invio degli inviti è stato accodato.',
+    'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.' => 'Destinatario aggiunto, ma l\'invito non è stato accodato: il ritardo invito della campagna non è valido. Correggere il ritardo nella campagna, quindi inviare l\'invito eseguendo la campagna.',
+    'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.' => 'Gli inviti non sono stati accodati: il ritardo invito della campagna non è valido. Correggere il ritardo nella campagna, quindi inviare gli inviti eseguendo la campagna.',
     'No recipients to export.' => 'Nessun destinatario da esportare.',
     'Campaign recipients exported' => 'Destinatari della campagna esportati',
     'ID' => 'ID',
@@ -203,7 +205,12 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'Il provider SMS predefinito da utilizzare per l\'invio degli inviti alle campagne.',
     'Default Sender ID' => 'ID mittente predefinito',
     'The default SMS sender ID to use when sending campaign invitations.' => 'L\'ID mittente SMS predefinito da utilizzare per l\'invio degli inviti alle campagne.',
+    'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this default to that sender regardless of future SMS Manager changes.' => 'I mittenti sono raggruppati per provider. Selezionare "Usa il mittente predefinito di SMS Manager" per seguire la configurazione valida per l\'intero plugin; selezionare un mittente specifico per vincolare questo valore predefinito a quel mittente, indipendentemente da future modifiche in SMS Manager.',
+    'Plugin Default Sender ID' => 'ID mittente predefinito del plugin',
+    'Plugin Default Sender ID provider' => 'Provider dell\'ID mittente predefinito del plugin',
+    'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.' => 'Il plugin SMS Manager non è installato o abilitato. <a href="{url}">Abilita SMS Manager</a> per configurare le impostazioni SMS.',
     'Use SMS Manager default (currently: {sender})' => 'Usa il mittente predefinito di SMS Manager (attualmente: {sender})',
+    'Use SMS Manager default (none configured)' => 'Usa il mittente predefinito di SMS Manager (non configurato)',
     'Allowed countries for' => 'Paesi consentiti per',
     'All countries.' => 'Tutti i paesi.',
     'No country restrictions for' => 'Nessuna restrizione di paese per',
@@ -268,6 +275,7 @@ return [
     'Campaign Actions' => 'Azioni campagna',
     'Campaign job queued. Check the queue for progress.' => 'Job di campagna accodato. Controlla la coda per lo stato di avanzamento.',
     'Failed to run campaign' => 'Impossibile eseguire la campagna',
+    'Failed to load tab content' => 'Impossibile caricare il contenuto della scheda',
 
     // Campaign: Analytics
     'Daily Activity' => 'Attività giornaliera',
@@ -287,6 +295,8 @@ return [
     'No form fields to display.' => 'Nessun campo del modulo da visualizzare.',
     'No responses yet.' => 'Nessuna risposta.',
     'Recipients who submit the form will appear here.' => 'I destinatari che inviano il modulo verranno visualizzati qui.',
+    'Showing {start}–{end} of {total}' => 'Visualizzazione di {start}–{end} su {total}',
+    'Page {page} of {total}' => 'Pagina {page} di {total}',
 
     // Recipients: Index
     'Date Range' => 'Intervallo di date',
@@ -295,6 +305,7 @@ return [
     'Response' => 'Risposta',
     'No recipients found.' => 'Nessun destinatario trovato.',
     'recipient' => 'destinatario',
+    'recipients' => 'destinatari',
     'View Response' => 'Visualizza risposta',
     'Delete {count} recipient? This cannot be undone.' => 'Eliminare {count} destinatario? Questa azione non può essere annullata.',
     'Delete {count} recipients? This cannot be undone.' => 'Eliminare {count} destinatari? Questa azione non può essere annullata.',
@@ -390,6 +401,7 @@ return [
     'Rows to Import' => 'Righe da importare',
 
     // Recipients: Preview
+    'Import Preview' => 'Anteprima importazione',
     'Total Rows' => 'Righe totali',
     'Valid' => 'Validi',
     'Duplicates' => 'Duplicati',
@@ -457,6 +469,7 @@ return [
     'Opened Invitations' => 'Inviti aperti',
     'Conversion Funnel' => 'Funnel di conversione',
     'Funnel Breakdown' => 'Suddivisione funnel',
+    'Recipients added in the selected date range, followed through each stage up to the end of the range. Each stage counts only recipients from the stage before it.' => 'Destinatari aggiunti nell\'intervallo di date selezionato, seguiti in ogni fase fino alla fine dell\'intervallo. Ogni fase conta solo i destinatari della fase precedente.',
     'Stage' => 'Fase',
     'Percentage' => 'Percentuale',
     'Drop-off' => 'Abbandono',
@@ -514,6 +527,8 @@ return [
     'Welcome! Please complete the form below.' => 'Benvenuto/a! Compila il modulo qui sotto.',
     'Invalid Invitation' => 'Invito non valido',
     'This invitation link is not valid or has expired.' => 'Questo link di invito non è valido o è scaduto.',
+    'Invalid or missing invitation code.' => 'Codice di invito non valido o mancante.',
+    'The campaign for this invitation could not be found.' => 'La campagna di questo invito non è stata trovata.',
 
     // Activity Logs
     'User' => 'Utente',
@@ -524,6 +539,7 @@ return [
     'Activity logs are currently disabled in settings.' => 'I log di attività sono attualmente disabilitati nelle impostazioni.',
     'Invitations queued' => 'Inviti accodati',
     'Campaigns queued' => 'Campagne accodate',
+    'Recipients deleted' => 'Destinatari eliminati',
     'Added' => 'Aggiunto',
     'Invitation queued' => 'Invito accodato',
     'Deleted' => 'Eliminato',

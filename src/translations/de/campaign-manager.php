@@ -106,11 +106,11 @@ return [
     '{pluginName}: Sending invitations to {count} recipients' => '{pluginName}: Einladungen werden an {count} Empfänger gesendet',
     'Invitation batch sent' => 'Einladungs-Stapel gesendet',
     'Campaign {campaignId} batch failed: {errors} of {total} recipients could not be sent. Check the plugin log for details.' => 'Kampagne {campaignId} Stapel fehlgeschlagen: {errors} von {total} Empfängern konnten nicht gesendet werden. Weitere Informationen finden Sie im Plugin-Log.',
+    'Campaign {campaignId} could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.' => 'Kampagne {campaignId} konnte nicht ausgeführt werden: Die Einladungsverzögerung ist ungültig, und es wurden keine Einladungen in die Warteschlange eingereiht. Korrigieren Sie die Verzögerung in der Kampagne und führen Sie die Kampagne anschließend erneut aus.',
     'Campaign is disabled for site {site}.' => 'Kampagne ist für die Site {site} deaktiviert.',
 
     // Controller messages
     'New Campaign' => 'Neue Kampagne',
-    'Select a provider first...' => 'Zuerst einen Anbieter auswählen...',
     'Couldn\'t save campaign.' => 'Kampagne konnte nicht gespeichert werden.',
     'Campaign created' => 'Kampagne erstellt',
     'Campaign updated' => 'Kampagne aktualisiert',
@@ -159,6 +159,8 @@ return [
     'Recipients imported' => 'Empfänger importiert',
     'Invitation sending queued after import' => 'Einladungsversand nach Import in die Warteschlange eingereiht',
     'Invitation sending has been queued.' => 'Einladungsversand wurde in die Warteschlange eingereiht.',
+    'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.' => 'Empfänger hinzugefügt, die Einladung wurde jedoch nicht in die Warteschlange eingereiht: Die Einladungsverzögerung der Kampagne ist ungültig. Korrigieren Sie die Verzögerung in der Kampagne und senden Sie die Einladung anschließend, indem Sie die Kampagne ausführen.',
+    'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.' => 'Die Einladungen wurden nicht in die Warteschlange eingereiht: Die Einladungsverzögerung der Kampagne ist ungültig. Korrigieren Sie die Verzögerung in der Kampagne und senden Sie die Einladungen anschließend, indem Sie die Kampagne ausführen.',
     'No recipients to export.' => 'Keine Empfänger zum Exportieren vorhanden.',
     'Campaign recipients exported' => 'Kampagnen-Empfänger exportiert',
     'ID' => 'ID',
@@ -203,7 +205,12 @@ return [
     'The default SMS provider to use when sending campaign invitations.' => 'Der Standard-SMS-Anbieter für den Versand von Kampagnen-Einladungen.',
     'Default Sender ID' => 'Standard-Sender-ID',
     'The default SMS sender ID to use when sending campaign invitations.' => 'Die Standard-SMS-Sender-ID für den Versand von Kampagnen-Einladungen.',
+    'Senders are grouped by their provider. Pick "Use SMS Manager default" to follow whatever is configured plugin-wide; pick a specific sender to pin this default to that sender regardless of future SMS Manager changes.' => 'Die Sender sind nach Anbieter gruppiert. Wählen Sie „Standard-Sender von SMS Manager verwenden“, um der plugin-weiten Konfiguration zu folgen; wählen Sie einen bestimmten Sender, um diesen Standard unabhängig von künftigen Änderungen in SMS Manager auf diesen Sender festzulegen.',
+    'Plugin Default Sender ID' => 'Standard-Sender-ID des Plugins',
+    'Plugin Default Sender ID provider' => 'Anbieter der Standard-Sender-ID des Plugins',
+    'SMS Manager plugin is not installed or enabled. <a href="{url}">Enable SMS Manager</a> to configure SMS settings.' => 'Das Plugin SMS Manager ist nicht installiert oder nicht aktiviert. <a href="{url}">Aktivieren Sie SMS Manager</a>, um die SMS-Einstellungen zu konfigurieren.',
     'Use SMS Manager default (currently: {sender})' => 'Standard-Sender von SMS Manager verwenden (aktuell: {sender})',
+    'Use SMS Manager default (none configured)' => 'Standard-Sender von SMS Manager verwenden (nicht konfiguriert)',
     'Allowed countries for' => 'Erlaubte Länder für',
     'All countries.' => 'Alle Länder.',
     'No country restrictions for' => 'Keine Länderbeschränkungen für',
@@ -268,6 +275,7 @@ return [
     'Campaign Actions' => 'Kampagnenaktionen',
     'Campaign job queued. Check the queue for progress.' => 'Kampagnen-Job in die Warteschlange eingereiht. Fortschritt in der Warteschlange prüfen.',
     'Failed to run campaign' => 'Kampagne konnte nicht ausgeführt werden',
+    'Failed to load tab content' => 'Tab-Inhalt konnte nicht geladen werden',
 
     // Campaign: Analytics
     'Daily Activity' => 'Tägliche Aktivität',
@@ -287,6 +295,8 @@ return [
     'No form fields to display.' => 'Keine Formularfelder zum Anzeigen.',
     'No responses yet.' => 'Noch keine Antworten.',
     'Recipients who submit the form will appear here.' => 'Empfänger, die das Formular einreichen, werden hier angezeigt.',
+    'Showing {start}–{end} of {total}' => '{start}–{end} von {total} werden angezeigt',
+    'Page {page} of {total}' => 'Seite {page} von {total}',
 
     // Recipients: Index
     'Date Range' => 'Datumsbereich',
@@ -295,6 +305,7 @@ return [
     'Response' => 'Antwort',
     'No recipients found.' => 'Keine Empfänger gefunden.',
     'recipient' => 'Empfänger',
+    'recipients' => 'Empfänger',
     'View Response' => 'Antwort anzeigen',
     'Delete {count} recipient? This cannot be undone.' => '{count} Empfänger löschen? Dies kann nicht rückgängig gemacht werden.',
     'Delete {count} recipients? This cannot be undone.' => '{count} Empfänger löschen? Dies kann nicht rückgängig gemacht werden.',
@@ -390,6 +401,7 @@ return [
     'Rows to Import' => 'Zu importierende Zeilen',
 
     // Recipients: Preview
+    'Import Preview' => 'Import-Vorschau',
     'Total Rows' => 'Gesamte Zeilen',
     'Valid' => 'Gültig',
     'Duplicates' => 'Duplikate',
@@ -457,6 +469,7 @@ return [
     'Opened Invitations' => 'Geöffnete Einladungen',
     'Conversion Funnel' => 'Konversionstrichter',
     'Funnel Breakdown' => 'Trichteraufschlüsselung',
+    'Recipients added in the selected date range, followed through each stage up to the end of the range. Each stage counts only recipients from the stage before it.' => 'Empfänger, die im ausgewählten Datumsbereich hinzugefügt wurden, über alle Stufen bis zum Ende des Bereichs verfolgt. Jede Stufe zählt nur Empfänger aus der vorherigen Stufe.',
     'Stage' => 'Stufe',
     'Percentage' => 'Prozentsatz',
     'Drop-off' => 'Abbruchrate',
@@ -514,6 +527,8 @@ return [
     'Welcome! Please complete the form below.' => 'Willkommen! Bitte das folgende Formular ausfüllen.',
     'Invalid Invitation' => 'Ungültige Einladung',
     'This invitation link is not valid or has expired.' => 'Dieser Einladungslink ist ungültig oder abgelaufen.',
+    'Invalid or missing invitation code.' => 'Ungültiger oder fehlender Einladungscode.',
+    'The campaign for this invitation could not be found.' => 'Die Kampagne zu dieser Einladung wurde nicht gefunden.',
 
     // Activity Logs
     'User' => 'Benutzer',
@@ -524,6 +539,7 @@ return [
     'Activity logs are currently disabled in settings.' => 'Aktivitäts-Logs sind in den Einstellungen derzeit deaktiviert.',
     'Invitations queued' => 'Einladungen in die Warteschlange eingereiht',
     'Campaigns queued' => 'Kampagnen in die Warteschlange eingereiht',
+    'Recipients deleted' => 'Empfänger gelöscht',
     'Added' => 'Hinzugefügt',
     'Invitation queued' => 'Einladung in die Warteschlange eingereiht',
     'Deleted' => 'Gelöscht',

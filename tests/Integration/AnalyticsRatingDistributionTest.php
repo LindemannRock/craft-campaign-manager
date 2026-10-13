@@ -11,18 +11,15 @@ declare(strict_types=1);
 namespace lindemannrock\campaignmanager\tests\Integration;
 
 use Craft;
-use craft\helpers\Db;
-use DateTime;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
-use lindemannrock\campaignmanager\elements\Campaign;
 use lindemannrock\campaignmanager\services\AnalyticsService;
 use lindemannrock\campaignmanager\tests\Stubs\CapturingAnalyticsController;
 use lindemannrock\campaignmanager\tests\Support\SeedsAnalyticsEventMatrix;
+use lindemannrock\campaignmanager\tests\Support\SeedsRatedResponses;
 use lindemannrock\campaignmanager\tests\Support\SiteRestrictedUserTestCase;
 use lindemannrock\formieratingfield\fields\Rating;
 use PHPUnit\Framework\Attributes\CoversClass;
-use verbb\formie\elements\Form;
 
 /**
  * The ratings tab's distribution chart shows, for every value a rating field
@@ -39,8 +36,7 @@ use verbb\formie\elements\Form;
 final class AnalyticsRatingDistributionTest extends SiteRestrictedUserTestCase
 {
     use SeedsAnalyticsEventMatrix;
-
-    private const RATING_HANDLE = 'satisfaction';
+    use SeedsRatedResponses;
 
     protected function setUp(): void
     {
@@ -174,70 +170,5 @@ final class AnalyticsRatingDistributionTest extends SiteRestrictedUserTestCase
     private function distribution(int|string $campaignId, int|string|array $siteId, string $dateRange, string $dateBasis, int $fieldId): array
     {
         return CampaignManager::$plugin->analytics->getRatingDistribution($campaignId, $siteId, $dateRange, $dateBasis, $fieldId);
-    }
-
-    /**
-     * A campaign on the site whose invited recipients answered with the
-     * given ratings.
-     *
-     * @param list<int|float> $ratings
-     */
-    private function seedRatedCampaign(Form $form, int $siteId, array $ratings): Campaign
-    {
-        $campaign = $this->seedCampaign($form, ['siteId' => $siteId]);
-        $this->ownCampaign((int)$campaign->id);
-        $now = new DateTime();
-
-        foreach ($ratings as $rating) {
-            $this->seedRatedResponse($campaign, $form, $siteId, $now, $now, $rating);
-        }
-
-        return $campaign;
-    }
-
-    /**
-     * A recipient added and invited at one moment who answered with the
-     * given rating at another.
-     */
-    private function seedRatedResponse(Campaign $campaign, Form $form, int $siteId, DateTime $invitedAt, DateTime $respondedAt, int|float $rating): void
-    {
-        $recipient = $this->seedOwnedRecipient($campaign, $siteId, [
-            'dateCreated' => Db::prepareDateForDb($invitedAt),
-            'emailSendDate' => Db::prepareDateForDb($invitedAt),
-        ]);
-        $submission = $this->submitForm($form, (string)$recipient->emailInvitationCode, $siteId, [self::RATING_HANDLE => $rating]);
-        self::assertSame((int)$submission->id, $this->reloadRecipient($recipient)->submissionId);
-        $this->ageSubmission($submission, $respondedAt);
-    }
-
-    /**
-     * A form with a comment field and one rating field of the given type.
-     *
-     * @param array<string, mixed> $fieldSettings
-     * @return array{Form, int}
-     */
-    private function seedRatingForm(string $ratingType, int $minValue, int $maxValue, array $fieldSettings = []): array
-    {
-        $form = $this->seedForm([
-            'comment',
-            array_merge([
-                'type' => Rating::class,
-                'handle' => self::RATING_HANDLE,
-                'label' => 'Satisfaction',
-                'ratingType' => $ratingType,
-                'minValue' => $minValue,
-                'maxValue' => $maxValue,
-            ], $fieldSettings),
-        ]);
-
-        $fieldId = null;
-        foreach ($form->getFields() as $field) {
-            if ($field instanceof Rating) {
-                $fieldId = (int)$field->id;
-            }
-        }
-        self::assertNotNull($fieldId, 'The rating field must be part of the form.');
-
-        return [$form, $fieldId];
     }
 }

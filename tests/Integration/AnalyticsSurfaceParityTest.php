@@ -70,7 +70,9 @@ final class AnalyticsSurfaceParityTest extends SiteRestrictedUserTestCase
         }
 
         $funnel = $this->chartData('funnel', $campaignId);
-        self::assertSame([$summary['totalRecipients'], $summary['uniqueInvited'], $summary['uniqueOpened'], $summary['submissions']], $funnel['values']);
+        self::assertSame($variables['conversionFunnel'], $funnel, 'The funnel chart and the funnel table on the page share one source.');
+        self::assertSame($summary['totalRecipients'], $funnel['values'][0], 'The funnel starts from the recipients added in the range.');
+        self::assertNotSame($summary['uniqueInvited'], $funnel['values'][1], 'Invitations sent in the range to older recipients are activity, not conversion of the recipients added in it.');
 
         $daily = $this->chartData('daily', $campaignId);
         self::assertSame($summary['totalRecipients'], array_sum($daily['recipients']));

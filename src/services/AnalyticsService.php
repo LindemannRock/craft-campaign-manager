@@ -19,6 +19,7 @@ use lindemannrock\base\helpers\LabelHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
+use lindemannrock\campaignmanager\helpers\SiteAccessHelper;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\formieratingfield\fields\Rating;
 use lindemannrock\formieratingfield\FormieRatingField;
@@ -270,31 +271,73 @@ class AnalyticsService extends Component
     }
 
     /**
-     * Get conversion funnel data
+     * Get conversion funnel data.
+     *
+     * The funnel follows one cohort: the recipients added inside the date
+     * range. As of the end of the range, it counts how many of them had been
+     * sent an invitation on either channel, how many of those had opened
+     * one, and how many of those had responded. Every stage is a subset of
+     * the stage before it and every recipient counts once, so the stages
+     * never exceed the cohort and never grow from one stage to the next.
+     * Without a range end (all time) later events count too. Invitations,
+     * opens and responses of recipients added before the range are activity
+     * of the range, reported by the summary and the charts, not conversion
+     * of this cohort.
      *
      * @param int|string $campaignId Campaign ID or 'all'
      * @param int|string|array<int> $siteId Site ID, array of site IDs, or 'all'
      * @param string $dateRange Date range parameter
-     * @return array<string, mixed>
+     * @return array{labels: list<string>, values: list<int>}
      */
     public function getConversionFunnel(int|string $campaignId, int|string|array $siteId, string $dateRange): array
     {
-        // The funnel stages are the unique-recipient figures of the summary, so
-        // the chart and the funnel table always agree.
-        $stats = $this->getOverviewStats($campaignId, $siteId, $dateRange);
+        $bounds = DateRangeHelper::getBounds($dateRange);
+        $asOfRangeEnd = ['start' => null, 'end' => $bounds['end']];
+
+        $query = $this->joinSubmissions($this->scopeQuery($campaignId, $siteId))
+            ->andWhere($this->eventInRange(self::RECIPIENTS . '.dateCreated', $bounds));
+
+        $sent = [
+            'or',
+            $this->eventInRange(self::RECIPIENTS . '.emailSendDate', $asOfRangeEnd),
+            $this->eventInRange(self::RECIPIENTS . '.smsSendDate', $asOfRangeEnd),
+        ];
+        $opened = [
+            'and',
+            $sent,
+            [
+                'or',
+                $this->eventInRange(self::RECIPIENTS . '.emailOpenDate', $asOfRangeEnd),
+                $this->eventInRange(self::RECIPIENTS . '.smsOpenDate', $asOfRangeEnd),
+            ],
+        ];
+        $responded = [
+            'and',
+            $opened,
+            $this->eventInRange(self::SUBMISSIONS . '.dateCreated', $asOfRangeEnd),
+        ];
+
+        $row = $query
+            ->select([
+                'added' => new Expression('COUNT(*)'),
+                'sent' => $this->countWhere($query, $sent),
+                'opened' => $this->countWhere($query, $opened),
+                'responded' => $this->countWhere($query, $responded),
+            ])
+            ->one();
 
         return [
             'labels' => [
-                Craft::t('campaign-manager', 'Total Recipients'),
+                Craft::t('campaign-manager', 'Recipients Added'),
                 Craft::t('campaign-manager', 'Invitations Sent'),
                 Craft::t('campaign-manager', 'Opened'),
-                Craft::t('campaign-manager', 'Submitted'),
+                Craft::t('campaign-manager', 'Responded'),
             ],
             'values' => [
-                $stats['totalRecipients'],
-                $stats['uniqueInvited'],
-                $stats['uniqueOpened'],
-                $stats['submissions'],
+                (int)($row['added'] ?? 0),
+                (int)($row['sent'] ?? 0),
+                (int)($row['opened'] ?? 0),
+                (int)($row['responded'] ?? 0),
             ],
         ];
     }
@@ -624,9 +667,9 @@ class AnalyticsService extends Component
             'smsSent' => $this->countWhere($query, $smsSent),
             'emailsOpened' => $this->countWhere($query, $emailOpened),
             'smsOpened' => $this->countWhere($query, $smsOpened),
-            // Unique recipients reached / opened — used by the conversion funnel.
-            // Distinct from the per-channel sums so a recipient reached on both
-            // channels is not counted twice in a funnel stage.
+            // Unique recipients reached / opened inside the range, distinct from
+            // the per-channel sums so a recipient reached on both channels
+            // counts once.
             'uniqueInvited' => $this->countWhere($query, ['or', $emailSent, $smsSent]),
             'uniqueOpened' => $this->countWhere($query, ['or', $emailOpened, $smsOpened]),
             'submissions' => $this->countWhere($query, $responded),
@@ -749,6 +792,11 @@ class AnalyticsService extends Component
     /**
      * Normalize a siteId filter into a flat list of site IDs.
      *
+     * `all` is every site of the project, whoever is calling: a template or
+     * service call gets the same answer for the same arguments. Control
+     * panel callers pass the sites their user may edit explicitly. An empty
+     * list stays empty and means no site.
+     *
      * @param int|string|array<int> $siteId
      * @return array<int>
      */
@@ -758,7 +806,7 @@ class AnalyticsService extends Component
             return array_values(array_map('intval', $siteId));
         }
         if ($siteId === 'all' || $siteId === '') {
-            return Craft::$app->getSites()->getEditableSiteIds();
+            return SiteAccessHelper::allSiteIds();
         }
 
         return [(int)$siteId];

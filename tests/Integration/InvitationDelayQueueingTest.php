@@ -63,7 +63,26 @@ final class InvitationDelayQueueingTest extends SiteRestrictedUserTestCase
      */
     private const UNREADABLE_DELAY = 'PT213213213213123H';
 
+    /**
+     * What the administrator is told when a recipient was added but the
+     * requested invitation could not be queued.
+     */
+    private const ADD_NOT_QUEUED_WARNING = 'Recipient added, but the invitation was not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitation by running the campaign.';
+
+    /**
+     * What the administrator is told when recipients were imported but the
+     * requested invitations could not be queued.
+     */
+    private const IMPORT_NOT_QUEUED_WARNING = 'Invitations were not queued: the campaign\'s invitation delay is invalid. Correct the delay on the campaign, then send the invitations by running the campaign.';
+
     private int $clockPauses = 0;
+
+    /**
+     * The JSON answer of the last Add Recipient request.
+     *
+     * @var array<string, mixed>
+     */
+    private array $lastAddResponse = [];
 
     protected function setUp(): void
     {
@@ -234,6 +253,34 @@ final class InvitationDelayQueueingTest extends SiteRestrictedUserTestCase
         self::assertSame([], $this->queuedJobsWithDelay((int)$campaign->id), 'An invitation whose delay cannot be read is not queued at all.');
         $this->assertRecipientIsStillPending($recipientId);
         self::assertSame(self::UNREADABLE_DELAY, $this->storedDelay($campaign), 'The stored delay is left for an administrator to correct.');
+        self::assertSame(self::ADD_NOT_QUEUED_WARNING, $this->lastAddResponse['warning'] ?? null, 'A JSON caller is told that the invitation was not queued.');
+    }
+
+    public function testAddingARecipientFromTheFormTellsTheAdministratorTheInvitationWasNotQueued(): void
+    {
+        [$siteA] = $this->siteIds(1);
+        $campaign = $this->seedDelayedCampaign(null);
+        $this->storeDelayAsFound($campaign, self::UNREADABLE_DELAY);
+        $this->actAsUserRestrictedTo([$siteA], self::ADD_PERMISSIONS);
+
+        $recipientId = $this->addRecipientWithSendInvitationFromTheForm($campaign, $siteA);
+
+        self::assertSame([], $this->queuedJobsWithDelay((int)$campaign->id));
+        $this->assertRecipientIsStillPending($recipientId);
+        self::assertSame(self::ADD_NOT_QUEUED_WARNING, $this->session()->getError(), 'The form submission is answered with a visible warning.');
+        self::assertNull($this->session()->getNotice());
+    }
+
+    public function testAddingARecipientWithAReadableDelayRaisesNoWarning(): void
+    {
+        [$siteA] = $this->siteIds(1);
+        $campaign = $this->seedDelayedCampaign('P1D');
+        $this->actAsUserRestrictedTo([$siteA], self::ADD_PERMISSIONS);
+
+        $this->addRecipientWithSendInvitationFromTheForm($campaign, $siteA);
+
+        self::assertCount(1, $this->queuedJobsWithDelay((int)$campaign->id));
+        self::assertNull($this->session()->getError());
     }
 
     public function testImportedRecipientsOfACampaignWhoseDelayCannotBeReadAreNotQueued(): void
@@ -252,6 +299,22 @@ final class InvitationDelayQueueingTest extends SiteRestrictedUserTestCase
             $this->assertRecipientIsStillPending($recipientId);
         }
         self::assertSame(self::UNREADABLE_DELAY, $this->storedDelay($campaign));
+        self::assertStringContainsString('Successfully imported 2 recipient(s).', (string)$this->session()->getNotice());
+        self::assertStringNotContainsString('Invitation sending has been queued.', (string)$this->session()->getNotice());
+        self::assertSame(self::IMPORT_NOT_QUEUED_WARNING, $this->session()->getError(), 'The import result tells the administrator that no invitation was queued.');
+    }
+
+    public function testImportingIntoACampaignWithAReadableDelayRaisesNoWarning(): void
+    {
+        [$siteA] = $this->siteIds(1);
+        $campaign = $this->seedDelayedCampaign('P1D');
+        $this->actAsUserRestrictedTo([$siteA], self::IMPORT_PERMISSIONS);
+
+        $this->importRows($campaign, $siteA, 1);
+
+        self::assertCount(1, $this->queuedJobsWithDelay((int)$campaign->id));
+        self::assertStringContainsString('Invitation sending has been queued.', (string)$this->session()->getNotice());
+        self::assertNull($this->session()->getError());
     }
 
     public function testRunningACampaignWhoseDelayCannotBeReadQueuesNothingAndFails(): void
@@ -265,7 +328,13 @@ final class InvitationDelayQueueingTest extends SiteRestrictedUserTestCase
         try {
             $this->runCampaign($campaign, $siteA);
             self::fail('A campaign run whose delay cannot be read is reported to the queue as failed.');
-        } catch (SendBatchFailedException) {
+        } catch (SendBatchFailedException $e) {
+            self::assertSame(
+                'Campaign ' . $campaign->id . ' could not be run: its invitation delay is invalid and no invitations were queued. Correct the delay on the campaign, then run it again.',
+                $e->getMessage(),
+                'The queue names the invalid delay; no batch exists that could have failed.',
+            );
+            self::assertStringNotContainsString('batch failed', $e->getMessage());
         }
 
         self::assertSame([], $this->queuedJobsWithDelay((int)$campaign->id), 'No batch is queued, however long a recipient has waited.');
@@ -345,6 +414,46 @@ final class InvitationDelayQueueingTest extends SiteRestrictedUserTestCase
      */
     private function addRecipientWithSendInvitation(Campaign $campaign, int $siteId): int
     {
+        $email = $this->requestAddRecipientWithSendInvitation($campaign, $siteId, true);
+
+        $created = [];
+        try {
+            $this->lastAddResponse = $this->withSession(fn() => $this->recipientsController()->actionAdd())->data;
+            self::assertTrue($this->lastAddResponse['success']);
+        } finally {
+            $created = $this->ownRecipientsWithEmail($email);
+        }
+        self::assertCount(1, $created);
+
+        return $created[0];
+    }
+
+    /**
+     * Post the Add Recipient form with "Send Invitation" ticked the way the
+     * control panel form does, expecting a redirect rather than JSON.
+     */
+    private function addRecipientWithSendInvitationFromTheForm(Campaign $campaign, int $siteId): int
+    {
+        $email = $this->requestAddRecipientWithSendInvitation($campaign, $siteId, false);
+
+        $created = [];
+        try {
+            $response = $this->withSession(fn() => $this->recipientsController()->actionAdd());
+            self::assertInstanceOf(\yii\web\Response::class, $response);
+            self::assertSame(302, $response->getStatusCode(), 'The form submission is answered with a redirect.');
+        } finally {
+            $created = $this->ownRecipientsWithEmail($email);
+        }
+        self::assertCount(1, $created);
+
+        return $created[0];
+    }
+
+    /**
+     * Install the Add Recipient request and return the email it adds.
+     */
+    private function requestAddRecipientWithSendInvitation(Campaign $campaign, int $siteId, bool $acceptsJson): string
+    {
         $email = 'added-' . bin2hex(random_bytes(4)) . '@example.test';
         $this->request('POST', [], [
             'campaignId' => (string)$campaign->id,
@@ -352,20 +461,23 @@ final class InvitationDelayQueueingTest extends SiteRestrictedUserTestCase
             'name' => $this->nextTestMarker('Campaign Manager test ', 'recipient'),
             'email' => $email,
             'sendInvitation' => '1',
-        ]);
+        ], $acceptsJson);
 
+        return $email;
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function ownRecipientsWithEmail(string $email): array
+    {
         $created = [];
-        try {
-            self::assertTrue($this->recipientsController()->actionAdd()->data['success']);
-        } finally {
-            foreach (RecipientRecord::find()->select('id')->where(['email' => $email])->column() as $recipientId) {
-                $created[] = (int)$recipientId;
-                $this->ownRecipient((int)$recipientId);
-            }
+        foreach (RecipientRecord::find()->select('id')->where(['email' => $email])->column() as $recipientId) {
+            $created[] = (int)$recipientId;
+            $this->ownRecipient((int)$recipientId);
         }
-        self::assertCount(1, $created);
 
-        return $created[0];
+        return $created;
     }
 
     /**
