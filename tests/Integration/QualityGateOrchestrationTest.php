@@ -13,6 +13,7 @@ namespace lindemannrock\campaignmanager\tests\Integration;
 use lindemannrock\campaignmanager\tests\Support\CommandRunner;
 use lindemannrock\campaignmanager\tests\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Component\Process\Process;
 
 /**
  * Covers the package quality-gate authority: `composer quality-gate` runs
@@ -103,7 +104,7 @@ final class QualityGateOrchestrationTest extends TestCase
         self::assertSame(['Composer\\Config::disableProcessTimeout', 'bash scripts/quality-gate'], $scripts['quality-gate']);
         self::assertSame(['@phpstan', '@check-cs'], $scripts['ci']);
         self::assertSame(['@ci', '@test'], $scripts['ci:full']);
-        self::assertSame('php tests/Fixtures/Project/run.php --no-progress', $scripts['test']);
+        self::assertSame('bash scripts/run-tests --no-progress', $scripts['test']);
         self::assertSame('phpunit --colors=always', $scripts['test:direct']);
         self::assertStringStartsWith('ecs check --ansi', $scripts['check-cs']);
         self::assertStringNotContainsString('--fix', $scripts['check-cs']);
@@ -121,13 +122,51 @@ final class QualityGateOrchestrationTest extends TestCase
         self::assertStringNotContainsString('--php-version', $script);
 
         $runTests = (string)file_get_contents($this->packageRoot() . '/scripts/run-tests');
-        self::assertStringContainsString('composer test', $runTests);
-        self::assertStringContainsString('php tests/Fixtures/Project/run.php', $runTests);
+        self::assertStringNotContainsString('composer test', $runTests);
+        self::assertStringContainsString('php tests/Fixtures/Project/run.php "$@"', $runTests);
         self::assertStringContainsString('--lifecycle-probe', $runTests);
-        self::assertLessThan(
-            strpos($runTests, 'composer test'),
-            strpos($runTests, 'export CAMPAIGN_MANAGER_FIXTURE_SOURCE_VENDOR_ROOT='),
+    }
+
+    public function testPublicTestRunnerInitializesWorkspaceVendorWithoutComposerRecursion(): void
+    {
+        $root = $this->createTrackedTempDirectory('campaign-manager-test-runner-');
+        $bin = $root . '/bin';
+        $phpLog = $root . '/php.log';
+        $composerLog = $root . '/composer.log';
+        mkdir($bin);
+        file_put_contents($phpLog, '');
+        file_put_contents($composerLog, '');
+        file_put_contents($bin . '/php', <<<'SH'
+#!/bin/sh
+printf '%s|%s\n' "$CAMPAIGN_MANAGER_FIXTURE_SOURCE_VENDOR_ROOT" "$*" >> "$CAMPAIGN_MANAGER_RUNNER_PHP_LOG"
+exit 0
+SH);
+        chmod($bin . '/php', 0700);
+        file_put_contents($bin . '/composer', <<<'SH'
+#!/bin/sh
+printf '%s\n' "$*" >> "$CAMPAIGN_MANAGER_RUNNER_COMPOSER_LOG"
+exit 86
+SH);
+        chmod($bin . '/composer', 0700);
+
+        $process = new Process(
+            ['/bin/bash', 'scripts/run-tests', '--no-progress'],
+            $this->packageRoot(),
+            [
+                'PATH' => $bin . ':/usr/bin:/bin',
+                'CAMPAIGN_MANAGER_RUNNER_PHP_LOG' => $phpLog,
+                'CAMPAIGN_MANAGER_RUNNER_COMPOSER_LOG' => $composerLog,
+            ],
         );
+        $process->run();
+
+        $vendorRoot = (string)realpath(dirname($this->packageRoot(), 2) . '/vendor');
+        self::assertSame(0, $process->getExitCode(), $process->getErrorOutput());
+        self::assertSame([
+            $vendorRoot . '|tests/Fixtures/Project/run.php --no-progress',
+            $vendorRoot . '|tests/Fixtures/Project/run.php --lifecycle-probe',
+        ], array_values(array_filter(explode("\n", trim((string)file_get_contents($phpLog))))));
+        self::assertSame('', (string)file_get_contents($composerLog));
     }
 
     public function testStaticAnalysisAndStyleCoverSourceAndTests(): void
