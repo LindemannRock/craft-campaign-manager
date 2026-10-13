@@ -298,13 +298,14 @@
                                     {% if submission and displayableFields|length > 0 %}
                                         <div class="submission-list">
                                             {% for field in displayableFields %}
+                                                {% set fieldValue = submission.getFieldValue(field.handle) %}
+                                                {% set fieldValueIsEmpty = field.isValueEmpty(fieldValue, submission) %}
                                                 <div class="field-item">
                                                     <div class="field-label">{{ field.label }}</div>
-                                                    <div class="field-value{% if not submission.getFieldValue(field.handle) %} empty{% endif %}">
-                                                        {% set fieldValue = submission.getFieldValue(field.handle) %}
+                                                    <div class="field-value{% if fieldValueIsEmpty %} empty{% endif %}">
                                                         {% if fieldValue is iterable %}
                                                             {{ fieldValue|join(', ') ?: '-' }}
-                                                        {% elseif fieldValue %}
+                                                        {% elseif not fieldValueIsEmpty %}
                                                             {{ fieldValue }}
                                                         {% else %}
                                                             {{ 'Not answered'|t('campaign-manager') }}
