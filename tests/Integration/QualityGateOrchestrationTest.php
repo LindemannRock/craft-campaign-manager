@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace lindemannrock\campaignmanager\tests\Integration;
 
+use craft\helpers\FileHelper;
 use lindemannrock\campaignmanager\tests\Support\CommandRunner;
 use lindemannrock\campaignmanager\tests\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -127,46 +128,133 @@ final class QualityGateOrchestrationTest extends TestCase
         self::assertStringContainsString('--lifecycle-probe', $runTests);
     }
 
-    public function testPublicTestRunnerInitializesWorkspaceVendorWithoutComposerRecursion(): void
+    /**
+     * @return iterable<string, array{bool, int, int, bool}>
+     */
+    public static function publicRunnerLayouts(): iterable
     {
+        foreach (['workspace' => true, 'standalone' => false] as $layout => $workspace) {
+            yield $layout . ' success' => [$workspace, 0, 0, false];
+            yield $layout . ' suite failure' => [$workspace, 37, 0, false];
+            yield $layout . ' lifecycle failure' => [$workspace, 0, 43, false];
+            yield $layout . ' assertion exception cleanup' => [$workspace, 0, 0, true];
+        }
+    }
+
+    #[DataProvider('publicRunnerLayouts')]
+    public function testPublicTestRunnerResolvesOwnedLayoutWithoutComposerRecursion(
+        bool $workspace,
+        int $suiteStatus,
+        int $lifecycleStatus,
+        bool $injectException,
+    ): void {
         $root = $this->createTrackedTempDirectory('campaign-manager-test-runner-');
+        $environmentBefore = CommandRunner::inheritedEnvironment();
+        $process = null;
+        $exception = null;
         $bin = $root . '/bin';
-        $phpLog = $root . '/php.log';
-        $composerLog = $root . '/composer.log';
-        mkdir($bin);
-        file_put_contents($phpLog, '');
-        file_put_contents($composerLog, '');
-        file_put_contents($bin . '/php', <<<'SH'
+
+        try {
+            $resolvedRoot = realpath($root);
+            self::assertNotFalse($resolvedRoot);
+            $root = $resolvedRoot;
+            $bin = $root . '/bin';
+            // Keep both possible vendor roots inside this test's ownership.
+            $package = $root . ($workspace ? '/workspace/plugins/campaign-manager' : '/standalone/campaign-manager');
+            $sharedVendor = dirname($package, 2) . '/vendor';
+            $localVendor = $package . '/vendor';
+            $vendorRoot = $workspace ? $sharedVendor : $localVendor;
+            foreach ([$bin, $package . '/scripts', $package . '/tests/Fixtures/Project', $localVendor] as $directory) {
+                self::assertTrue(mkdir($directory, 0700, true));
+            }
+            self::assertNotFalse(file_put_contents($localVendor . '/autoload.php', "<?php\n"));
+            if ($workspace) {
+                self::assertTrue(mkdir($sharedVendor, 0700));
+                self::assertNotFalse(file_put_contents($sharedVendor . '/autoload.php', "<?php\n"));
+                self::assertNotFalse(file_put_contents(dirname($package, 2) . '/bootstrap.php', "<?php\n"));
+            } else {
+                self::assertDirectoryDoesNotExist($sharedVendor);
+                self::assertFileDoesNotExist(dirname($package, 2) . '/bootstrap.php');
+            }
+
+            // Execute real runner bytes; the fake PHP only records its boundary.
+            foreach (['scripts/run-tests', 'tests/Fixtures/Project/run.php'] as $relative) {
+                $source = $this->packageRoot() . '/' . $relative;
+                self::assertTrue(copy($source, $package . '/' . $relative));
+                $digest = hash_file('sha256', $source);
+                self::assertNotFalse($digest);
+                self::assertSame($digest, hash_file('sha256', $package . '/' . $relative));
+            }
+            $phpLog = $root . '/php.log';
+            $composerLog = $root . '/composer.log';
+            self::assertNotFalse(file_put_contents($phpLog, ''));
+            self::assertNotFalse(file_put_contents($composerLog, ''));
+            $this->writeExecutable($bin . '/php', <<<'SH'
 #!/bin/sh
-printf '%s|%s\n' "$CAMPAIGN_MANAGER_FIXTURE_SOURCE_VENDOR_ROOT" "$*" >> "$CAMPAIGN_MANAGER_RUNNER_PHP_LOG"
-exit 0
+printf '%s|%s|%s|%s\n' "$CAMPAIGN_MANAGER_FIXTURE_SOURCE_VENDOR_ROOT" "$#" "$1" "${2:-}" >> "$CAMPAIGN_MANAGER_RUNNER_PHP_LOG"
+case "${2:-}" in
+    --no-progress) exit "$CAMPAIGN_MANAGER_RUNNER_SUITE_STATUS" ;;
+    --lifecycle-probe) exit "$CAMPAIGN_MANAGER_RUNNER_LIFECYCLE_STATUS" ;;
+    *) exit 87 ;;
+esac
 SH);
-        chmod($bin . '/php', 0700);
-        file_put_contents($bin . '/composer', <<<'SH'
+            $this->writeExecutable($bin . '/composer', <<<'SH'
 #!/bin/sh
 printf '%s\n' "$*" >> "$CAMPAIGN_MANAGER_RUNNER_COMPOSER_LOG"
 exit 86
 SH);
-        chmod($bin . '/composer', 0700);
 
-        $process = new Process(
-            ['/bin/bash', 'scripts/run-tests', '--no-progress'],
-            $this->packageRoot(),
-            [
-                'PATH' => $bin . ':/usr/bin:/bin',
-                'CAMPAIGN_MANAGER_RUNNER_PHP_LOG' => $phpLog,
-                'CAMPAIGN_MANAGER_RUNNER_COMPOSER_LOG' => $composerLog,
-            ],
-        );
-        $process->run();
+            $process = new Process(
+                ['/bin/bash', 'scripts/run-tests', '--no-progress'],
+                $package,
+                [
+                    'PATH' => $bin . ':/usr/bin:/bin',
+                    // Prove the runner overrides any inherited host vendor.
+                    'CAMPAIGN_MANAGER_FIXTURE_SOURCE_VENDOR_ROOT' => $root . '/unusable-inherited-vendor',
+                    'CAMPAIGN_MANAGER_RUNNER_PHP_LOG' => $phpLog,
+                    'CAMPAIGN_MANAGER_RUNNER_COMPOSER_LOG' => $composerLog,
+                    'CAMPAIGN_MANAGER_RUNNER_SUITE_STATUS' => (string)$suiteStatus,
+                    'CAMPAIGN_MANAGER_RUNNER_LIFECYCLE_STATUS' => (string)$lifecycleStatus,
+                ],
+            );
+            $process->run();
 
-        $vendorRoot = (string)realpath(dirname($this->packageRoot(), 2) . '/vendor');
-        self::assertSame(0, $process->getExitCode(), $process->getErrorOutput());
-        self::assertSame([
-            $vendorRoot . '|tests/Fixtures/Project/run.php --no-progress',
-            $vendorRoot . '|tests/Fixtures/Project/run.php --lifecycle-probe',
-        ], array_values(array_filter(explode("\n", trim((string)file_get_contents($phpLog))))));
-        self::assertSame('', (string)file_get_contents($composerLog));
+            self::assertSame($suiteStatus ?: $lifecycleStatus, $process->getExitCode(), $process->getErrorOutput());
+            $expected = $vendorRoot . "|2|tests/Fixtures/Project/run.php|--no-progress\n";
+            if ($suiteStatus === 0) {
+                $expected .= $vendorRoot . "|2|tests/Fixtures/Project/run.php|--lifecycle-probe\n";
+            }
+            // Exact bytes pin the selected vendor, argument boundaries and counts.
+            self::assertSame($expected, (string)file_get_contents($phpLog));
+            self::assertSame('', (string)file_get_contents($composerLog));
+            self::assertSame('', $process->getOutput());
+            self::assertSame('', $process->getErrorOutput());
+            if ($injectException) {
+                throw new \RuntimeException('Injected runner fixture assertion exception.');
+            }
+        } catch (\RuntimeException $caught) {
+            $exception = $caught;
+        } finally {
+            try {
+                if ($process !== null && $process->isRunning()) {
+                    $process->stop(0);
+                }
+            } finally {
+                FileHelper::removeDirectory($root);
+                clearstatcache();
+                self::assertDirectoryDoesNotExist($root);
+                self::assertFileDoesNotExist($bin . '/php');
+                self::assertFileDoesNotExist($bin . '/composer');
+                self::assertSame($environmentBefore, CommandRunner::inheritedEnvironment());
+            }
+        }
+
+        if ($injectException) {
+            self::assertInstanceOf(\RuntimeException::class, $exception);
+            self::assertSame('Injected runner fixture assertion exception.', $exception->getMessage());
+        } elseif ($exception !== null) {
+            throw $exception;
+        }
     }
 
     public function testStaticAnalysisAndStyleCoverSourceAndTests(): void

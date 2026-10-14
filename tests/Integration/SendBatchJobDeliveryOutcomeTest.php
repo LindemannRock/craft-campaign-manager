@@ -210,6 +210,8 @@ final class SendBatchJobDeliveryOutcomeTest extends InvitationDeliveryTestCase
     public function testAStoredBatchKeepsItsSettingsAndStillSends(): void
     {
         $campaign = $this->seedDeliverableCampaign();
+        $campaign->invitationExpiryPeriod = 'P14D';
+        $this->saveTestElement($campaign, false, true, false);
         $recipient = $this->seedPendingRecipient($campaign);
 
         self::assertEqualsCanonicalizing(
@@ -226,6 +228,8 @@ final class SendBatchJobDeliveryOutcomeTest extends InvitationDeliveryTestCase
         self::assertNotNull($this->sendDate($recipient, self::SMS));
         self::assertNotNull($this->sendDate($recipient, self::EMAIL));
         self::assertSame([['smsSent' => 1, 'emailSent' => 1, 'errors' => 0]], $this->batchCounts($campaign));
+        $persisted = $this->reloadRecipient($recipient);
+        self::assertEquals((clone $persisted->smsSendDate)->add(new \DateInterval('P14D')), $persisted->invitationExpiryDate);
     }
 
     public function testBatchesQueuedByACampaignRunAndByAddingARecipientCarryOnlyTheBatchSettings(): void

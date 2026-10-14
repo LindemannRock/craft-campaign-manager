@@ -22,8 +22,12 @@ use lindemannrock\campaignmanager\services\RecipientsService;
  */
 final class UnshortenedLinkRecipientsService extends RecipientsService
 {
+    /** @var int Number of shortener boundary calls, without network access. */
+    public int $shortenerCalls = 0;
+
     public function getBitlyUrl(string $surveyUrl): string
     {
+        $this->shortenerCalls++;
         return $surveyUrl;
     }
 }

@@ -256,7 +256,7 @@ return [
     'Weeks' => 'Semaines',
     'Months' => 'Mois',
     'Invitation Expiry' => 'Expiration de l\'invitation',
-    'How long the invitation link remains valid.' => 'Durée de validité du lien d\'invitation.',
+    'How long the link remains valid after the first successful SMS or email send. Later sends do not extend this period. Before sending, validity starts when the recipient is added.' => 'Durée de validité du lien après le premier envoi réussi par SMS ou par e-mail. Les envois ultérieurs ne prolongent pas cette période. Avant tout envoi, la validité commence à l\'ajout du destinataire.',
     'SMS Settings' => 'Paramètres SMS',
     'Provider' => 'Fournisseur',
     'The SMS provider to use for this campaign.' => 'Le fournisseur SMS à utiliser pour cette campagne.',

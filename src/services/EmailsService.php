@@ -14,7 +14,7 @@ use craft\helpers\App;
 use craft\mail\Message;
 use craft\web\View;
 use lindemannrock\campaignmanager\CampaignManager;
-use lindemannrock\campaignmanager\helpers\TimeHelper;
+use lindemannrock\campaignmanager\helpers\InvitationDeliveryHelper;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -46,17 +46,17 @@ class EmailsService extends Component
     public function sendNotificationEmail(RecipientRecord $recipient, CampaignRecord $campaign): bool
     {
         try {
+            InvitationDeliveryHelper::expiryInterval((int)$campaign->id);
             $message = $this->getMessage($recipient, $campaign);
             $result = $this->sendEmail($message);
 
             if ($result) {
-                $recipient->emailSendDate = TimeHelper::now();
-                $recipient->save(false);
+                InvitationDeliveryHelper::recordSuccess($recipient, 'email');
             }
 
             return $result;
         } catch (Throwable $e) {
-            $this->logError('Failed to build email message', ['error' => $e->getMessage()]);
+            $this->logError('Failed to build, send or record campaign email', ['error' => $e->getMessage()]);
             return false;
         }
     }

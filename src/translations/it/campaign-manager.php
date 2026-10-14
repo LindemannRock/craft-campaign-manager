@@ -256,7 +256,7 @@ return [
     'Weeks' => 'Settimane',
     'Months' => 'Mesi',
     'Invitation Expiry' => 'Scadenza invito',
-    'How long the invitation link remains valid.' => 'Per quanto tempo il link dell\'invito rimane valido.',
+    'How long the link remains valid after the first successful SMS or email send. Later sends do not extend this period. Before sending, validity starts when the recipient is added.' => 'Per quanto tempo il link rimane valido dopo il primo invio riuscito tramite SMS o email. Gli invii successivi non prolungano questo periodo. Prima dell\'invio, la validità inizia quando viene aggiunto il destinatario.',
     'SMS Settings' => 'Impostazioni SMS',
     'Provider' => 'Provider',
     'The SMS provider to use for this campaign.' => 'Il provider SMS da utilizzare per questa campagna.',

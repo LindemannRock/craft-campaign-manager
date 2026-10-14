@@ -256,7 +256,7 @@ return [
     'Weeks' => 'Weken',
     'Months' => 'Maanden',
     'Invitation Expiry' => 'Uitnodigingsvervaldatum',
-    'How long the invitation link remains valid.' => 'Hoe lang de uitnodigingslink geldig blijft.',
+    'How long the link remains valid after the first successful SMS or email send. Later sends do not extend this period. Before sending, validity starts when the recipient is added.' => 'Hoe lang de link geldig blijft na de eerste geslaagde verzending per SMS of e-mail. Latere verzendingen verlengen deze periode niet. Vóór verzending begint de geldigheid wanneer de ontvanger wordt toegevoegd.',
     'SMS Settings' => 'SMS-instellingen',
     'Provider' => 'Provider',
     'The SMS provider to use for this campaign.' => 'De SMS-provider voor deze campagne.',

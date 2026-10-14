@@ -256,7 +256,7 @@ return [
     'Weeks' => 'أسابيع',
     'Months' => 'أشهر',
     'Invitation Expiry' => 'انتهاء صلاحية الدعوة',
-    'How long the invitation link remains valid.' => 'المدة التي يظل فيها رابط الدعوة صالحاً.',
+    'How long the link remains valid after the first successful SMS or email send. Later sends do not extend this period. Before sending, validity starts when the recipient is added.' => 'المدة التي يظل فيها الرابط صالحاً بعد أول إرسال ناجح عبر SMS أو البريد الإلكتروني. لا تؤدي عمليات الإرسال اللاحقة إلى تمديد هذه المدة. قبل الإرسال، تبدأ الصلاحية عند إضافة المستلم.',
     'SMS Settings' => 'إعدادات SMS',
     'Provider' => 'المزوّد',
     'The SMS provider to use for this campaign.' => 'مزوّد SMS المستخدم لهذه الحملة.',

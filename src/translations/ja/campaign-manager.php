@@ -256,7 +256,7 @@ return [
     'Weeks' => '週',
     'Months' => 'ヶ月',
     'Invitation Expiry' => '招待の有効期限',
-    'How long the invitation link remains valid.' => '招待リンクの有効期間です。',
+    'How long the link remains valid after the first successful SMS or email send. Later sends do not extend this period. Before sending, validity starts when the recipient is added.' => 'SMS またはメールの最初の送信が成功してからリンクが有効な期間です。その後の送信では、この期間は延長されません。送信前の有効期間は、受信者を追加した時点から始まります。',
     'SMS Settings' => 'SMS 設定',
     'Provider' => 'プロバイダー',
     'The SMS provider to use for this campaign.' => 'このキャンペーンで使用する SMS プロバイダーです。',

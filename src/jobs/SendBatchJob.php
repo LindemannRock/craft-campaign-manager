@@ -442,6 +442,14 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                 return self::OUTCOME_SKIPPED;
             }
 
+            // A never-sent recipient may have outlived its provisional manual
+            // deadline: its first successful send still gets a full window.
+            // Once either channel was sent, that shared deadline is final.
+            if ($pending->hasSubmission() ||
+                (($pending->smsSendDate !== null || $pending->emailSendDate !== null) && $pending->invitationIsExpired())) {
+                return self::OUTCOME_SKIPPED;
+            }
+
             return $send($pending) ? self::OUTCOME_SENT : self::OUTCOME_FAILED;
         } finally {
             $mutex->release($lockName);

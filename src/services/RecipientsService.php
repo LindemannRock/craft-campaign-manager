@@ -17,6 +17,7 @@ use craft\helpers\StringHelper;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\campaignmanager\elements\Campaign;
+use lindemannrock\campaignmanager\helpers\InvitationDeliveryHelper;
 use lindemannrock\campaignmanager\helpers\TimeHelper;
 use lindemannrock\campaignmanager\records\CampaignRecord;
 use lindemannrock\campaignmanager\records\RecipientRecord;
@@ -277,6 +278,13 @@ class RecipientsService extends Component
         ?string $providerHandle = null,
         ?string $senderIdHandle = null,
     ): bool {
+        try {
+            InvitationDeliveryHelper::expiryInterval((int)$campaign->id);
+        } catch (\Throwable $e) {
+            $this->logError('Invalid invitation expiry; SMS not attempted', ['error' => $e->getMessage()]);
+            return false;
+        }
+
         // Get content record for translatable SMS message
         $contentRecord = $campaign->getContentForSite($recipient->siteId);
         $smsInvitationMessage = $contentRecord?->smsInvitationMessage;
@@ -287,8 +295,12 @@ class RecipientsService extends Component
 
         $result = $this->sendSmsInvitation($smsInvitationMessage, $recipient, $providerHandle, $senderIdHandle);
         if ($result) {
-            $recipient->smsSendDate = TimeHelper::now();
-            $recipient->save(false);
+            try {
+                InvitationDeliveryHelper::recordSuccess($recipient, 'sms');
+            } catch (\Throwable $e) {
+                $this->logError('Accepted SMS delivery could not be recorded', ['recipientId' => $recipient->id, 'error' => $e->getMessage()]);
+                return false;
+            }
         }
 
         return $result;
@@ -375,7 +387,7 @@ class RecipientsService extends Component
         $declineReason = $this->getSubmissionAssociationDeclineReason($recipient, $submission);
 
         if ($declineReason === null && !$this->claimSubmission($recipient, $submission)) {
-            $declineReason = 'the invitation already has a response';
+            $declineReason = 'the invitation already has a response or has expired';
         }
 
         if ($declineReason !== null) {
@@ -441,8 +453,9 @@ class RecipientsService extends Component
     }
 
     /**
-     * Link the submission only while the recipient has no response, so
-     * competing submissions cannot replace each other.
+     * Link the submission only while the recipient has no response and its
+     * stored deadline is still valid. Recheck expiry atomically with the claim
+     * so a request crossing the preliminary check cannot claim an expired link.
      */
     private function claimSubmission(RecipientRecord $recipient, Submission $submission): bool
     {
@@ -455,7 +468,11 @@ class RecipientsService extends Component
                     'submissionId' => $submission->id,
                     'dateUpdated' => Db::prepareDateForDb(DateTimeHelper::now()),
                 ],
-                ['id' => $recipient->id, 'submissionId' => null],
+                [
+                    'and',
+                    ['id' => $recipient->id, 'submissionId' => null],
+                    ['or', ['invitationExpiryDate' => null], ['>', 'invitationExpiryDate', Db::prepareDateForDb(DateTimeHelper::now())]],
+                ],
             )
             ->execute();
 

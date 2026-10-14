@@ -256,7 +256,7 @@ return [
     'Weeks' => 'Uker',
     'Months' => 'Måneder',
     'Invitation Expiry' => 'Invitasjonens gyldighet',
-    'How long the invitation link remains valid.' => 'Hvor lenge invitasjonslenken er gyldig.',
+    'How long the link remains valid after the first successful SMS or email send. Later sends do not extend this period. Before sending, validity starts when the recipient is added.' => 'Hvor lenge lenken er gyldig etter den første vellykkede sendingen via SMS eller e-post. Senere sendinger forlenger ikke denne perioden. Før sending begynner gyldigheten når mottakeren legges til.',
     'SMS Settings' => 'SMS-innstillinger',
     'Provider' => 'Leverandør',
     'The SMS provider to use for this campaign.' => 'SMS-leverandøren som brukes for denne kampanjen.',

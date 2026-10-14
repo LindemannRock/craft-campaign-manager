@@ -602,7 +602,7 @@ class AnalyticsService extends Component
         return [
             'and',
             $this->eventInRange($expiry, $bounds),
-            ['<', $expiry, Db::prepareDateForDb(new \DateTime())],
+            ['<=', $expiry, Db::prepareDateForDb(DateTimeHelper::now())],
             [self::RECIPIENTS . '.submissionId' => null],
         ];
     }

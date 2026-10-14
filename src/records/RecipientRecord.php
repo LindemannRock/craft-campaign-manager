@@ -130,6 +130,8 @@ class RecipientRecord extends BaseRecord
             } while ($this->smsInvitationCode === $this->emailInvitationCode);
         }
 
+        // Keep the provisional deadline for manual links. The first durably
+        // recorded managed send establishes the shared delivery window.
         if ($this->getIsNewRecord() && empty($this->invitationExpiryDate)) {
             $campaign = $this->getCampaign();
             // Direct property access — the getter lives on CampaignBehavior, which
@@ -196,6 +198,6 @@ class RecipientRecord extends BaseRecord
             return false;
         }
 
-        return $this->invitationExpiryDate < DateTimeHelper::now();
+        return $this->invitationExpiryDate <= DateTimeHelper::now();
     }
 }
