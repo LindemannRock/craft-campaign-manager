@@ -277,6 +277,12 @@ return [
     'Failed to run campaign' => 'فشل تشغيل الحملة',
     'Failed to load tab content' => 'فشل تحميل محتوى علامة التبويب',
 
+    'SMS sending is paused. Pending SMS recipients remain pending. Email continues independently.' => 'إرسال SMS متوقف مؤقتاً. يظل مستلمو SMS قيد الانتظار. يستمر إرسال البريد الإلكتروني بشكل مستقل.',
+    'Review delivery and resolve the hold in SMS Manager. After manual release, explicitly use Run Campaign to send pending invitations.' => 'يرجى مراجعة التسليم وحل الحظر في SMS Manager. بعد رفع الحظر يدوياً، يرجى استخدام «تشغيل الحملة» صراحةً لإرسال الدعوات قيد الانتظار.',
+    'Timed transport recovery: {time}. Queued SMS continuations can run after this time if no other hold applies.' => 'استعادة النقل في الوقت المحدد: {time}. يمكن لمهام متابعة SMS في قائمة الانتظار أن تعمل بعد هذا الوقت إذا لم يكن هناك حظر آخر.',
+    'Releasing a hold sends nothing and does not restart campaigns or failed jobs.' => 'لا يؤدي رفع الحظر إلى إرسال أي شيء أو إعادة تشغيل الحملات أو المهام الفاشلة.',
+    'View Transport Status' => 'عرض حالة النقل',
+
     // Campaign: Analytics
     'Daily Activity' => 'النشاط اليومي',
     'Channel Breakdown' => 'تفصيل القنوات',

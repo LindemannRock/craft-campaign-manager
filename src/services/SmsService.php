@@ -10,6 +10,8 @@ namespace lindemannrock\campaignmanager\services;
 
 use Craft;
 use craft\base\Component;
+use craft\helpers\App;
+use craft\helpers\UrlHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -41,10 +43,9 @@ class SmsService extends Component
     /**
      * Send an SMS via SMS Manager.
      *
-     * Routes through `SmsManager::sendWithHandle()` so the call works for
+     * Routes through SMS Manager’s detailed handle API so the call works for
      * both DB-backed and config-only sender IDs (config-only senders have
-     * `id = null`, which the older ID-based path would silently drop onto
-     * the default sender — see SMS Manager audit findings 7.1 / 8.1).
+     * `id = null`; handle-based dispatch preserves their provider selection).
      *
      * Provider is derived from the sender's `providerHandle` inside SMS
      * Manager; the `$providerHandle` parameter here is retained for
@@ -68,21 +69,38 @@ class SmsService extends Component
         ?string $senderIdHandle = null,
         ?int $siteId = null,
     ): bool {
+        return $this->sendSmsWithDetails($to, $message, $language, $providerHandle, $senderIdHandle, $siteId)['success'];
+    }
+
+    /**
+     * Send through the canonical sender resolver without discarding hold metadata.
+     *
+     * @return array{success: bool, failureCode: ?string, failureScope: ?string, retryAfterSeconds: ?int}
+     * @since 5.16.0
+     */
+    public function sendSmsWithDetails(
+        string $to,
+        string $message,
+        ?string $language = 'en',
+        ?string $providerHandle = null,
+        ?string $senderIdHandle = null,
+        ?int $siteId = null,
+    ): array {
         unset($providerHandle); // Intentionally unused — see method docblock.
 
         if (!$this->isSmsManagerAvailable()) {
             $this->logError('SMS Manager plugin is not installed or enabled');
-            return false;
+            return ['success' => false, 'failureCode' => 'provider-error', 'failureScope' => 'unknown', 'retryAfterSeconds' => null];
         }
 
         $senderIdHandle = $this->resolveSenderHandle($senderIdHandle);
 
         if ($senderIdHandle === null) {
             $this->logError('No sender ID handle resolved for SMS send — set a Default Sender ID in Campaign Manager or SMS Manager settings, or pass an explicit handle.');
-            return false;
+            return ['success' => false, 'failureCode' => 'provider-error', 'failureScope' => 'unknown', 'retryAfterSeconds' => null];
         }
 
-        return SmsManager::$plugin->sms->sendWithHandle(
+        return SmsManager::$plugin->sms->sendWithHandleDetails(
             to: $to,
             message: $message,
             senderIdHandle: $senderIdHandle,
@@ -156,6 +174,58 @@ class SmsService extends Component
         $sender = SmsManager::$plugin->senderIds->getSenderIdByHandle($resolvedHandle);
 
         return ($sender && $sender->providerHandle) ? (string) $sender->providerHandle : null;
+    }
+
+    /**
+     * Read only the active holds affecting the campaign's effective MPP lane.
+     * The view receives no guard identities, tokens, credentials or provider data.
+     *
+     * @return array{manual: bool, recoveryAt: ?int, statusUrl: ?string}|null
+     * @since 5.16.0
+     */
+    public function getTransportHoldNotice(?string $senderHandle): ?array
+    {
+        if (!$this->isSmsManagerAvailable()) {
+            return null;
+        }
+        $handle = $this->resolveSenderHandle($senderHandle);
+        $sender = $handle === null ? null : SmsManager::$plugin->senderIds->getSenderIdByHandle($handle);
+        $provider = $sender ? SmsManager::$plugin->providers->getProviderByHandle($sender->providerHandle) : null;
+        if (!$sender || !$sender->enabled || !$provider || !$provider->enabled || $provider->type !== 'mpp-sms') {
+            return null;
+        }
+        $settings = $provider->getSettingsArray();
+        $main = App::parseEnv($settings['apiKey'] ?? '');
+        $development = App::parseEnv($settings['devApiKey'] ?? '');
+        $lane = $sender->isDev && !empty($development) && $development !== $main ? 'development' : 'main';
+        $status = SmsManager::$plugin->mppTransport->status($settings);
+        $manual = false;
+        $recoveryAt = null;
+        $active = false;
+        foreach ($status['holds'] as $hold) {
+            if (!$hold['active'] || !in_array($hold['lane'], ['transport', $lane], true)) {
+                continue;
+            }
+            $active = true;
+            $manual = $manual || $hold['recoveryAt'] === null;
+            if (is_int($hold['recoveryAt'])) {
+                $recoveryAt = max($recoveryAt ?? 0, $hold['recoveryAt']);
+            }
+        }
+        if (!$active) {
+            return null;
+        }
+        $user = Craft::$app->getUser();
+        $canView = $user->checkPermission('accessPlugin-sms-manager') &&
+            $user->checkPermission('smsManager:manageProviders') &&
+            ($provider->isFromConfig() || $user->checkPermission('smsManager:editProviders'));
+        return [
+            'manual' => $manual,
+            'recoveryAt' => $recoveryAt,
+            'statusUrl' => $canView
+                ? UrlHelper::cpUrl('sms-manager/providers/view/' . rawurlencode((string)$provider->handle)) . '#mpp-transport-status'
+                : null,
+        ];
     }
 
     /**

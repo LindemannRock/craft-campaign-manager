@@ -1,0 +1,22 @@
+{% set hold = craft.app.plugins.getPlugin('campaign-manager').sms.getTransportHoldNotice(campaign.senderHandle) %}
+{% if hold %}
+    {% set message %}
+        <p>{{ 'SMS sending is paused. Pending SMS recipients remain pending. Email continues independently.'|t('campaign-manager') }}</p>
+        {% if hold.manual %}
+            <p>{{ 'Review delivery and resolve the hold in SMS Manager. After manual release, explicitly use Run Campaign to send pending invitations.'|t('campaign-manager') }}</p>
+        {% endif %}
+        {% if hold.recoveryAt %}
+            <p>{{ 'Timed transport recovery: {time}. Queued SMS continuations can run after this time if no other hold applies.'|t('campaign-manager', {time: hold.recoveryAt|lrDatetime}) }}</p>
+        {% endif %}
+        <p>{{ 'Releasing a hold sends nothing and does not restart campaigns or failed jobs.'|t('campaign-manager') }}</p>
+        {% if hold.statusUrl %}
+            <p><a href="{{ hold.statusUrl }}">{{ 'View Transport Status'|t('campaign-manager') }}</a></p>
+        {% endif %}
+    {% endset %}
+    {% include 'lindemannrock-base/_components/info-box' with {
+        message: message,
+        type: 'warning',
+        margin: 'bottom',
+        boxId: 'campaign-sms-transport-notice',
+    } only %}
+{% endif %}

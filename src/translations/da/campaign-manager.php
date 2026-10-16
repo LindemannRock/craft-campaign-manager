@@ -277,6 +277,12 @@ return [
     'Failed to run campaign' => 'Det lykkedes ikke at køre kampagnen',
     'Failed to load tab content' => 'Kunne ikke indlæse fanens indhold',
 
+    'SMS sending is paused. Pending SMS recipients remain pending. Email continues independently.' => 'SMS-afsendelsen er sat på pause. Afventende SMS-modtagere forbliver afventende. E-mailafsendelsen fortsætter uafhængigt.',
+    'Review delivery and resolve the hold in SMS Manager. After manual release, explicitly use Run Campaign to send pending invitations.' => 'Kontrollér leveringen, og løs blokeringen i SMS Manager. Efter manuel ophævelse skal du udtrykkeligt bruge «Kør kampagne» for at sende afventende invitationer.',
+    'Timed transport recovery: {time}. Queued SMS continuations can run after this time if no other hold applies.' => 'Tidsstyret gendannelse af transport: {time}. SMS-fortsættelser i kø kan køre efter dette tidspunkt, hvis ingen anden blokering gælder.',
+    'Releasing a hold sends nothing and does not restart campaigns or failed jobs.' => 'Ophævelse af en blokering sender intet og genstarter ikke kampagner eller mislykkede job.',
+    'View Transport Status' => 'Vis transportstatus',
+
     // Campaign: Analytics
     'Daily Activity' => 'Daglig aktivitet',
     'Channel Breakdown' => 'Kanalfordeling',

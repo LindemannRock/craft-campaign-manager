@@ -26,7 +26,7 @@ final class RecordingSmsManagerSmsService extends SmsService
      */
     public array $sentMessages = [];
 
-    public function sendWithHandle(
+    public function sendWithHandleDetails(
         string $to,
         string $message,
         string $senderIdHandle,
@@ -34,7 +34,7 @@ final class RecordingSmsManagerSmsService extends SmsService
         ?string $sourcePlugin = null,
         ?int $sourceElementId = null,
         ?int $siteId = null,
-    ): bool {
+    ): array {
         $this->sentMessages[] = [
             'to' => $to,
             'message' => $message,
@@ -44,6 +44,6 @@ final class RecordingSmsManagerSmsService extends SmsService
             'siteId' => $siteId,
         ];
 
-        return true;
+        return ['messageId' => null, 'response' => null, 'error' => null, 'executionTime' => 0, 'providerName' => null, 'senderIdName' => null, 'senderIdValue' => null, 'recipient' => $to, 'success' => true, 'failureCode' => null, 'failureScope' => null, 'retryAfterSeconds' => null];
     }
 }

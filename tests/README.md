@@ -33,6 +33,25 @@ setting is put back in teardown, which also fails the test if the fixture was
 compiled to disk anyway. Only the fixture's own compiled file, located by its
 exact Twig cache key, is ever removed; no other compiled template is touched.
 
+## MPP transport isolation
+
+`TransportIsolation` is installed before Craft application bootstrap in both the
+suite and disposable project. It replaces Guzzle transport with synthetic
+responses, refuses other HTTP delivery, rejects mailer transport and queue-worker
+execution, and reports intercepted versus real requests. Disposable PHP children
+also disable socket/cURL/mail functions and URL streams. No test starts a worker;
+batches are invoked directly and only their owned queue payloads are inspected.
+
+`MppCampaignTestCase` runs the real SMS Manager result/guard path with a synthetic
+account and endpoint. It requires a disposable database, owns exact guard scope
+keys, restores logging/config/component swaps and removes its rows. Campaign
+page tests own their session, template cache and published-asset directories;
+release-history rows are removed by their owned actor and IDs. The console page
+fixture temporarily hides SMS Manager’s unrelated global sidebar entry (which
+requires a web-user component), restoring the property immediately; campaign
+controllers, templates, notice rendering and permission checks run unchanged. Fixture lifecycle
+probes check project/database removal on success, failure, shutdown and SIGTERM.
+
 ## Commands
 
 | Command | What it proves |
@@ -52,7 +71,7 @@ part of the quality gate, CI, Act, or pre-commit.
 
 `scripts/run-tests` decides how PHPUnit runs:
 
-- Inside the workspace: `composer test` against the DDEV project, then
+- Inside the workspace: `composer test` uses the shared vendor tree in an isolated disposable project and database, then
   `tests/Fixtures/Project/run.php --lifecycle-probe`, which proves that a
   disposable project and database are removed on ordinary failure, on process
   shutdown, and on `SIGTERM`.

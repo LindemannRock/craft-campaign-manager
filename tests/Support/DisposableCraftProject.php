@@ -299,6 +299,12 @@ final class DisposableCraftProject
 define('CRAFT_BASE_PATH', __DIR__);
 define('CRAFT_VENDOR_PATH', CRAFT_BASE_PATH . '/vendor');
 require_once CRAFT_VENDOR_PATH . '/autoload.php';
+if (!function_exists('craft_modify_app_config')) {
+    function craft_modify_app_config(array &$config, string $appType): void
+    {
+        \lindemannrock\campaignmanager\tests\Support\TransportIsolation::install();
+    }
+}
 if (class_exists(Dotenv\Dotenv::class)) {
     Dotenv\Dotenv::createUnsafeMutable(CRAFT_BASE_PATH)->safeLoad();
 }
@@ -440,6 +446,12 @@ PHP);
     /** @param list<string> $command @return array{command: list<string>, exitCode: int, stdout: string, stderr: string} */
     private function runCommand(array $command, string $workingDirectory): array
     {
+        if ($command[0] === PHP_BINARY) {
+            array_splice($command, 1, 0, [
+                '-d', 'disable_functions=curl_exec,curl_multi_exec,stream_socket_client,fsockopen,pfsockopen,mail',
+                '-d', 'allow_url_fopen=0',
+            ]);
+        }
         $pipes = [];
         $process = proc_open($command, [
             0 => ['pipe', 'r'],

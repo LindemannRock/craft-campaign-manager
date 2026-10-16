@@ -14,6 +14,13 @@
 
 declare(strict_types=1);
 
+if (!function_exists('craft_modify_app_config')) {
+    function craft_modify_app_config(array &$config, string $appType): void
+    {
+        \lindemannrock\campaignmanager\tests\Support\TransportIsolation::install();
+    }
+}
+
 $packageRoot = dirname(__DIR__);
 $configuredProjectRoot = $_SERVER['CAMPAIGN_MANAGER_TEST_PROJECT_ROOT']
     ?? $_ENV['CAMPAIGN_MANAGER_TEST_PROJECT_ROOT']

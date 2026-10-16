@@ -277,6 +277,12 @@ return [
     'Failed to run campaign' => 'No se pudo ejecutar la campaña',
     'Failed to load tab content' => 'No se pudo cargar el contenido de la pestaña',
 
+    'SMS sending is paused. Pending SMS recipients remain pending. Email continues independently.' => 'El envío de SMS está en pausa. Los destinatarios de SMS pendientes siguen pendientes. El envío de correo electrónico continúa de forma independiente.',
+    'Review delivery and resolve the hold in SMS Manager. After manual release, explicitly use Run Campaign to send pending invitations.' => 'Revise la entrega y resuelva el bloqueo en SMS Manager. Tras el desbloqueo manual, utilice expresamente «Ejecutar campaña» para enviar las invitaciones pendientes.',
+    'Timed transport recovery: {time}. Queued SMS continuations can run after this time if no other hold applies.' => 'Recuperación programada del transporte: {time}. Las continuaciones de SMS en cola pueden ejecutarse después de esta hora si no hay otro bloqueo.',
+    'Releasing a hold sends nothing and does not restart campaigns or failed jobs.' => 'El desbloqueo no envía nada ni reinicia campañas o tareas fallidas.',
+    'View Transport Status' => 'Ver estado del transporte',
+
     // Campaign: Analytics
     'Daily Activity' => 'Actividad diaria',
     'Channel Breakdown' => 'Desglose por canal',

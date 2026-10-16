@@ -15,6 +15,10 @@
 
 {% extends 'lindemannrock-base/_layouts/cp-table' %}
 
+{% block beforeTable %}
+    {% include 'campaign-manager/_components/_sms-transport-notice' with {campaign: campaign} only %}
+{% endblock %}
+
 {# ============================================================================
    CRUMBS — site switcher (if multi-site) + plugin + campaign + page label
    ============================================================================ #}

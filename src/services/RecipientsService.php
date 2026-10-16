@@ -278,11 +278,26 @@ class RecipientsService extends Component
         ?string $providerHandle = null,
         ?string $senderIdHandle = null,
     ): bool {
+        return $this->processSmsInvitationWithDetails($campaign, $recipient, $providerHandle, $senderIdHandle)['success'];
+    }
+
+    /**
+     * Process an invitation, preserving transport-control metadata for queue consumers.
+     *
+     * @return array{success: bool, failureCode: ?string, failureScope: ?string, retryAfterSeconds: ?int}
+     * @since 5.16.0
+     */
+    public function processSmsInvitationWithDetails(
+        CampaignRecord $campaign,
+        RecipientRecord $recipient,
+        ?string $providerHandle = null,
+        ?string $senderIdHandle = null,
+    ): array {
         try {
             InvitationDeliveryHelper::expiryInterval((int)$campaign->id);
         } catch (\Throwable $e) {
             $this->logError('Invalid invitation expiry; SMS not attempted', ['error' => $e->getMessage()]);
-            return false;
+            return ['success' => false, 'failureCode' => 'provider-error', 'failureScope' => 'unknown', 'retryAfterSeconds' => null];
         }
 
         // Get content record for translatable SMS message
@@ -293,13 +308,13 @@ class RecipientsService extends Component
         $providerHandle = $providerHandle ?? $campaign->providerHandle;
         $senderIdHandle = $senderIdHandle ?? $campaign->senderHandle;
 
-        $result = $this->sendSmsInvitation($smsInvitationMessage, $recipient, $providerHandle, $senderIdHandle);
-        if ($result) {
+        $result = $this->sendSmsInvitationWithDetails($smsInvitationMessage, $recipient, $providerHandle, $senderIdHandle);
+        if ($result['success']) {
             try {
                 InvitationDeliveryHelper::recordSuccess($recipient, 'sms');
             } catch (\Throwable $e) {
                 $this->logError('Accepted SMS delivery could not be recorded', ['recipientId' => $recipient->id, 'error' => $e->getMessage()]);
-                return false;
+                return ['success' => false, 'failureCode' => 'provider-error', 'failureScope' => 'unknown', 'retryAfterSeconds' => null];
             }
         }
 
@@ -494,10 +509,25 @@ class RecipientsService extends Component
         ?string $providerHandle = null,
         ?string $senderIdHandle = null,
     ): bool {
+        return $this->sendSmsInvitationWithDetails($message, $recipient, $providerHandle, $senderIdHandle)['success'];
+    }
+
+    /**
+     * Build and send an invitation without reducing SMS Manager's detailed result.
+     *
+     * @return array{success: bool, failureCode: ?string, failureScope: ?string, retryAfterSeconds: ?int}
+     * @since 5.16.0
+     */
+    public function sendSmsInvitationWithDetails(
+        string $message,
+        RecipientRecord $recipient,
+        ?string $providerHandle = null,
+        ?string $senderIdHandle = null,
+    ): array {
         $parsedMessage = $this->parseInvitationMessageForRecipient($message, $recipient);
         $language = $recipient->getSite()?->getLocale()->getLanguageID() ?? 'en';
 
-        return CampaignManager::$plugin->sms->sendSms(
+        return CampaignManager::$plugin->sms->sendSmsWithDetails(
             $recipient->sms,
             $parsedMessage,
             $language,

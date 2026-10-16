@@ -44,11 +44,11 @@ final class ScriptedSmsManagerSmsService extends SmsService
      * The provider's answers to successive messages; a message past the end
      * of the list is accepted.
      *
-     * @var list<bool|Throwable>
+     * @var list<bool|Throwable|array>
      */
     public array $answers = [];
 
-    public function sendWithHandle(
+    public function sendWithHandleDetails(
         string $to,
         string $message,
         string $senderIdHandle,
@@ -56,7 +56,7 @@ final class ScriptedSmsManagerSmsService extends SmsService
         ?string $sourcePlugin = null,
         ?int $sourceElementId = null,
         ?int $siteId = null,
-    ): bool {
+    ): array {
         $this->sentMessages[] = [
             'to' => $to,
             'senderIdHandle' => $senderIdHandle,
@@ -72,7 +72,7 @@ final class ScriptedSmsManagerSmsService extends SmsService
             throw $answer;
         }
 
-        return $answer;
+        return is_array($answer) ? $answer : ['success' => $answer, 'failureCode' => $answer ? null : 'provider-error', 'failureScope' => $answer ? null : 'unknown', 'retryAfterSeconds' => null];
     }
 
     /**

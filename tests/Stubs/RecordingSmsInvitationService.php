@@ -28,14 +28,14 @@ final class RecordingSmsInvitationService extends RecipientsService
      */
     public array $sentToRecipientIds = [];
 
-    public function processSmsInvitation(
+    public function processSmsInvitationWithDetails(
         CampaignRecord $campaign,
         RecipientRecord $recipient,
         ?string $providerHandle = null,
         ?string $senderIdHandle = null,
-    ): bool {
+    ): array {
         $this->sentToRecipientIds[] = (int)$recipient->id;
 
-        return true;
+        return ['success' => true, 'failureCode' => null, 'failureScope' => null, 'retryAfterSeconds' => null];
     }
 }

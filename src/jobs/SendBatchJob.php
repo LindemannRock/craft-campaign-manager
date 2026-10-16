@@ -171,6 +171,10 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
         // seconds each still has to wait; they are queued again below
         /** @var array<int, int> $waiting */
         $waiting = [];
+        $waitingEmail = [];
+        $waitingSms = [];
+        $smsHold = null;
+        $heldSmsIds = [];
         $now = DateTimeHelper::now();
 
         $this->logInfo('Processing batch', [
@@ -211,6 +215,12 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                 $wait = InvitationScheduleHelper::secondsUntilEligible($recipient->dateCreated, $campaign->invitationDelayPeriod, $now);
                 if ($wait > 0) {
                     $waiting[(int)$recipientId] = $wait;
+                    if ($smsPending) {
+                        $waitingSms[(int)$recipientId] = $wait;
+                    }
+                    if ($emailPending) {
+                        $waitingEmail[(int)$recipientId] = $wait;
+                    }
                     $processed++;
                     $this->setProgress($queue, $processed / $totalRecipients);
                     continue;
@@ -218,18 +228,34 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             }
 
             // Send SMS if enabled and recipient has phone and hasn't received SMS yet
-            if ($smsPending) {
+            if ($smsPending && $smsHold !== null) {
+                $heldSmsIds[] = (int)$recipientId;
+            }
+            if ($smsPending && $smsHold === null) {
                 if (!empty($content->smsInvitationMessage)) {
                     $outcome = $this->sendOncePerChannel(
                         (int)$recipientId,
                         'sms',
-                        static fn(RecipientRecord $pending): bool => CampaignManager::$plugin->recipients->processSmsInvitation(
+                        static fn(RecipientRecord $pending): array => CampaignManager::$plugin->recipients->processSmsInvitationWithDetails(
                             $campaign,
                             $pending,
                             $campaign->providerHandle,
                             $campaign->senderHandle,
                         ),
                     );
+
+                    if (is_array($outcome)) {
+                        if (!$outcome['success'] && in_array($outcome['failureCode'], [
+                            'account-unavailable', 'ip-blocked', 'cooldown-active',
+                            'guard-busy', 'guard-unavailable', 'transport-uncertain',
+                        ], true)) {
+                            $smsHold = $outcome;
+                            $heldSmsIds[] = (int)$recipientId;
+                            $outcome = self::OUTCOME_SKIPPED;
+                        } else {
+                            $outcome = $outcome['success'] ? self::OUTCOME_SENT : self::OUTCOME_FAILED;
+                        }
+                    }
 
                     if ($outcome === self::OUTCOME_SENT) {
                         $smsSent++;
@@ -287,7 +313,11 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
         }
 
         if ($waiting !== []) {
-            $this->requeueWaiting($waiting);
+            if ($smsHold === null) {
+                $this->requeueWaiting($waiting);
+            } elseif ($waitingEmail !== []) {
+                $this->requeueWaiting($waitingEmail, false);
+            }
         }
 
         $logContext = [
@@ -337,6 +367,18 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             'siteIds' => [(int)$this->siteId],
         ]);
 
+        if ($smsHold !== null) {
+            $code = $smsHold['failureCode'];
+            $delay = $smsHold['retryAfterSeconds'];
+            if (in_array($code, ['guard-busy', 'ip-blocked', 'cooldown-active'], true) &&
+                is_int($delay) && $delay >= 0 && $delay <= 7260) {
+                $this->requeueHeldSms(
+                    array_merge($heldSmsIds, array_keys($waitingSms)),
+                    max($delay, $waitingSms === [] ? 0 : max($waitingSms)),
+                );
+            }
+        }
+
         // Surface total send failures to the queue UI. Partial successes (some sent,
         // some errored) complete normally — re-running would re-send to recipients
         // who already received their invite. Zero-success batches are almost always
@@ -371,7 +413,7 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
      *
      * @param array<int, int> $waiting Seconds to wait by recipient ID
      */
-    private function requeueWaiting(array $waiting): void
+    private function requeueWaiting(array $waiting, ?bool $sendSms = null): void
     {
         $wait = max($waiting);
 
@@ -379,7 +421,7 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             'campaignId' => $this->campaignId,
             'siteId' => $this->siteId,
             'recipientIds' => array_keys($waiting),
-            'sendSms' => $this->sendSms,
+            'sendSms' => $sendSms ?? $this->sendSms,
             'sendEmail' => $this->sendEmail,
             'triggeredByUserId' => $this->triggeredByUserId,
             'onlyWhileCampaignEnabled' => $this->onlyWhileCampaignEnabled,
@@ -391,6 +433,44 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             'recipientCount' => count($waiting),
             'waitSeconds' => $wait,
         ]);
+    }
+
+    /**
+     * Queue only this batch's still-pending owned recipients. A later execution
+     * repeats the normal enabled/eligibility checks and channel mutex reread.
+     *
+     * @param list<int> $recipientIds
+     */
+    private function requeueHeldSms(array $recipientIds, int $delay): void
+    {
+        $pendingIds = Craft::$app->getDb()->usePrimary(function() use ($recipientIds): array {
+            $ids = [];
+            foreach (array_unique($recipientIds) as $id) {
+                $recipient = RecipientRecord::findOne([
+                    'id' => $id,
+                    'campaignId' => $this->campaignId,
+                    'siteId' => $this->siteId,
+                    'smsSendDate' => null,
+                ]);
+                if ($recipient !== null && !empty($recipient->sms) && !$recipient->hasSubmission() &&
+                    ($recipient->emailSendDate === null || !$recipient->invitationIsExpired())) {
+                    $ids[] = (int)$id;
+                }
+            }
+            return $ids;
+        });
+        if ($pendingIds === []) {
+            return;
+        }
+        Queue::push(new self([
+            'campaignId' => $this->campaignId,
+            'siteId' => $this->siteId,
+            'recipientIds' => $pendingIds,
+            'sendSms' => true,
+            'sendEmail' => false,
+            'triggeredByUserId' => $this->triggeredByUserId,
+            'onlyWhileCampaignEnabled' => $this->onlyWhileCampaignEnabled,
+        ]), null, $delay);
     }
 
     /**
@@ -406,10 +486,10 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
      * middle of this very send. SMS and email are locked separately, so one
      * channel never holds back the other.
      *
-     * @param callable(RecipientRecord): bool $send Sends the invitation to the freshly loaded recipient
-     * @return string One of the OUTCOME_ constants
+     * @param callable(RecipientRecord): (bool|array) $send Sends the invitation to the freshly loaded recipient
+     * @return string|array One of the OUTCOME_ constants or the intact detailed SMS result
      */
-    private function sendOncePerChannel(int $recipientId, string $channel, callable $send): string
+    private function sendOncePerChannel(int $recipientId, string $channel, callable $send): string|array
     {
         $mutex = Craft::$app->getMutex();
         $lockName = "campaign-manager:invitation-send:{$recipientId}:{$channel}";
@@ -433,6 +513,10 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                 return self::OUTCOME_RECIPIENT_DELETED;
             }
 
+            if ((int)$pending->campaignId !== $this->campaignId || (int)$pending->siteId !== $this->siteId) {
+                return self::OUTCOME_SKIPPED;
+            }
+
             if (!empty($channel === 'sms' ? $pending->smsSendDate : $pending->emailSendDate)) {
                 $this->logInfo('Invitation was already sent by another batch', [
                     'recipientId' => $recipientId,
@@ -450,7 +534,8 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
                 return self::OUTCOME_SKIPPED;
             }
 
-            return $send($pending) ? self::OUTCOME_SENT : self::OUTCOME_FAILED;
+            $result = $send($pending);
+            return is_array($result) ? $result : ($result ? self::OUTCOME_SENT : self::OUTCOME_FAILED);
         } finally {
             $mutex->release($lockName);
         }

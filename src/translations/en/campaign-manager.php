@@ -277,6 +277,12 @@ return [
     'Failed to run campaign' => 'Failed to run campaign',
     'Failed to load tab content' => 'Failed to load tab content',
 
+    'SMS sending is paused. Pending SMS recipients remain pending. Email continues independently.' => 'SMS sending is paused. Pending SMS recipients remain pending. Email continues independently.',
+    'Review delivery and resolve the hold in SMS Manager. After manual release, explicitly use Run Campaign to send pending invitations.' => 'Review delivery and resolve the hold in SMS Manager. After manual release, explicitly use Run Campaign to send pending invitations.',
+    'Timed transport recovery: {time}. Queued SMS continuations can run after this time if no other hold applies.' => 'Timed transport recovery: {time}. Queued SMS continuations can run after this time if no other hold applies.',
+    'Releasing a hold sends nothing and does not restart campaigns or failed jobs.' => 'Releasing a hold sends nothing and does not restart campaigns or failed jobs.',
+    'View Transport Status' => 'View Transport Status',
+
     // Campaign: Analytics
     'Daily Activity' => 'Daily Activity',
     'Channel Breakdown' => 'Channel Breakdown',

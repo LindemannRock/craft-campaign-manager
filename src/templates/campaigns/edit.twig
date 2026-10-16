@@ -106,6 +106,7 @@
 {% endif %}
 
 {% block content %}
+    {% include 'campaign-manager/_components/_sms-transport-notice' with {campaign: campaign} only %}
     {{ actionInput('campaign-manager/campaigns/save') }}
     {{ redirectInput('campaign-manager') }}
     {{ hiddenInput('siteId', campaign.siteId) }}
