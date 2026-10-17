@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${PLUGIN_NAME:-}" != 'lindemannrock/craft-campaign-manager' || "${PLUGIN_HANDLE:-}" != 'campaign-manager' || "${PLUGIN_TYPE:-}" != 'craft-plugin' ]]; then
+  echo 'Run this smoke through the disposable Campaign Manager compatibility runner.' >&2
+  exit 1
+fi
+
+# The compatibility runner owns the fresh project and its complete database.
+# This smoke reads installation/analytics state and exercises pure validation;
+# it creates no recipients, queue jobs, provider calls, or additional resources.
+php -d disable_functions=curl_exec,curl_multi_exec,stream_socket_client,fsockopen,pfsockopen,mail -d allow_url_fopen=0 <<'PHP'
+<?php
+require 'bootstrap.php';
+require 'vendor/craftcms/cms/bootstrap/console.php';
+
+use lindemannrock\campaignmanager\CampaignManager;
+use lindemannrock\campaignmanager\exceptions\InvalidInvitationDelayException;
+use lindemannrock\campaignmanager\helpers\InvitationScheduleHelper;
+use lindemannrock\campaignmanager\helpers\PhoneHelper;
+
+$checks = 0;
+$check = static function(bool $condition, string $message) use (&$checks): void {
+    if (!$condition) {
+        throw new RuntimeException($message);
+    }
+    $checks++;
+};
+
+$plugin = Craft::$app->getPlugins()->getPlugin('campaign-manager');
+$check($plugin instanceof CampaignManager && $plugin->isInstalled && Craft::$app->getPlugins()->isPluginEnabled('campaign-manager'), 'Campaign Manager is not installed and enabled.');
+foreach (['formie', 'sms-manager', 'logging-library'] as $handle) {
+    $dependency = Craft::$app->getPlugins()->getPlugin($handle);
+    $check($dependency !== null && $dependency->isInstalled && Craft::$app->getPlugins()->isPluginEnabled($handle), 'Required smoke dependency is not enabled: ' . $handle);
+}
+
+$created = new DateTime('2026-01-01 12:00:00', new DateTimeZone('UTC'));
+$waiting = new DateTime('2026-01-02 12:00:00', new DateTimeZone('UTC'));
+$due = new DateTime('2026-01-03 12:00:00', new DateTimeZone('UTC'));
+$check(InvitationScheduleHelper::secondsUntilEligible($created, 'P2D', $waiting) === 86400, 'Invitation delay did not retain the remaining day.');
+$check(InvitationScheduleHelper::secondsUntilEligible($created, 'P2D', $due) === 0, 'Invitation was not eligible at its exact deadline.');
+$check(InvitationScheduleHelper::secondsUntilEligible($created, '', $waiting) === 0, 'Empty invitation delay should allow immediate eligibility.');
+$check($created->format('Y-m-d H:i:s') === '2026-01-01 12:00:00', 'Schedule calculation mutated its input date.');
+$rejected = false;
+try {
+    InvitationScheduleHelper::delayInterval('invalid-duration');
+} catch (InvalidInvitationDelayException $exception) {
+    $rejected = true;
+}
+$check($rejected, 'Unreadable invitation delay did not fail closed.');
+
+$phone = PhoneHelper::validate('+1 202 555 0123', 'US');
+$check($phone['valid'] && $phone['e164'] === '+12025550123', 'Recipient phone normalization failed.');
+$check(!PhoneHelper::validate('555-PHONE', 'US')['valid'], 'Alphabetic recipient phone input was accepted.');
+$check(PhoneHelper::validate(null, 'US')['valid'], 'An optional empty phone should be accepted.');
+
+$siteId = (int)Craft::$app->getSites()->getPrimarySite()->id;
+$stats = $plugin->analytics->getOverviewStats('all', [$siteId], 'all');
+foreach (['totalRecipients', 'smsSent', 'emailsSent', 'submissions', 'expired'] as $key) {
+    $check(array_key_exists($key, $stats) && $stats[$key] === 0, 'Fresh-install analytics did not return zero for ' . $key);
+}
+
+echo 'Campaign Manager smoke passed: ' . $checks . " checks; installation, invitation timing, phone validation, and real empty-database analytics; no delivery or queue workers.\n";
+PHP
