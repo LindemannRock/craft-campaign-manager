@@ -32,7 +32,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
   - SMS invitations via [SMS Manager](https://github.com/LindemannRock/craft-sms-manager)
   - Email invitations with customizable templates
   - Bitly URL shortening for SMS links
-  - MPP transport holds preserve pending SMS recipients while email continues independently
+  - Provider transport holds preserve pending SMS recipients while email continues independently
 - **Queue-Based Processing**:
   - Batch processing for large recipient lists
   - Background job execution
@@ -61,7 +61,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 - Craft CMS 5.11 or greater
 - PHP 8.2 or greater
 - [Formie](https://verbb.io/craft-plugins/formie) 3.0 or greater
-- [SMS Manager](https://github.com/LindemannRock/craft-sms-manager) 5.18.0 or greater (installed automatically; provides detailed SMS results and MPP transport holds)
+- [SMS Manager](https://github.com/LindemannRock/craft-sms-manager) 5.18.1 or greater (required by Composer; install and enable in Craft for SMS delivery and shared provider transport protection)
 - [Logging Library](https://github.com/LindemannRock/craft-logging-library) 5.0 or greater (installed automatically)
 - [Plugin Base](https://github.com/LindemannRock/craft-plugin-base) 5.39.0 or greater (installed automatically)
 
@@ -258,25 +258,33 @@ A campaign's **Invitation Delay** holds every invitation back until the recipien
 - A recipient who is still waiting when a batch runs is not skipped: those recipients are queued again automatically, so nothing needs to be run twice.
 - A stored delay the plugin cannot read as a duration holds everything back rather than sending early: nothing is queued or sent for that campaign, and the value is never changed for you. Adding a recipient with **Send Invitation** still adds the recipient and tells you that the invitation was not queued; importing with **Send invitations** on still imports the recipients and tells you the same. A campaign run fails in the queue with a message naming the invalid delay, before any batch exists, and a batch that was already queued fails rather than sending. The plugin log names the invalid value. Correct the delay on the campaign (the edit form no longer accepts such a value), then run the campaign to send the waiting invitations.
 
-### MPP SMS Pauses and Recovery
+### SMS Pauses and Recovery
 
-When SMS Manager reports an MPP account or transport hold, Campaign Manager stops further SMS attempts in that batch. Unsent SMS recipients remain pending: they are not marked sent or counted as ordinary recipient failures. Successful SMS invitations already recorded stay recorded. Email continues independently for every eligible recipient, including recipients whose SMS is pending.
+When SMS Manager reports an account or provider transport hold, Campaign Manager stops further SMS attempts in that batch. Unsent SMS recipients remain pending: they are not marked sent or counted as ordinary recipient failures. Successful SMS invitations already recorded stay recorded. Email continues independently for every eligible recipient, including recipients whose SMS is pending.
 
-The campaign edit page and recipient list show a notice when an active hold applies to the campaign's resolved MPP sender. The notice includes a recovery time when available. **View Transport Status** links to the provider in SMS Manager only for users permitted to view that provider. Hold release remains in SMS Manager.
+The campaign edit page and recipient list show a notice when an active hold applies to the campaign's resolved sender and effective main/development account. The notice includes a recovery time when available. **View Transport Status** links to the provider in SMS Manager only for users permitted to view that provider. Hold release remains in SMS Manager.
+
+When creating a campaign, a short notice appears below **Sender ID** if the selected sender is on hold. It updates when you switch senders, including **Use Campaign Manager default**, and shows the recovery time for a timed hold. The SMS Manager link appears only when you have permission. These notices use the status read when the page loaded; reload the page after a hold changes. Saving a campaign does not send invitations.
 
 Recovery depends on the result:
 
 | Result | What Campaign Manager does |
 |---|---|
 | Guard busy | Queues one delayed SMS-only continuation for this batch's remaining pending recipients, using SMS Manager's bounded delay. No provider attempt occurred. |
-| IP blocked, or cooldown with a recovery delay | Queues one delayed SMS-only continuation, no earlier than the supplied delay or the recipients' invitation delay. |
-| Account unavailable, cooldown without a recovery delay, or guard unavailable | Finishes without automatic SMS recovery. Recipients remain pending for operator review. |
-| Transport uncertain | Finishes without automatic replay. Delivery may have occurred without a recorded send date; check delivery before deciding whether to send again. |
+| IP blocked, rate limited, provider unavailable, or cooldown with a recovery delay | Queues one delayed SMS-only continuation, no earlier than the supplied delay or the recipients' invitation delay. |
+| Account unavailable, any hold without a recovery delay, or guard unavailable | Finishes without automatic SMS recovery. Recipients remain pending for an explicit later Run Campaign. |
+| Transport uncertain | Finishes without automatic replay. Use the same manual recovery flow. A later explicit Run Campaign treats the unrecorded SMS as pending. |
 | Invalid recipient or ordinary provider error | Counts the ordinary failure and continues to later recipients, as before. |
 
 Continuations send SMS only and recheck campaign enablement, recipient ownership, pending status, responses and expiry. If another job already sent an invitation, it is not sent again. A later hold can postpone or stop recovery. No worker waits or sleeps for a hold to expire.
 
-For manual recovery, review delivery and resolve the underlying problem, then release the applicable hold in SMS Manager. After release, explicitly choose **Run Campaign** for the campaign and site whose pending invitations should be sent. **Releasing a hold sends nothing and does not restart campaigns, queued work or failed jobs.** A timed continuation already queued can run when it becomes due; early release does not accelerate it. Historical failed jobs are never retried by this recovery path.
+For manual recovery, resolve the underlying problem and release the applicable hold in SMS Manager. Then choose **Run Campaign** for the campaign and site. It picks up remaining pending recipients and any newly added eligible recipients; each channel skips its recorded successes. There is no separate review or resume screen.
+
+**Releasing a hold sends nothing and does not restart completed or failed jobs.** Other jobs already queued may send when they run after release or timed expiry. A delayed continuation already queued still waits until its scheduled time; early release does not accelerate it. Historical failed jobs are never retried by this recovery path.
+
+SMS Manager owns hold scope, admission and expiry. Account holds affect the matching credentials; transport holds affect the provider type across accounts. Unaffected providers and accounts remain eligible. Campaign Manager checks current status and still checks the actual send result, since another job can create a hold between those checks. Custom providers can opt into SMS Manager's shared transport contract; providers without that optional contract retain ordinary dispatch behavior.
+
+A successful recorded send is not repeated. If a provider delivered an SMS but success was never recorded, it still appears pending. A timed continuation or an explicit later Run Campaign can resend that message. A recovery delay indicates when another attempt is allowed; it is not proof of non-delivery. Explicit transport-uncertain outcomes never create an automatic continuation.
 
 ### Viewing Analytics
 
@@ -456,7 +464,7 @@ Event::on(
 
 ### SMS Remains Pending While Email Is Sent
 
-Check the hold notice on the campaign edit page or recipient list. For MPP, an account or transport hold pauses SMS without stopping email. Follow [MPP SMS Pauses and Recovery](#mpp-sms-pauses-and-recovery); do not retry old failed jobs to clear a hold. For uncertain delivery, verify delivery first to avoid duplicates.
+Check the hold notice on the campaign edit page or recipient list. An applicable account or provider transport hold pauses SMS without stopping email. Follow [SMS Pauses and Recovery](#sms-pauses-and-recovery); do not retry old failed jobs to clear a hold. Resolve and release a manual hold in SMS Manager, then use Run Campaign. Recorded successful sends are skipped; a message delivered without a recorded success remains pending.
 
 ### Survey Page Not Loading
 

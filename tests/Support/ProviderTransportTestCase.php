@@ -11,45 +11,47 @@ namespace lindemannrock\campaignmanager\tests\Support;
 
 use Craft;
 use craft\db\Query;
+use craft\helpers\DateTimeHelper;
 use craft\services\Config;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 use lindemannrock\campaignmanager\elements\Campaign;
-use lindemannrock\campaignmanager\tests\Stubs\ControlledMppTransportService;
+use lindemannrock\campaignmanager\tests\Stubs\ControlledTransportService;
 use lindemannrock\campaignmanager\tests\Stubs\PluginConfigOverridingConfig;
 use lindemannrock\smsmanager\records\ProviderRecord;
-use lindemannrock\smsmanager\services\MppTransportService;
 use lindemannrock\smsmanager\services\SmsService;
+use lindemannrock\smsmanager\services\TransportService;
 use lindemannrock\smsmanager\SmsManager;
 
 /**
- * Real MPP guard and service in the disposable database, synthetic HTTP only.
+ * Real shared guard and service in the disposable database, synthetic HTTP only.
  *
  * @since 5.16.0
  */
-abstract class MppCampaignTestCase extends InvitationDeliveryTestCase
+abstract class ProviderTransportTestCase extends InvitationDeliveryTestCase
 {
-    protected ControlledMppTransportService $guard;
+    protected ControlledTransportService $guard;
     protected ProviderRecord $provider;
     protected string $credential;
     private ?Config $originalConfig = null;
     private ?array $originalLogSettings = null;
-    private array $ownedScopeKeys = [];
+    private array $ownedScopes = [];
+    private bool $clockPaused = false;
 
     protected function setUp(): void
     {
         parent::setUp();
         self::assertStringContainsString('/campaign-manager-fixture-', (string)constant('CRAFT_BASE_PATH'));
-        self::assertSame(0, (int)(new Query())->from(MppTransportService::TABLE)->count());
+        self::assertSame(0, (int)(new Query())->from(TransportService::TABLE)->count());
         $this->originalConfig = Craft::$app->getConfig();
         Craft::$app->set('config', PluginConfigOverridingConfig::wrapping($this->originalConfig, [
-            'sms-manager' => ['security' => ['blockPrivateNetworks' => false, 'allowedApiHosts' => ['mpp.example.test']]],
+            'sms-manager' => ['security' => ['blockPrivateNetworks' => false, 'allowedApiHosts' => ['mpp.example.test', 'api.twilio.com']]],
         ]));
         $this->credential = 'synthetic-' . bin2hex(random_bytes(8));
-        $key = 'account:' . hash_hmac('sha256', "sms-manager:mpp-account\0" . $this->credential, Craft::$app->getConfig()->getGeneral()->securityKey);
-        $this->ownedScopeKeys = ['transport', $key];
-        $this->guard = new ControlledMppTransportService();
-        $this->swapPluginComponent('sms-manager', 'mppTransport', $this->guard);
+        $this->guard = new ControlledTransportService();
+        DateTimeHelper::pause(new \DateTime('@' . $this->guard->time));
+        $this->clockPaused = true;
+        $this->swapPluginComponent('sms-manager', 'transport', $this->guard);
         $this->swapPluginComponent('sms-manager', 'sms', new SmsService());
         $settings = SmsManager::$plugin->getSettings();
         $this->originalLogSettings = [$settings->enableSmsLogs, $settings->enableAnalytics];
@@ -60,11 +62,22 @@ abstract class MppCampaignTestCase extends InvitationDeliveryTestCase
 
     protected function mppCampaign(): Campaign
     {
+        return $this->transportCampaign('mpp-sms', ['apiKey' => $this->credential, 'apiUrl' => 'https://mpp.example.test/send']);
+    }
+
+    protected function transportCampaign(string $type, array $settings, bool $development = false): Campaign
+    {
         $this->provider = $this->seedSmsProvider(['*']);
-        $this->provider->type = 'mpp-sms';
-        $this->provider->setSettingsArray(['apiKey' => $this->credential, 'apiUrl' => 'https://mpp.example.test/send', 'allowedCountries' => ['*']]);
+        $this->provider->type = $type;
+        $this->provider->setSettingsArray($settings + ['allowedCountries' => ['*']]);
         self::assertTrue(SmsManager::$plugin->providers->saveProvider($this->provider));
+        $context = $this->guard->contextForProvider($this->provider);
+        if ($context !== null) {
+            $this->ownedScopes[] = ['providerType' => $context->providerType, 'scopeKey' => array_values($context->scopes())];
+        }
         $sender = $this->seedSmsSender($this->provider);
+        $sender->isDev = $development;
+        self::assertTrue(SmsManager::$plugin->senderIds->saveSenderId($sender));
         $campaign = $this->seedDeliverableCampaign();
         $campaign->senderHandle = $sender->handle;
         $this->saveTestElement($campaign, false, true, false);
@@ -78,7 +91,7 @@ abstract class MppCampaignTestCase extends InvitationDeliveryTestCase
 
     protected function hold(string $code, ?int $delay = null): void
     {
-        $result = $this->guard->send($this->credential, static fn(): array => [
+        $result = $this->guard->send($this->guard->contextForProvider($this->provider), static fn(): array => [
             'success' => false, 'failureCode' => $code,
             'failureScope' => $code === 'account-unavailable' ? 'account' : 'transport',
             'retryAfterSeconds' => $delay,
@@ -90,12 +103,16 @@ abstract class MppCampaignTestCase extends InvitationDeliveryTestCase
     {
         try {
             TransportIsolation::$responses = null;
+            if ($this->clockPaused) {
+                DateTimeHelper::resume();
+                $this->clockPaused = false;
+            }
             if ($this->originalConfig !== null) {
                 Craft::$app->set('config', $this->originalConfig);
             }
-            if ($this->ownedScopeKeys !== []) {
-                Craft::$app->getDb()->createCommand()->delete(MppTransportService::TABLE, ['scopeKey' => $this->ownedScopeKeys])->execute();
-                self::assertSame(0, (int)(new Query())->from(MppTransportService::TABLE)->where(['scopeKey' => $this->ownedScopeKeys])->count());
+            foreach ($this->ownedScopes as $scope) {
+                Craft::$app->getDb()->createCommand()->delete(TransportService::TABLE, $scope)->execute();
+                self::assertSame(0, (int)(new Query())->from(TransportService::TABLE)->where($scope)->count());
             }
             if ($this->originalLogSettings !== null) {
                 $settings = SmsManager::$plugin->getSettings();

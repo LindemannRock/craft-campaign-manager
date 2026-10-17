@@ -10,11 +10,12 @@ namespace lindemannrock\campaignmanager\services;
 
 use Craft;
 use craft\base\Component;
-use craft\helpers\App;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\campaignmanager\CampaignManager;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\smsmanager\providers\TransportProviderInterface;
 use lindemannrock\smsmanager\records\SenderIdRecord;
 use lindemannrock\smsmanager\SmsManager;
 
@@ -177,55 +178,108 @@ class SmsService extends Component
     }
 
     /**
-     * Read only the active holds affecting the campaign's effective MPP lane.
+     * Read only the active holds affecting the campaign's effective provider lane.
      * The view receives no guard identities, tokens, credentials or provider data.
      *
-     * @return array{manual: bool, recoveryAt: ?int, statusUrl: ?string}|null
+     * @return array{manual: bool, recoveryAt: ?\DateTimeInterface, statusUrl: ?string}|null
      * @since 5.16.0
      */
     public function getTransportHoldNotice(?string $senderHandle): ?array
     {
-        if (!$this->isSmsManagerAvailable()) {
+        $hold = $this->readTransportHold($senderHandle);
+        if ($hold === null) {
             return null;
         }
-        $handle = $this->resolveSenderHandle($senderHandle);
-        $sender = $handle === null ? null : SmsManager::$plugin->senderIds->getSenderIdByHandle($handle);
-        $provider = $sender ? SmsManager::$plugin->providers->getProviderByHandle($sender->providerHandle) : null;
-        if (!$sender || !$sender->enabled || !$provider || !$provider->enabled || $provider->type !== 'mpp-sms') {
-            return null;
-        }
-        $settings = $provider->getSettingsArray();
-        $main = App::parseEnv($settings['apiKey'] ?? '');
-        $development = App::parseEnv($settings['devApiKey'] ?? '');
-        $lane = $sender->isDev && !empty($development) && $development !== $main ? 'development' : 'main';
-        $status = SmsManager::$plugin->mppTransport->status($settings);
-        $manual = false;
-        $recoveryAt = null;
-        $active = false;
-        foreach ($status['holds'] as $hold) {
-            if (!$hold['active'] || !in_array($hold['lane'], ['transport', $lane], true)) {
-                continue;
-            }
-            $active = true;
-            $manual = $manual || $hold['recoveryAt'] === null;
-            if (is_int($hold['recoveryAt'])) {
-                $recoveryAt = max($recoveryAt ?? 0, $hold['recoveryAt']);
-            }
-        }
-        if (!$active) {
-            return null;
-        }
+        $provider = $hold['provider'];
         $user = Craft::$app->getUser();
         $canView = $user->checkPermission('accessPlugin-sms-manager') &&
             $user->checkPermission('smsManager:manageProviders') &&
             ($provider->isFromConfig() || $user->checkPermission('smsManager:editProviders'));
         return [
-            'manual' => $manual,
-            'recoveryAt' => $recoveryAt,
+            'manual' => $hold['manual'],
+            'recoveryAt' => $hold['recoveryAt'],
             'statusUrl' => $canView
-                ? UrlHelper::cpUrl('sms-manager/providers/view/' . rawurlencode((string)$provider->handle)) . '#mpp-transport-status'
+                ? UrlHelper::cpUrl('sms-manager/providers/view/' . rawurlencode((string)$provider->handle)) . '#sms-transport-status'
                 : null,
         ];
+    }
+
+    /**
+     * Preflight only: actual send results remain authoritative for admission races.
+     * SMS Manager owns active state, scope, credential identity and expiry.
+     *
+     * @return array{success: false, failureCode: string, failureScope: string, retryAfterSeconds: ?int}|null
+     * @since 5.16.0
+     */
+    public function getTransportHoldResult(?string $senderHandle): ?array
+    {
+        $hold = $this->readTransportHold($senderHandle);
+        if ($hold === null) {
+            return null;
+        }
+        return [
+            'success' => false,
+            'failureCode' => $hold['available'] ? 'cooldown-active' : 'guard-unavailable',
+            'failureScope' => $hold['scope'],
+            'retryAfterSeconds' => $hold['manual'] || $hold['recoveryAt'] === null ? null
+                : max(0, $hold['recoveryAt']->getTimestamp() - DateTimeHelper::now()->getTimestamp()),
+        ];
+    }
+
+    /** Resolve the same provider settings and development capability as dispatch. */
+    private function readTransportHold(?string $senderHandle): ?array
+    {
+        if (!$this->isSmsManagerAvailable()) {
+            return null;
+        }
+        $sms = SmsManager::$plugin;
+        $handle = $this->resolveSenderHandle($senderHandle);
+        $sender = $handle === null ? null : $sms->senderIds->getSenderIdByHandle($handle);
+        $provider = $sender ? $sms->providers->getProviderByHandle($sender->providerHandle) : null;
+        if (!$sender || !$sender->enabled || !$provider || !$provider->enabled) {
+            return null;
+        }
+        $types = $sms->providers->getProviderTypes();
+        $class = $types[$provider->type] ?? null;
+        if ($class === null || !is_a($class, TransportProviderInterface::class, true)) {
+            return null;
+        }
+        $projection = ['provider' => $provider, 'available' => false, 'manual' => true, 'recoveryAt' => null, 'scope' => 'transport'];
+        try {
+            $instance = $sms->providers->createProviderByType($provider->type);
+            if (!$instance instanceof TransportProviderInterface) {
+                return null;
+            }
+            $settings = $provider->getSettingsArray();
+            $settings['isDev'] = $sms->senderIds->isDevelopmentSender($sender);
+            $context = $instance->getTransportContext($settings);
+            $status = $sms->transport->status($context);
+            if (!$status['available']) {
+                return $projection;
+            }
+            $active = false;
+            $projection['available'] = true;
+            $projection['manual'] = false;
+            $projection['scope'] = 'account';
+            foreach ($status['holds'] as $hold) {
+                if (!$hold['active'] || !in_array($hold['lane'], ['transport', $context->activeLane], true)) {
+                    continue;
+                }
+                $active = true;
+                if ($hold['scope'] === 'transport') {
+                    $projection['scope'] = 'transport';
+                }
+                $projection['manual'] = $projection['manual'] || $hold['recoveryAt'] === null;
+                if ($hold['recoveryAt'] instanceof \DateTimeInterface &&
+                    ($projection['recoveryAt'] === null || $hold['recoveryAt'] > $projection['recoveryAt'])) {
+                    $projection['recoveryAt'] = $hold['recoveryAt'];
+                }
+            }
+            return $active ? $projection : null;
+        } catch (\Throwable) {
+            // Do not leak provider configuration or guard storage exceptions.
+            return array_replace($projection, ['available' => false, 'manual' => true, 'recoveryAt' => null, 'scope' => 'transport']);
+        }
     }
 
     /**

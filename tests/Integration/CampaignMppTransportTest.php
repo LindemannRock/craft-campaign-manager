@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace lindemannrock\campaignmanager\tests\Integration;
 
 use Craft;
-use lindemannrock\campaignmanager\tests\Support\MppCampaignTestCase;
+use lindemannrock\campaignmanager\tests\Support\ProviderTransportTestCase;
 use lindemannrock\campaignmanager\tests\Support\TransportIsolation;
 
 /**
@@ -18,7 +18,7 @@ use lindemannrock\campaignmanager\tests\Support\TransportIsolation;
  *
  * @since 5.16.0
  */
-final class CampaignMppTransportTest extends MppCampaignTestCase
+final class CampaignMppTransportTest extends ProviderTransportTestCase
 {
     public function testIpBlockAfterSuccessCarriesTheProviderDelayAndOnlyRemainingIds(): void
     {
@@ -60,10 +60,13 @@ final class CampaignMppTransportTest extends MppCampaignTestCase
         $campaign = $this->mppCampaign();
         $recipients = [$this->seedPendingRecipient($campaign), $this->seedPendingRecipient($campaign)];
         $this->hold('ip-blocked', 120);
+        $dispatch = new \lindemannrock\campaignmanager\tests\Stubs\ScriptedSmsManagerSmsService();
+        $this->swapPluginComponent('sms-manager', 'sms', $dispatch);
         $before = TransportIsolation::$interceptedRequests;
         $batch = $this->batch($campaign, $recipients);
         $this->runBatch($batch);
         self::assertSame($before, TransportIsolation::$interceptedRequests);
+        self::assertSame([], $dispatch->sentMessages, 'An existing hold suppresses even SMS Manager dispatch.');
         $queued = $this->queuedJobsWithDelay((int)$campaign->id);
         self::assertCount(1, $queued);
         self::assertSame(120, $queued[0]['delay']);

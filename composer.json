@@ -35,7 +35,7 @@
         "craftcms/cms": "^5.11",
         "lindemannrock/craft-plugin-base": "^5.39.0",
         "lindemannrock/craft-logging-library": "^5.0",
-        "lindemannrock/craft-sms-manager": "^5.18.0",
+        "lindemannrock/craft-sms-manager": "^5.18.1",
         "verbb/formie": "^3.0",
         "giggsey/libphonenumber-for-php": "^8.13"
     },

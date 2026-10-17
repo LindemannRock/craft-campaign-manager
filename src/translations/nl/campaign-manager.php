@@ -278,9 +278,10 @@ return [
     'Failed to load tab content' => 'Tabbladinhoud kon niet worden geladen',
 
     'SMS sending is paused. Pending SMS recipients remain pending. Email continues independently.' => 'Het verzenden van SMS is gepauzeerd. SMS-ontvangers in behandeling blijven in behandeling. Het verzenden van e-mail gaat onafhankelijk verder.',
-    'Review delivery and resolve the hold in SMS Manager. After manual release, explicitly use Run Campaign to send pending invitations.' => 'Controleer de bezorging en los de blokkering op in SMS Manager. Gebruik na handmatige opheffing uitdrukkelijk „Campagne uitvoeren” om uitnodigingen in behandeling te verzenden.',
+    'Resolve the issue and release any hold in SMS Manager, then use Run Campaign to send pending invitations.' => 'Los het probleem op en hef eventuele blokkeringen in SMS Manager op. Gebruik vervolgens „Campagne uitvoeren” om uitnodigingen in behandeling te verzenden.',
     'Timed transport recovery: {time}. Queued SMS continuations can run after this time if no other hold applies.' => 'Gepland transportherstel: {time}. SMS-vervolgtaken in de wachtrij kunnen na dit tijdstip worden uitgevoerd als er geen andere blokkering geldt.',
-    'Releasing a hold sends nothing and does not restart campaigns or failed jobs.' => 'Het opheffen van een blokkering verzendt niets en start geen campagnes of mislukte taken opnieuw.',
+    'SMS Manager has paused sending until {time}.' => 'SMS Manager heeft het verzenden gepauzeerd tot {time}.',
+    'SMS sending is paused until this hold is released in SMS Manager.' => 'Het verzenden van SMS is gepauzeerd totdat deze blokkering in SMS Manager wordt opgeheven.',
     'View Transport Status' => 'Transportstatus bekijken',
 
     // Campaign: Analytics

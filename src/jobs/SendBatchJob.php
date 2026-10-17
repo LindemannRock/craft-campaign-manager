@@ -173,7 +173,9 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
         $waiting = [];
         $waitingEmail = [];
         $waitingSms = [];
-        $smsHold = null;
+        $smsHold = $this->sendSms && !empty($content->smsInvitationMessage)
+            ? CampaignManager::$plugin->sms->getTransportHoldResult($campaign->senderHandle)
+            : null;
         $heldSmsIds = [];
         $now = DateTimeHelper::now();
 
@@ -246,7 +248,7 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
 
                     if (is_array($outcome)) {
                         if (!$outcome['success'] && in_array($outcome['failureCode'], [
-                            'account-unavailable', 'ip-blocked', 'cooldown-active',
+                            'account-unavailable', 'ip-blocked', 'rate-limited', 'provider-unavailable', 'cooldown-active',
                             'guard-busy', 'guard-unavailable', 'transport-uncertain',
                         ], true)) {
                             $smsHold = $outcome;
@@ -329,6 +331,18 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             'waiting' => count($waiting),
         ];
 
+        if ($smsHold !== null) {
+            $code = $smsHold['failureCode'];
+            $delay = $smsHold['retryAfterSeconds'];
+            if (in_array($code, ['guard-busy', 'ip-blocked', 'rate-limited', 'provider-unavailable', 'cooldown-active'], true) &&
+                is_int($delay) && $delay >= 0 && $delay <= 7260) {
+                $this->requeueHeldSms(
+                    array_merge($heldSmsIds, array_keys($waitingSms)),
+                    max($delay, $waitingSms === [] ? 0 : max($waitingSms)),
+                );
+            }
+        }
+
         if (count($waiting) === $totalRecipients) {
             // Nothing was attempted; the batch continues later
             $this->logInfo('Batch waits for the invitation delay', $logContext);
@@ -366,18 +380,6 @@ class SendBatchJob extends BaseJob implements RetryableJobInterface
             'siteScope' => ActivityLogRecord::SCOPE_SITES,
             'siteIds' => [(int)$this->siteId],
         ]);
-
-        if ($smsHold !== null) {
-            $code = $smsHold['failureCode'];
-            $delay = $smsHold['retryAfterSeconds'];
-            if (in_array($code, ['guard-busy', 'ip-blocked', 'cooldown-active'], true) &&
-                is_int($delay) && $delay >= 0 && $delay <= 7260) {
-                $this->requeueHeldSms(
-                    array_merge($heldSmsIds, array_keys($waitingSms)),
-                    max($delay, $waitingSms === [] ? 0 : max($waitingSms)),
-                );
-            }
-        }
 
         // Surface total send failures to the queue UI. Partial successes (some sent,
         // some errored) complete normally — re-running would re-send to recipients

@@ -278,9 +278,10 @@ return [
     'Failed to load tab content' => 'Impossibile caricare il contenuto della scheda',
 
     'SMS sending is paused. Pending SMS recipients remain pending. Email continues independently.' => 'L\'invio di SMS è sospeso. I destinatari SMS in attesa rimangono in attesa. L\'invio di email continua in modo indipendente.',
-    'Review delivery and resolve the hold in SMS Manager. After manual release, explicitly use Run Campaign to send pending invitations.' => 'Verificare la consegna e risolvere il blocco in SMS Manager. Dopo lo sblocco manuale, utilizzare esplicitamente «Esegui campagna» per inviare gli inviti in attesa.',
+    'Resolve the issue and release any hold in SMS Manager, then use Run Campaign to send pending invitations.' => 'Risolvere il problema e rimuovere eventuali blocchi in SMS Manager, quindi utilizzare «Esegui campagna» per inviare gli inviti in attesa.',
     'Timed transport recovery: {time}. Queued SMS continuations can run after this time if no other hold applies.' => 'Ripristino programmato del trasporto: {time}. Le continuazioni SMS in coda possono essere eseguite dopo questo orario se non sono presenti altri blocchi.',
-    'Releasing a hold sends nothing and does not restart campaigns or failed jobs.' => 'Lo sblocco non invia nulla e non riavvia campagne o job non riusciti.',
+    'SMS Manager has paused sending until {time}.' => 'SMS Manager ha sospeso l\'invio fino a {time}.',
+    'SMS sending is paused until this hold is released in SMS Manager.' => 'L\'invio di SMS è sospeso fino alla rimozione di questo blocco in SMS Manager.',
     'View Transport Status' => 'Visualizza stato trasporto',
 
     // Campaign: Analytics

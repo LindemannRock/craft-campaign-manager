@@ -97,16 +97,18 @@
     {% endif %}
 {% endblock %}
 
-{% if campaign is defined and campaign.hasErrors() %}
-    {% set errorSummary %}
+{% set errorSummary %}
+    {% if campaign.id %}
+        {% include 'campaign-manager/_components/_sms-transport-notice' with {campaign: campaign} only %}
+    {% endif %}
+    {% if campaign is defined and campaign.hasErrors() %}
         {% include 'lindemannrock-base/_partials/error-summary' with {
             errors: campaign.getErrors(),
         } %}
-    {% endset %}
-{% endif %}
+    {% endif %}
+{% endset %}
 
 {% block content %}
-    {% include 'campaign-manager/_components/_sms-transport-notice' with {campaign: campaign} only %}
     {{ actionInput('campaign-manager/campaigns/save') }}
     {{ redirectInput('campaign-manager') }}
     {{ hiddenInput('siteId', campaign.siteId) }}
@@ -324,6 +326,13 @@
                 options: senderIdOptions,
                 errors: campaign.getErrors('senderHandle'),
             }) }}
+
+            {% if not campaign.id %}
+                {% include 'campaign-manager/_components/_sender-transport-notices' with {
+                    senderHandles: ['']|merge(senderToProvider|keys),
+                    selectedSenderHandle: currentSenderHandle,
+                } only %}
+            {% endif %}
 
             {# Country preview — resolve provider from the pre-selected sender. #}
             {% if currentSenderHandle is same as('') %}

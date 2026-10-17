@@ -171,12 +171,34 @@ final class SendBatchJobSmsHoldTest extends InvitationDeliveryTestCase
         }
     }
 
+    public function testFirstSharedProviderHoldStopsSmsWithoutOrdinaryErrors(): void
+    {
+        foreach (['rate-limited', 'provider-unavailable'] as $code) {
+            $campaign = $this->seedDeliverableCampaign();
+            $recipients = [$this->seedPendingRecipient($campaign), $this->seedPendingRecipient($campaign)];
+            $before = count($this->sentTo(self::SMS));
+            $this->smsProvider->answers = [['success' => false, 'failureCode' => $code, 'failureScope' => 'account', 'retryAfterSeconds' => 60]];
+            $this->runBatch($this->batch($campaign, $recipients));
+            self::assertCount($before + 1, $this->sentTo(self::SMS));
+            self::assertSame([['smsSent' => 0, 'emailSent' => 2, 'errors' => 0]], $this->batchCounts($campaign));
+            foreach ($recipients as $recipient) {
+                self::assertNull($this->sendDate($recipient, self::SMS));
+                self::assertNotNull($this->sendDate($recipient, self::EMAIL));
+            }
+        }
+    }
+
     /** @return array<string, array{string, string, ?int}> */
     public static function holds(): array
     {
         return [
             'account' => ['account-unavailable', 'account', null],
             'IP block' => ['ip-blocked', 'transport', 180],
+            'rate limited account' => ['rate-limited', 'account', 60],
+            'rate limited transport' => ['rate-limited', 'transport', 60],
+            'outage account' => ['provider-unavailable', 'account', 60],
+            'outage transport' => ['provider-unavailable', 'transport', 60],
+            'manual outage' => ['provider-unavailable', 'transport', null],
             'timed cooldown' => ['cooldown-active', 'transport', 93],
             'busy' => ['guard-busy', 'transport', 1],
             'manual cooldown' => ['cooldown-active', 'account', null],

@@ -1,0 +1,38 @@
+<div id="campaign-sender-transport-notices" aria-live="polite">
+    {% for senderHandle in senderHandles %}
+        {% set hold = craft.app.plugins.getPlugin('campaign-manager').sms.getTransportHoldNotice(senderHandle) %}
+        {% if hold %}
+            {% set noticeText = hold.manual or not hold.recoveryAt
+                ? 'SMS sending is paused until this hold is released in SMS Manager.'|t('campaign-manager')
+                : 'SMS Manager has paused sending until {time}.'|t('campaign-manager', {time: hold.recoveryAt|lrDatetime}) %}
+            {% set smsManagerLink = hold.statusUrl
+                ? '<a href="' ~ hold.statusUrl|e ~ '">SMS Manager</a>'
+                : 'SMS Manager' %}
+            <div data-sender-hold="{{ senderHandle }}"{% if senderHandle != selectedSenderHandle %} hidden{% endif %}>
+                {% include 'lindemannrock-base/_components/info-box' with {
+                    message: noticeText|e|replace({'SMS Manager': smsManagerLink}),
+                    type: 'warning',
+                    variant: 'colored',
+                    margin: 'bottom',
+                } only %}
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+{% js %}
+    (function() {
+        var senderSelect = document.getElementById('senderHandle');
+        var notices = document.getElementById('campaign-sender-transport-notices');
+        if (!senderSelect || !notices) {
+            return;
+        }
+        function updateSenderHoldNotice() {
+            notices.querySelectorAll('[data-sender-hold]').forEach(function(notice) {
+                notice.hidden = notice.getAttribute('data-sender-hold') !== senderSelect.value;
+            });
+        }
+        senderSelect.addEventListener('change', updateSenderHoldNotice);
+        updateSenderHoldNotice();
+    })();
+{% endjs %}

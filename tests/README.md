@@ -33,7 +33,7 @@ setting is put back in teardown, which also fails the test if the fixture was
 compiled to disk anyway. Only the fixture's own compiled file, located by its
 exact Twig cache key, is ever removed; no other compiled template is touched.
 
-## MPP transport isolation
+## Provider transport isolation
 
 `TransportIsolation` is installed before Craft application bootstrap in both the
 suite and disposable project. It replaces Guzzle transport with synthetic
@@ -42,8 +42,8 @@ execution, and reports intercepted versus real requests. Disposable PHP children
 also disable socket/cURL/mail functions and URL streams. No test starts a worker;
 batches are invoked directly and only their owned queue payloads are inspected.
 
-`MppCampaignTestCase` runs the real SMS Manager result/guard path with a synthetic
-account and endpoint. It requires a disposable database, owns exact guard scope
+`ProviderTransportTestCase` runs the real SMS Manager 5.18.1 shared result/guard path with a synthetic
+MPP/Twilio account and intercepted endpoint. Custom providers exercise the optional transport interface without HTTP. Deterministic interleaving covers admission races and overlapping campaigns; controlled clocks cover expiry without sleeps. It requires a disposable database, owns exact guard scope
 keys, restores logging/config/component swaps and removes its rows. Campaign
 page tests own their session, template cache and published-asset directories;
 release-history rows are removed by their owned actor and IDs. The console page
@@ -51,6 +51,11 @@ fixture temporarily hides SMS Manager’s unrelated global sidebar entry (which
 requires a web-user component), restoring the property immediately; campaign
 controllers, templates, notice rendering and permission checks run unchanged. Fixture lifecycle
 probes check project/database removal on success, failure, shutdown and SIGTERM.
+
+The notice family also renders the new-campaign form and executes its registered
+sender-selection JavaScript in Node's isolated VM with synthetic DOM controls.
+It checks default, held, unaffected and development sender selections without
+opening a browser or making network requests. Node must be available to these tests.
 
 ## Commands
 

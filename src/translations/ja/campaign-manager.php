@@ -278,9 +278,10 @@ return [
     'Failed to load tab content' => 'タブの内容を読み込めませんでした',
 
     'SMS sending is paused. Pending SMS recipients remain pending. Email continues independently.' => 'SMS の送信は一時停止中です。保留中の SMS 受信者は保留中のままです。メールの送信は独立して継続されます。',
-    'Review delivery and resolve the hold in SMS Manager. After manual release, explicitly use Run Campaign to send pending invitations.' => 'SMS Manager で配信状況を確認し、送信停止を解消してください。手動で解除した後は、明示的に「キャンペーンを実行する」を使用して保留中の招待を送信してください。',
+    'Resolve the issue and release any hold in SMS Manager, then use Run Campaign to send pending invitations.' => 'SMS Manager で問題を解決して送信停止を解除した後、「キャンペーンを実行する」を使用して保留中の招待を送信してください。',
     'Timed transport recovery: {time}. Queued SMS continuations can run after this time if no other hold applies.' => '通信の復旧予定時刻: {time}。他の送信停止が適用されていなければ、キュー内の SMS 継続処理はこの時刻以降に実行できます。',
-    'Releasing a hold sends nothing and does not restart campaigns or failed jobs.' => '送信停止を解除しても、何も送信されず、キャンペーンや失敗したジョブは再開されません。',
+    'SMS Manager has paused sending until {time}.' => 'SMS Manager が {time} まで送信を停止しています。',
+    'SMS sending is paused until this hold is released in SMS Manager.' => 'SMS Manager でこの送信停止が解除されるまで、SMS は送信されません。',
     'View Transport Status' => '通信ステータスを表示する',
 
     // Campaign: Analytics
