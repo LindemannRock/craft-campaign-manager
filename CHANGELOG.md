@@ -1,5 +1,44 @@
 # Changelog
 
+## [5.16.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.15.0...v5.16.0) - 2026-10-17
+
+
+### Added
+
+* **deps:** require Craft 5.11 and Base 5.39 ([0af6ce9](https://github.com/LindemannRock/craft-campaign-manager/commit/0af6ce9d66e53703e73088041f3946297331fe36))
+
+
+### Fixed
+
+* **analytics:** align reports with event dates ([121d88d](https://github.com/LindemannRock/craft-campaign-manager/commit/121d88de7e29dd3de537a470134f91f761d40076))
+* **analytics:** use Composer alias for asset delivery ([e156fbf](https://github.com/LindemannRock/craft-campaign-manager/commit/e156fbf7ca9caf8c9ad2ed92d31abfa347a064bd))
+* **analytics:** use parameterized queries for email and SMS metrics ([6505d8a](https://github.com/LindemannRock/craft-campaign-manager/commit/6505d8ab53b1d2a8d914f1c89e1267eade00a2ce))
+* **campaigns:** correct invitation and analytics workflows ([c333a13](https://github.com/LindemannRock/craft-campaign-manager/commit/c333a13ab56580888d4d9d1ef6f8caa48bbafdb9))
+* **campaigns:** enforce invitation and reporting contracts ([e73c266](https://github.com/LindemannRock/craft-campaign-manager/commit/e73c266e95ab125356e9758edd584bcf20656557))
+* **controllers:** make search case-insensitive in activity logs ([9637172](https://github.com/LindemannRock/craft-campaign-manager/commit/9637172a5e4a19e951eb0205fb29ac09940d4a28))
+* escape country names and provider names to prevent XSS ([c5dc12d](https://github.com/LindemannRock/craft-campaign-manager/commit/c5dc12d389316b9081c9e24f46c054dcdc473ce4))
+* **i18n:** correct translations across multiple locales ([146a3df](https://github.com/LindemannRock/craft-campaign-manager/commit/146a3dfdfe563ec63dcc7e478cb3b6c8626966a4))
+* **import-export:** scope invitation batches to imported recipients ([8dd570d](https://github.com/LindemannRock/craft-campaign-manager/commit/8dd570d9bc50b6d06f1298099df547920fcbc2b7))
+* **notifications:** start invitation expiry on delivery ([8896175](https://github.com/LindemannRock/craft-campaign-manager/commit/8896175dd9541e3225908b5524ff658b2ff387ee))
+* **queue:** prevent overlapping invitation sends ([84c8b23](https://github.com/LindemannRock/craft-campaign-manager/commit/84c8b23216e6fe2e3436b47140daa560bab9b400))
+* **recipients:** attribute invitation opens by channel ([b2f6909](https://github.com/LindemannRock/craft-campaign-manager/commit/b2f6909524ef7cbcb0a64c0aad9ad103b85f9f01))
+* **recipients:** handle CSV parsing errors with improved logging and user feedback ([615bd38](https://github.com/LindemannRock/craft-campaign-manager/commit/615bd38129775980f084dca3d00c4dfed706ad95))
+* **recipients:** make search case-insensitive for name, email, and sms fields ([7e5dd6d](https://github.com/LindemannRock/craft-campaign-manager/commit/7e5dd6d2b0f2a1a02a3c0d402e142b191aabcd82))
+* remove translation category from error summary inclusion ([4d9db33](https://github.com/LindemannRock/craft-campaign-manager/commit/4d9db331869fb0bd0777b4bfb5f276eac748c63e))
+* remove unused linkMode parameter from error summary ([7309873](https://github.com/LindemannRock/craft-campaign-manager/commit/7309873107659b2e66a92241a2689b1b2a1e8390))
+* **settings:** clarify default export format in configuration ([1f89a71](https://github.com/LindemannRock/craft-campaign-manager/commit/1f89a7133344e54d493250b8cf87fed955e8c540))
+* **sms:** handle shared transport holds ([0bbeb60](https://github.com/LindemannRock/craft-campaign-manager/commit/0bbeb60a1023e38bed100c8dc40ce0f54f39de70))
+* **sms:** normalize campaign sender handles ([79fc798](https://github.com/LindemannRock/craft-campaign-manager/commit/79fc798416c5101d531bf5f0ca0cc1a95b33d45a))
+* **sms:** preserve MPP transport holds ([57dd719](https://github.com/LindemannRock/craft-campaign-manager/commit/57dd71996c2600d022e9450bbe22fc78fc776676))
+* **templates:** preserve zero rating responses ([7406d2e](https://github.com/LindemannRock/craft-campaign-manager/commit/7406d2e4e1be8765373514f392a290296d946221))
+
+
+### Security
+
+* **elements:** escape Formie title links ([3150557](https://github.com/LindemannRock/craft-campaign-manager/commit/315055741a3e94ddeb4f82c312b101adc2b01b20))
+* **permissions:** enforce editable site boundaries ([0962d9f](https://github.com/LindemannRock/craft-campaign-manager/commit/0962d9f3eae3ab3d61629f8f544e7cca6b9896d5))
+* **recipients:** validate invitation response links ([fc41a49](https://github.com/LindemannRock/craft-campaign-manager/commit/fc41a49a1ebf1cce08f1593600e242179182e5b4))
+
 ## [5.15.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.14.0...v5.15.0) - 2026-07-01
 
 
