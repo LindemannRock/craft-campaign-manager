@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.16.1](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.16.0...v5.16.1) - 2026-10-18
+
+
+### Fixed
+
+* **cp:** correct campaign navigation URLs ([b205692](https://github.com/LindemannRock/craft-campaign-manager/commit/b2056924b3daaa100d5e2714a23d94bbf6de3e79))
+
 ## [5.16.0](https://github.com/LindemannRock/craft-campaign-manager/compare/v5.15.0...v5.16.0) - 2026-10-17
 
 
