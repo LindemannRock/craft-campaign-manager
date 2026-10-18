@@ -58,6 +58,7 @@
     page: {
         title: campaign.title ~ ' — ' ~ 'Recipients'|t('campaign-manager'),
         subnav: 'campaigns',
+        url: cpUrl('campaign-manager/campaigns/' ~ campaignId ~ '/recipients', {site: site.handle}),
         crumbs: crumbs,
     },
     filters: [

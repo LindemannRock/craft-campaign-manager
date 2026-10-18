@@ -736,10 +736,7 @@ class Campaign extends Element
      */
     protected function cpEditUrl(): ?string
     {
-        $site = Craft::$app->getSites()->getSiteById($this->siteId);
-        $siteHandle = $site?->handle ?? Craft::$app->getSites()->getCurrentSite()->handle;
-
-        return sprintf('campaign-manager/campaigns/%s?site=%s', $this->getCanonicalId(), $siteHandle);
+        return sprintf('campaign-manager/campaigns/%s', $this->getCanonicalId());
     }
 
     /**
@@ -748,14 +745,6 @@ class Campaign extends Element
     public function getPostEditUrl(): ?string
     {
         return UrlHelper::cpUrl('campaign-manager');
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getCpEditUrl(): ?string
-    {
-        return $this->cpEditUrl();
     }
 
     /**
